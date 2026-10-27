@@ -1,26 +1,21 @@
 import {
-  Award,
   BookMarked,
   BarChart3,
   BookOpenCheck,
   Bot,
   ClipboardCheck,
-  Code2,
-  Compass,
   FlaskConical,
-  FolderKanban,
   Dumbbell,
   Gamepad2,
   GraduationCap,
+  Home,
   LayoutDashboard,
   Library,
   ListChecks,
-  Map,
   NotebookPen,
   Settings,
   Shield,
   Sparkles,
-  Target,
   Users,
   Wand2,
 } from "lucide-react";
@@ -30,6 +25,8 @@ export interface NavItem {
   href: string;
   label: string;
   icon: React.ComponentType<{ className?: string }>;
+  /** Đường dẫn trang con cũng tính là đang ở mục này */
+  match?: string[];
 }
 
 export const NAV: Record<Role, NavItem[]> = {
@@ -47,19 +44,13 @@ export const NAV: Record<Role, NavItem[]> = {
     { href: "/teacher/library", label: "Thư viện chia sẻ", icon: Library },
     { href: "/teacher/settings", label: "Cài đặt", icon: Settings },
   ],
+  // 5 chức năng của học sinh; trang con (match) vẫn đánh dấu đúng mục cha. Kết quả học tập nằm ở Trang cá nhân.
   student: [
-    { href: "/student/dashboard", label: "Tổng quan", icon: LayoutDashboard },
-    { href: "/student/courses", label: "Khóa học", icon: BookMarked },
-    { href: "/student/learning", label: "Bài học", icon: Compass },
-    { href: "/student/games", label: "Trò chơi mô phỏng", icon: Gamepad2 },
-    { href: "/student/code", label: "Phòng lập trình", icon: Code2 },
-    { href: "/student/tutor", label: "Gia sư AI", icon: Bot },
-    { href: "/student/practice", label: "Luyện tập & kiểm tra", icon: Dumbbell },
-    { href: "/student/projects", label: "Xưởng dự án", icon: FolderKanban },
-    { href: "/student/missions", label: "Nhiệm vụ của tôi", icon: Target },
-    { href: "/student/progress", label: "Tiến độ học tập", icon: Map },
-    { href: "/student/portfolio", label: "Thành tích & hồ sơ", icon: Award },
-    { href: "/student/settings", label: "Cài đặt", icon: Settings },
+    { href: "/student/dashboard", label: "Trang chủ", icon: Home },
+    { href: "/student/courses", label: "Khóa học của tôi", icon: BookMarked, match: ["/student/missions", "/student/learning"] },
+    { href: "/student/games", label: "Tình huống mô phỏng", icon: Gamepad2 },
+    { href: "/student/practice", label: "Luyện tập", icon: Dumbbell, match: ["/student/code", "/student/projects"] },
+    { href: "/student/tutor", label: "AI Gia sư", icon: Bot },
   ],
   admin: [
     { href: "/admin", label: "Quản trị", icon: Shield },

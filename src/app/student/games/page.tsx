@@ -25,7 +25,7 @@ export default function GamesPage() {
 
   return (
     <>
-      <PageHeader title="Trò chơi mô phỏng" description="Vận dụng kiến thức Tin học để giải quyết nhiệm vụ trong các thế giới mô phỏng." />
+      <PageHeader title="Tình huống mô phỏng" description="Khám phá thuật toán, máy tính, mạng và những tình huống tương tác. Gặp khó, em mở AI Gia sư ngay trong mô phỏng." />
       <Stagger className="mb-6 grid gap-4 md:grid-cols-3">
         {WORLDS.map((w) => (
           <StaggerItem key={w.id}>

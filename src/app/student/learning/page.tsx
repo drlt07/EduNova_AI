@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import { Search } from "lucide-react";
 import { LESSONS, TOPICS, getTextbook } from "@/lib/data/curriculum";
@@ -24,7 +25,8 @@ export default function LearningPage() {
   );
   return (
     <>
-      <PageHeader title="Bài học" description={`Bộ sách ${getTextbook(book).name}`} />
+      <Link href="/student/courses" className="mb-2 inline-block text-sm font-medium text-cyan-fg hover:underline">← Khóa học của tôi</Link>
+      <PageHeader title="Học theo chương trình SGK" description={`Bộ sách ${getTextbook(book).name}`} />
       <div className="mb-5 grid gap-3 rounded-2xl border border-line bg-surface p-4 md:grid-cols-[1fr_150px_240px]">
         <div className="relative">
           <Label htmlFor="sq" className="sr-only">Tìm bài học</Label>

@@ -15,13 +15,15 @@ import { NotificationBell, PrefsApplier, SearchPalette } from "@/components/stud
 import { TutorProvider } from "@/components/tutor/tutor-provider";
 import { motion } from "motion/react";
 import { ThemeToggle } from "./theme-toggle";
+import { Avatar } from "@/components/ui/misc";
 
 function SidebarNav({ role, onNavigate }: { role: Role; onNavigate?: () => void }) {
   const pathname = usePathname();
   return (
     <nav aria-label={`Điều hướng ${ROLE_LABEL[role]}`} className="flex flex-col gap-0.5">
       {NAV[role].map((item) => {
-        const active = pathname === item.href || (item.href !== "/admin" && pathname.startsWith(item.href + "/"));
+        const under = (h: string) => pathname === h || pathname.startsWith(h + "/");
+        const active = pathname === item.href || (item.href !== "/admin" && pathname.startsWith(item.href + "/")) || (item.match?.some(under) ?? false);
         return (
           <Link
             key={item.href}
@@ -110,6 +112,12 @@ export function AppShell({ role, children }: { role: Role; children: React.React
           </div>
           <div className="flex items-center gap-2">
             {isStudent && <NotificationBell studentId={user!.id} />}
+            {isStudent && (
+              <Link href="/student/profile" aria-current={pathname.startsWith("/student/profile") ? "page" : undefined} className="flex items-center gap-2 rounded-xl px-2 py-1.5 text-sm font-medium text-fg hover:bg-surface-2">
+                <Avatar user={user!} size={28} />
+                <span className="hidden md:inline">Trang cá nhân</span>
+              </Link>
+            )}
             <ThemeToggle />
             {hydrated && <RoleSwitcher />}
           </div>

@@ -54,7 +54,8 @@ export default function MissionsPage() {
   const list = all.filter((m) => tab === "all" || GROUPS[tab].includes(m.status));
   return (
     <>
-      <PageHeader title="Nhiệm vụ của tôi" description="Nhiệm vụ giáo viên giao và những việc em tự chọn luyện." />
+      <Link href="/student/courses" className="mb-2 inline-block text-sm font-medium text-cyan-fg hover:underline">← Khóa học của tôi</Link>
+      <PageHeader title="Nhiệm vụ của tôi" description="Nhiệm vụ thầy cô giao và những việc em tự chọn luyện." />
       <div role="group" aria-label="Nguồn nhiệm vụ" className="mb-4 inline-flex gap-1 rounded-xl border border-line bg-surface-2 p-1">
         {[["teacher", `Giáo viên giao (${all.length})`], ["self", `Em tự chọn (${self.length})`]].map(([v, l]) => (
           <button key={v} type="button" aria-pressed={source === v} onClick={() => setSource(v)} className={source === v ? "rounded-lg bg-surface px-3 py-1.5 text-sm font-medium text-fg shadow-sm" : "rounded-lg px-3 py-1.5 text-sm font-medium text-muted"}>{l}</button>
