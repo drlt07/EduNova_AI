@@ -7,6 +7,7 @@ import { DatabaseCityLab } from "@/components/db/database-city-lab";
 import { SqlDetectiveLab } from "@/components/sql/sql-detective-lab";
 import { DebugDetectiveLab } from "@/components/debug/debug-detective-lab";
 import { DigitalSafetyLab } from "@/components/safety/digital-safety-lab";
+import { AiDiscoveryLab } from "@/components/ai/ai-discovery-lab";
 import { DEFAULT_GARDEN_PARAMS, gardenTestCases } from "@/lib/sim/smart-garden";
 import { EmptyState } from "@/components/ui/feedback";
 import { SmartGardenLab } from "./smart-garden/smart-garden-lab";
@@ -32,5 +33,6 @@ export function LabPreview({ slug, onSaveWeb }: { slug: string; onSaveWeb?: (con
   if (slug === "sql-detective") return <SqlDetectiveLab />;
   if (slug === "debug-detective") return <DebugDetectiveLab />;
   if (slug === "digital-safety") return <DigitalSafetyLab />;
+  if (slug === "ai-discovery") return <AiDiscoveryLab />;
   return <EmptyState title="Sắp có" description={`"${lab.title}" đang được xây dựng. Bạn có thể xem mục tiêu và bài tập mẫu bên dưới.`} />;
 }
