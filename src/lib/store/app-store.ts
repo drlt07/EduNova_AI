@@ -9,6 +9,7 @@ import { createJSONStorage, persist } from "zustand/middleware";
 import type {
   ActivityQuestion,
   Bookmark,
+  Course,
   PracticeAttempt,
   StudentProject,
   UserPrefs,
@@ -30,6 +31,7 @@ import type {
 } from "@/lib/domain/types";
 import { buildSeed, type DemoData } from "@/lib/data/seed";
 import { uid } from "@/lib/utils";
+import { scaffoldTopics } from "@/lib/courses/course";
 
 export interface PublishActivityInput {
   ownerId: string;
@@ -131,6 +133,14 @@ interface Actions {
   setPrefs: (userId: string, prefs: Partial<UserPrefs>) => void;
   markNotifRead: (userId: string, ids: string[]) => void;
   setPortfolioVisibility: (id: string, v: "private" | "teacher" | "class") => void;
+  // Khóa học & bài giảng
+  createCourse: (c: Pick<Course, "ownerId" | "title" | "description" | "grade" | "textbookId" | "sequential"> & { scaffold: boolean }) => string;
+  updateCourse: (id: string, patch: Partial<Omit<Course, "id" | "ownerId" | "createdAt">>) => void;
+  deleteCourse: (id: string, actorId: string) => void;
+  publishCourse: (id: string, classIds: string[], actorId: string) => void;
+  unpublishCourse: (id: string, actorId: string) => void;
+  markCourseBlock: (studentId: string, courseId: string, blockId: string, done: boolean, score?: number) => void;
+  setCourseLastLesson: (studentId: string, courseId: string, lessonId: string) => void;
 }
 
 export type AppState = DemoData & Session & Actions;
@@ -416,6 +426,39 @@ export const useApp = create<AppState>()(
         setPrefs: (userId, prefs) => set((s) => ({ prefs: { ...s.prefs, [userId]: { ...DEFAULT_PREFS, ...s.prefs[userId], ...prefs } } })),
         markNotifRead: (userId, ids) => set((s) => ({ notifRead: { ...s.notifRead, [userId]: [...new Set([...(s.notifRead[userId] ?? []), ...ids])] } })),
         setPortfolioVisibility: (id, v) => set((s) => ({ portfolio: s.portfolio.map((p) => (p.id === id ? { ...p, visibility: v } : p)) })),
+
+        createCourse: ({ scaffold, ...c }) => {
+          const id = uid("course");
+          const t = now();
+          set((s) => ({ courses: [{ ...c, id, topics: scaffold ? scaffoldTopics(c.grade, c.textbookId) : [], classIds: [], status: "draft", createdAt: t, updatedAt: t }, ...s.courses] }));
+          audit(c.ownerId, "create", "Course", id, `Tạo khóa học "${c.title}"`);
+          return id;
+        },
+        updateCourse: (id, patch) => set((s) => ({ courses: s.courses.map((c) => (c.id === id ? { ...c, ...patch, updatedAt: now() } : c)) })),
+        deleteCourse: (id, actorId) => {
+          set((s) => ({ courses: s.courses.filter((c) => c.id !== id), courseProgress: s.courseProgress.filter((p) => p.courseId !== id) }));
+          audit(actorId, "delete", "Course", id, "Xóa khóa học");
+        },
+        publishCourse: (id, classIds, actorId) => {
+          set((s) => ({ courses: s.courses.map((c) => (c.id === id ? { ...c, classIds, status: "published", updatedAt: now() } : c)) }));
+          const names = get().classes.filter((c) => classIds.includes(c.id)).map((c) => c.name).join(", ");
+          audit(actorId, "publish", "Course", id, `Phát hành khóa học cho ${names}`);
+        },
+        unpublishCourse: (id, actorId) => {
+          set((s) => ({ courses: s.courses.map((c) => (c.id === id ? { ...c, status: "draft", updatedAt: now() } : c)) }));
+          audit(actorId, "update", "Course", id, "Thu hồi khóa học về bản nháp");
+        },
+        markCourseBlock: (studentId, courseId, blockId, done, score) =>
+          set((s) => ({
+            courseProgress: upsertCourseProgress(s.courseProgress, studentId, courseId, (p) => {
+              const next = { ...p.done };
+              if (done) next[blockId] = { at: now(), ...(score !== undefined ? { score } : {}) };
+              else delete next[blockId];
+              return { ...p, done: next };
+            }),
+          })),
+        setCourseLastLesson: (studentId, courseId, lessonId) =>
+          set((s) => ({ courseProgress: upsertCourseProgress(s.courseProgress, studentId, courseId, (p) => ({ ...p, lastLessonId: lessonId })) })),
       } as AppState;
     },
     {
@@ -432,6 +475,12 @@ export const useApp = create<AppState>()(
     },
   ),
 );
+
+function upsertCourseProgress(list: DemoData["courseProgress"], studentId: string, courseId: string, fn: (p: DemoData["courseProgress"][number]) => DemoData["courseProgress"][number]) {
+  const cur = list.find((p) => p.studentId === studentId && p.courseId === courseId);
+  const next = { ...fn(cur ?? { studentId, courseId, done: {}, updatedAt: now() }), updatedAt: now() };
+  return cur ? list.map((p) => (p === cur ? next : p)) : [next, ...list];
+}
 
 function upsertProgress(list: DemoData["lessonProgress"], studentId: string, lessonId: string, fn: (p: DemoData["lessonProgress"][number]) => DemoData["lessonProgress"][number]) {
   const cur = list.find((p) => p.studentId === studentId && p.lessonId === lessonId);

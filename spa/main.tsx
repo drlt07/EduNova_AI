@@ -24,6 +24,8 @@ import LessonPage from "@/app/(public)/bai-hoc/[id]/page";
 import SLesson from "@/app/student/learning/[id]/page";
 
 import TDashboard from "@/app/teacher/dashboard/page";
+import TCourses from "@/app/teacher/courses/page";
+import TCourse from "@/app/teacher/courses/[id]/page";
 import TPlanner from "@/app/teacher/lesson-planner/page";
 import TPlanEditor from "@/app/teacher/lesson-planner/[id]/page";
 import TBuilder from "@/app/teacher/activity-builder/page";
@@ -37,6 +39,8 @@ import TLibrary from "@/app/teacher/library/page";
 import TSettings from "@/app/teacher/settings/page";
 
 import SDashboard from "@/app/student/dashboard/page";
+import SCourses from "@/app/student/courses/page";
+import SCourse from "@/app/student/courses/[id]/page";
 import SLearning from "@/app/student/learning/page";
 import SCode from "@/app/student/code/page";
 import SMissions from "@/app/student/missions/page";
@@ -107,6 +111,8 @@ const ROUTES: Route[] = [
   r("/login", "public", C(Login)),
   r("/register", "public", C(Register)),
   r("/teacher(?:/dashboard)?", "teacher", C(TDashboard)),
+  r("/teacher/courses", "teacher", C(TCourses)),
+  r("/teacher/courses/:id", "teacher", (p) => <TCourse key={p.id} />),
   r("/teacher/lesson-planner", "teacher", C(TPlanner)),
   r("/teacher/lesson-planner/:id", "teacher", (p) => <TPlanEditor key={p.id} />),
   r("/teacher/activity-builder", "teacher", C(TBuilder)),
@@ -119,6 +125,8 @@ const ROUTES: Route[] = [
   r("/teacher/library", "teacher", C(TLibrary)),
   r("/teacher/settings", "teacher", C(TSettings)),
   r("/student(?:/dashboard)?", "student", C(SDashboard)),
+  r("/student/courses", "student", C(SCourses)),
+  r("/student/courses/:id", "student", (p) => <SCourse key={p.id} />),
   r("/student/learning", "student", C(SLearning)),
   r("/student/learning/:id", "student", (p) => <SLesson key={p.id} />),
   r("/student/games", "student", C(SGames)),

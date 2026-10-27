@@ -1,5 +1,6 @@
 import {
   Award,
+  BookMarked,
   BarChart3,
   BookOpenCheck,
   Bot,
@@ -34,6 +35,7 @@ export interface NavItem {
 export const NAV: Record<Role, NavItem[]> = {
   teacher: [
     { href: "/teacher/dashboard", label: "Tổng quan", icon: LayoutDashboard },
+    { href: "/teacher/courses", label: "Khóa học & bài giảng", icon: BookMarked },
     { href: "/teacher/lesson-planner", label: "Kế hoạch bài dạy", icon: NotebookPen },
     { href: "/teacher/activity-builder", label: "Thiết kế hoạt động", icon: Wand2 },
     { href: "/teacher/labs", label: "Phòng thí nghiệm ảo", icon: FlaskConical },
@@ -47,6 +49,7 @@ export const NAV: Record<Role, NavItem[]> = {
   ],
   student: [
     { href: "/student/dashboard", label: "Tổng quan", icon: LayoutDashboard },
+    { href: "/student/courses", label: "Khóa học", icon: BookMarked },
     { href: "/student/learning", label: "Bài học", icon: Compass },
     { href: "/student/games", label: "Trò chơi mô phỏng", icon: Gamepad2 },
     { href: "/student/code", label: "Phòng lập trình", icon: Code2 },

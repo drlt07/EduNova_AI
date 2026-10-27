@@ -496,3 +496,78 @@ export interface UserPrefs {
   fontScale: number;
   highContrast: boolean;
 }
+
+/* ---------- Khóa học & bài giảng (chức năng 1) ---------- */
+export type CourseBlockKind = "text" | "media" | "simulation" | "python" | "practice" | "file";
+
+/** Tệp do giáo viên tải lên (bản demo: lưu dạng data URL trong trình duyệt, giới hạn kích thước). */
+export interface CourseFile {
+  name: string;
+  type: string;
+  size: number;
+  dataUrl: string;
+}
+
+export interface CourseBlock {
+  id: string;
+  kind: CourseBlockKind;
+  title: string;
+  /** text: nội dung; các loại khác: hướng dẫn ngắn cho học sinh */
+  body?: string;
+  /** media: URL ảnh/video (YouTube hoặc tệp) */
+  mediaUrl?: string;
+  /** media hoặc file: tệp tải lên */
+  file?: CourseFile;
+  /** simulation: slug phòng thí nghiệm */
+  labSlug?: string;
+  /** python: mã bài lập trình */
+  exerciseId?: string;
+  /** practice: mã bộ luyện tập */
+  practiceSetId?: string;
+  /** practice: tỉ lệ đúng tối thiểu (%) để tính hoàn thành */
+  minScore?: number;
+  /** Bắt buộc để hoàn thành bài */
+  required: boolean;
+}
+
+export interface CourseLesson {
+  id: string;
+  title: string;
+  /** Bài học trong chương trình (L-10-if-kntt…) */
+  lessonId?: string;
+  blocks: CourseBlock[];
+  /** Mở tự do: học sinh vào được dù chưa xong bài trước (khi khóa học yêu cầu học lần lượt) */
+  alwaysOpen?: boolean;
+}
+
+export interface CourseTopic {
+  id: string;
+  title: string;
+  topicId?: string;
+  lessons: CourseLesson[];
+}
+
+export interface Course {
+  id: string;
+  ownerId: string;
+  title: string;
+  description: string;
+  grade: Grade;
+  textbookId: TextbookId;
+  topics: CourseTopic[];
+  /** Học lần lượt: phải hoàn thành bài trước mới mở bài sau */
+  sequential: boolean;
+  classIds: string[];
+  status: "draft" | "published";
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CourseProgress {
+  studentId: string;
+  courseId: string;
+  /** blockId → thời điểm hoàn thành và điểm (nếu có) */
+  done: Record<string, { at: string; score?: number }>;
+  lastLessonId?: string;
+  updatedAt: string;
+}

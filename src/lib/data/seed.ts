@@ -5,6 +5,8 @@
  */
 import type {
   ActivityDraft,
+  Course,
+  CourseProgress,
   AIInteraction,
   Assessment,
   Assignment,
@@ -35,6 +37,7 @@ import type {
 } from "@/lib/domain/types";
 import { compileRule, gardenTestCases, runRule, runTests } from "@/lib/sim/smart-garden";
 import { SEED_CLASSES, SEED_ENROLLMENTS, SEED_USERS } from "./people";
+import { seedCourses } from "./courses-seed";
 
 export interface DemoData {
   users: User[];
@@ -66,6 +69,8 @@ export interface DemoData {
   reports: SupportReport[];
   prefs: Record<string, UserPrefs>;
   notifRead: Record<string, string[]>;
+  courses: Course[];
+  courseProgress: CourseProgress[];
 }
 
 export const SEED_RUBRIC_CRITERIA = (prefix: string) => [
@@ -357,6 +362,8 @@ export function buildSeed(now: Date = new Date()): DemoData {
 
   return {
     users: SEED_USERS,
+    courses: seedCourses(at(-10)),
+    courseProgress: [],
     classes: SEED_CLASSES,
     enrollments: SEED_ENROLLMENTS,
     lessonPlans: [ifPlan, dbPlan, t2Plan],
