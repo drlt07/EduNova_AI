@@ -14,7 +14,7 @@ export type HamDocHinh = (hinh: HinhGoc, ctx: NguCanhSoan, signal: AbortSignal) 
 export const chiBaoNc1 = () => locChiBao({ trinhDo: TRINH_DO_THPT }).map((c) => ({ ma: c.ma, noiDung: c.noiDung }));
 
 async function goiApi<T>(body: object, signal: AbortSignal): Promise<T> {
-  const res = await fetch("/api/soan", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body), signal });
+  const res = await fetch("/api/khbd/soan", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body), signal });
   const json = await res.json();
   if (!res.ok) throw new Error(json.loi ?? "Không soạn được.");
   return json.duLieu as T;
@@ -34,7 +34,7 @@ export const docHinhQuaMayChu: HamDocHinh = async (hinh, nguCanh, signal) => {
 };
 
 export async function giaLapQuaMayChu(): Promise<boolean> {
-  try { return (await (await fetch("/api/soan")).json()).giaLap !== false; } catch { return true; }
+  try { return (await (await fetch("/api/khbd/soan")).json()).giaLap !== false; } catch { return true; }
 }
 
 /** Soạn ngay trên trình duyệt bằng một adapter (khóa riêng của giáo viên, hoặc quyền của bản xem trước). */

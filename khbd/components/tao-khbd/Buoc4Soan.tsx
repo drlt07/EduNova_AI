@@ -58,7 +58,7 @@ export function Buoc4Soan({
           )}
           <ThanhTienDo phanTram={phanTram} nhan={dang ? `Đang soạn: ${dang.ten}` : xongHet ? "Hoàn thành" : `${soXong}/${dsLuot.length} phần`} />
           <div className="grid grid-cols-3 gap-3 text-center">
-            {[["Đã xong", soXong, "text-nhan"], ["Còn lại", dsLuot.length - soXong - loi.length, "text-chu"], ["Lỗi", loi.length, loi.length ? "text-red-700" : "text-chu-phu"]].map(([ten, so, mau]) => (
+            {[["Đã xong", soXong, "text-nhan"], ["Còn lại", dsLuot.length - soXong - loi.length, "text-chu"], ["Lỗi", loi.length, loi.length ? "text-danger-fg" : "text-chu-phu"]].map(([ten, so, mau]) => (
               <div key={ten as string} className="rounded-md border border-vien py-2.5">
                 <p className={`text-xl font-semibold tabular-nums ${mau}`}>{so}</p>
                 <p className="text-xs text-chu-phu">{ten}</p>

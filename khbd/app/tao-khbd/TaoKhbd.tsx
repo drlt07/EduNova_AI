@@ -33,7 +33,7 @@ export function TaoKhbd({ docFile, giaoAnMau, moiTruong: moiTruongGoc = MOI_TRUO
   useEffect(() => {
     if (!khoaRieng) return;
     setKhoa(docKhoaAi());
-    fetch("/api/soan").then((r) => r.json()).then((j) => setMayChu({ giaLap: j.giaLap !== false, nhaCungCap: j.nhaCungCap ?? null })).catch(() => setMayChu(null));
+    fetch("/api/khbd/soan").then((r) => r.json()).then((j) => setMayChu({ giaLap: j.giaLap !== false, nhaCungCap: j.nhaCungCap ?? null })).catch(() => setMayChu(null));
   }, [khoaRieng]);
   const doiKhoa = (k: KhoaAi | null, nho: boolean) => {
     if (k) luuKhoaAi(k, nho); else xoaKhoaAi();

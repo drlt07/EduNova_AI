@@ -16,7 +16,7 @@ export function CotBuoc({ buoc }: { buoc: number }) {
                   <span aria-hidden="true" className={"absolute left-[13px] top-7 h-[calc(100%-1.75rem)] w-px " + (tt === "xong" ? "bg-nhan" : "bg-vien")} />
                 )}
                 <span className={"relative grid h-7 w-7 shrink-0 place-items-center rounded-full text-xs font-semibold " +
-                  (tt === "dang" ? "bg-nhan text-white ring-4 ring-nhan-nhat shadow-[0_4px_10px_-4px_rgb(31_79_182/0.6)]" : tt === "xong" ? "bg-nhan text-white" : "border border-vien-dam bg-white text-chu-phu")}>
+                  (tt === "dang" ? "bg-nhan text-white ring-4 ring-nhan-nhat shadow-[0_4px_10px_-4px_rgb(31_79_182/0.6)]" : tt === "xong" ? "bg-nhan text-white" : "border border-vien-dam bg-surface text-chu-phu")}>
                   {tt === "xong" ? <IconDung className="h-3.5 w-3.5" /> : so}
                 </span>
                 <span className="pt-0.5">

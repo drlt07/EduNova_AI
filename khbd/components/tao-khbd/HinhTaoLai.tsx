@@ -47,12 +47,12 @@ export function HinhTaoLai({ hinh, doiChieu, giuGoc, onDoi }: {
               <div className={`grid gap-3 ${d.ban ? "sm:grid-cols-2" : ""}`}>
                 <figure className="min-w-0">
                   <figcaption className="mb-1 text-xs text-chu-phu">Ảnh gốc</figcaption>
-                  {h && <img src={`data:${h.mime};base64,${h.base64}`} alt="" className="max-h-56 max-w-full rounded border border-vien bg-white object-contain" />}
+                  {h && <img src={`data:${h.mime};base64,${h.base64}`} alt="" className="max-h-56 max-w-full rounded border border-vien bg-surface object-contain" />}
                 </figure>
                 {d.ban && (
                   <figure className="min-w-0">
                     <figcaption className="mb-1 text-xs text-chu-phu">Bản tạo lại</figcaption>
-                    <div className="hinh-tao-lai max-h-56 overflow-auto rounded border border-vien bg-white p-2" dangerouslySetInnerHTML={{ __html: banHtml(d.ban) }} />
+                    <div className="hinh-tao-lai max-h-56 overflow-auto rounded border border-vien bg-[#fff] p-2" dangerouslySetInnerHTML={{ __html: banHtml(d.ban) }} />
                   </figure>
                 )}
               </div>

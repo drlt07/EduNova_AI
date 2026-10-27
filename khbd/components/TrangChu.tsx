@@ -35,7 +35,7 @@ function TrangMinhHoa() {
         <p className="mt-3 font-bold">III. TIẾN TRÌNH DẠY HỌC</p>
         <div className="space-y-1.5 pt-1.5">{dong("94%")}{dong("80%")}{dong("62%")}</div>
       </div>
-      <div className="absolute -top-4 right-2 flex items-center gap-2 rounded-xl border border-vien bg-white px-3 py-2 text-xs shadow-[var(--shadow-the)] sm:-right-4">
+      <div className="absolute -top-4 right-2 flex items-center gap-2 rounded-xl border border-vien bg-surface px-3 py-2 text-xs shadow-[var(--shadow-the)] sm:-right-4">
         <span className="grid h-5 w-5 place-items-center rounded-full bg-nhan text-white"><IconDung className="h-3 w-3" /></span>
         <span><b>Kiểm tra tự động</b> · giữ 100% nội dung gốc</span>
       </div>
@@ -66,7 +66,7 @@ export function TrangChu({ banDo }: { banDo: BanDo }) {
             <a href={banDo["tao-khbd"]} className="inline-flex h-12 items-center gap-2 rounded-xl bg-nhan px-6 font-semibold text-white shadow-[0_1px_2px_rgb(16_26_44/0.12),0_8px_20px_-8px_rgb(31_79_182/0.7)] transition-colors hover:bg-nhan-dam">
               Bắt đầu soạn <IconMuiTen className="h-4 w-4" />
             </a>
-            <a href={banDo["dac-thu"]} className="inline-flex h-12 items-center rounded-xl border border-vien-dam bg-white px-5 font-medium transition-colors hover:border-nhan hover:text-nhan">
+            <a href={banDo["dac-thu"]} className="inline-flex h-12 items-center rounded-xl border border-vien-dam bg-surface px-5 font-medium transition-colors hover:border-nhan hover:text-nhan">
               Tra cứu năng lực
             </a>
           </div>

@@ -21,7 +21,7 @@ export function NutDungTrongBaiSoan({ muc, onDoi }: { muc: MucGioChon; onDoi?: (
   return (
     <button type="button" onClick={bam} aria-pressed={daChon}
       className={"inline-flex h-8 shrink-0 items-center gap-1.5 rounded-md border px-3 text-xs font-medium transition-colors " +
-        (daChon ? "border-nhan bg-nhan text-white" : "border-vien-dam bg-white text-nhan hover:border-nhan")}>
+        (daChon ? "border-nhan bg-nhan text-white" : "border-vien-dam bg-surface text-nhan hover:border-nhan")}>
       {daChon && <IconDung className="h-3.5 w-3.5" />}
       {daChon ? "Đã chọn" : "Dùng trong bài soạn"}
     </button>

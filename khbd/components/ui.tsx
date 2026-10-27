@@ -21,17 +21,18 @@ export const IconMuiTen = svg(<><path d="M5 12h14" /><path d="m13 6 6 6-6 6" /><
 export const IconKhoa = svg(<><rect x="5" y="11" width="14" height="9" rx="1" /><path d="M8 11V8a4 4 0 0 1 8 0v3" /></>);
 export const IconThongTin = svg(<><circle cx="12" cy="12" r="9" /><path d="M12 11v5M12 8v.01" /></>);
 
+/** Nút theo kiểu EduNova: chinh = nút chính (gradient), phu = nút phụ, nhe = nút chữ. */
 export function Nut({
   loai = "chinh", className = "", children, ...p
 }: React.ButtonHTMLAttributes<HTMLButtonElement> & { loai?: "chinh" | "phu" | "nhe" }) {
   const kieu = {
-    chinh: "bg-nhan text-white hover:bg-nhan-dam border-nhan shadow-[0_1px_2px_rgb(16_26_44/0.12),0_4px_12px_-4px_rgb(31_79_182/0.45)]",
-    phu: "bg-white text-chu border-vien-dam shadow-[0_1px_2px_rgb(16_26_44/0.05)] hover:border-nhan hover:text-nhan",
-    nhe: "bg-transparent text-nhan border-transparent hover:bg-nhan-nhat",
+    chinh: "bg-gradient-to-r from-[#22d3ee] to-[#4f7fff] text-[#04111f] border-transparent shadow-[0_0_24px_-6px_var(--cyan)] hover:brightness-110",
+    phu: "bg-surface-2 text-fg border-line hover:border-cyan/60",
+    nhe: "bg-transparent text-cyan-fg border-transparent hover:bg-surface-2",
   }[loai];
   return (
     <button type="button" {...p}
-      className={`inline-flex h-10 items-center justify-center gap-2 rounded-lg border px-5 text-sm font-medium transition-all duration-150 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100 ${kieu} ${className}`}>
+      className={`inline-flex h-10 items-center justify-center gap-2 rounded-xl border px-4 text-sm font-semibold transition-all duration-150 focus-visible:outline-2 focus-visible:outline-ring active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100 ${kieu} ${className}`}>
       {children}
     </button>
   );
@@ -71,12 +72,12 @@ export function Truong({ id, nhan, goiY, children, phai }: { id: string; nhan: R
 }
 
 export const oNhap =
-  "h-10 w-full rounded-lg border border-vien-dam bg-white px-3 text-sm outline-none transition-[border-color,box-shadow] placeholder:text-chu-phu/70 hover:border-nhan-vua focus:border-nhan focus:ring-4 focus:ring-nhan/10";
+  "h-10 w-full rounded-lg border border-vien-dam bg-surface px-3 text-sm outline-none transition-[border-color,box-shadow] placeholder:text-chu-phu/70 hover:border-nhan-vua focus:border-nhan focus:ring-4 focus:ring-nhan/10";
 
 export function ThongBao({ loai = "canh-bao", tieuDe, children }: { loai?: "canh-bao" | "loi" | "thong-tin"; tieuDe?: ReactNode; children: ReactNode }) {
   const kieu = {
-    "canh-bao": "border-amber-200 bg-amber-50 text-amber-900",
-    loi: "border-red-200 bg-red-50 text-red-800",
+    "canh-bao": "border-warning/40 bg-warning/10 text-fg",
+    loi: "border-danger/40 bg-danger/10 text-danger-fg",
     "thong-tin": "border-nhan/20 bg-nhan-nhat text-chu",
   }[loai];
   const Icon = loai === "thong-tin" ? IconThongTin : IconCanhBao;
@@ -92,7 +93,7 @@ export function ThongBao({ loai = "canh-bao", tieuDe, children }: { loai?: "canh
 }
 
 export function Nhan({ loai = "xam", children }: { loai?: "xam" | "xanh" | "vang"; children: ReactNode }) {
-  const kieu = { xam: "bg-nen-dam text-chu-phu border-transparent", xanh: "bg-nhan-nhat text-nhan border-nhan-vua/60", vang: "bg-amber-50 text-amber-800 border-amber-200" }[loai];
+  const kieu = { xam: "bg-nen-dam text-chu-phu border-transparent", xanh: "bg-nhan-nhat text-nhan border-nhan-vua/60", vang: "bg-warning/10 text-warning-fg border-warning/40" }[loai];
   return <span className={`inline-flex shrink-0 items-center whitespace-nowrap rounded-md border px-1.5 py-[3px] text-[11px] font-medium leading-none ${kieu}`}>{children}</span>;
 }
 
@@ -136,7 +137,7 @@ export function DanhSachTienDo({ viec }: { viec: ViecTienDo[] }) {
             {v.trangThai === "xong" && <span className="grid h-5 w-5 animate-bat place-items-center rounded-full bg-nhan text-white"><IconDung className="h-3 w-3" /></span>}
             {v.trangThai === "dang" && <IconXoay className="h-4.5 w-4.5 text-nhan" />}
             {v.trangThai === "cho" && <span className="h-2 w-2 rounded-full bg-vien-dam" />}
-            {v.trangThai === "loi" && <span className="grid h-5 w-5 place-items-center rounded-full bg-red-600 text-xs font-bold text-white">!</span>}
+            {v.trangThai === "loi" && <span className="grid h-5 w-5 place-items-center rounded-full bg-danger text-xs font-bold text-white">!</span>}
           </span>
           <span className="min-w-0">
             <span className={v.trangThai === "cho" ? "text-chu-phu" : v.trangThai === "dang" ? "font-medium text-nhan" : ""}>{v.ten}</span>

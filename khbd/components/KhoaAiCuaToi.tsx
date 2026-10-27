@@ -48,7 +48,7 @@ export function KhoaAiCuaToi({ khoa, nho, mayChu, onDoi }: {
 
   if (!mo) {
     return (
-      <div className={`flex flex-wrap items-center justify-between gap-3 rounded-xl border px-4 py-3 text-sm ${khoa || (mayChu && !mayChu.giaLap) ? "border-vien bg-white text-chu-phu" : "border-amber-200 bg-amber-50 text-amber-900"}`}>
+      <div className={`flex flex-wrap items-center justify-between gap-3 rounded-xl border px-4 py-3 text-sm ${khoa || (mayChu && !mayChu.giaLap) ? "border-vien bg-surface text-chu-phu" : "border-warning/40 bg-warning/10 text-warning-fg"}`}>
         <p className="flex min-w-0 items-center gap-2"><IconKhoa className="h-4 w-4 shrink-0" /><span>{dongTomTat}</span></p>
         <Nut loai="phu" className="h-9 px-4" onClick={() => { setMo(true); setTrangThai({ dang: false, loi: null }); }}>{khoa ? "Đổi khóa" : "Thêm khóa"}</Nut>
       </div>

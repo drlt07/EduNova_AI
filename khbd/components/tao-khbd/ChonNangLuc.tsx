@@ -11,8 +11,8 @@ export function OChon({ chon, onDoi, children, goiY }: { chon: boolean; onDoi: (
   return (
     <button type="button" onClick={onDoi} aria-pressed={chon}
       className={"group flex w-full items-start gap-3 rounded-xl border px-3.5 py-3 text-left text-sm transition-all duration-150 hover:-translate-y-px " +
-        (chon ? "border-nhan bg-nhan-nhat/70 ring-1 ring-nhan" : "border-vien bg-white hover:border-vien-dam hover:shadow-sm")}>
-      <span className={"mt-0.5 grid h-4.5 w-4.5 shrink-0 place-items-center rounded border " + (chon ? "border-nhan bg-nhan text-white" : "border-vien-dam bg-white")}>
+        (chon ? "border-nhan bg-nhan-nhat/70 ring-1 ring-nhan" : "border-vien bg-surface hover:border-vien-dam hover:shadow-sm")}>
+      <span className={"mt-0.5 grid h-4.5 w-4.5 shrink-0 place-items-center rounded border " + (chon ? "border-nhan bg-nhan text-white" : "border-vien-dam bg-surface")}>
         {chon && <IconDung className="h-3 w-3 animate-bat" />}
       </span>
       <span className="min-w-0 flex-1">{children}{goiY}</span>
@@ -58,7 +58,7 @@ export function ChonNls({ chon, onDoi, bai, goiYSoan }: {
               {soan.dang ? <><IconXoay /> Đang đọc giáo án…</> : "Gợi ý mã theo nội dung bài"}
             </Nut>
           </div>
-          {soan.loi && <p className="mt-2 text-sm text-red-700">{soan.loi}</p>}
+          {soan.loi && <p className="mt-2 text-sm text-danger-fg">{soan.loi}</p>}
           {soan.kq && (
             <div className="mt-3 space-y-2">
               {soan.kq.goiY.length === 0 && <p className="text-sm text-chu-phu">Bài chưa có nhiệm vụ số phù hợp.</p>}
@@ -78,7 +78,7 @@ export function ChonNls({ chon, onDoi, bai, goiYSoan }: {
       <div>
         <div className="mb-2 flex items-center justify-between">
           <p className="text-sm font-medium">Gợi ý theo nội dung và cách tổ chức của bài</p>
-          <span className={"text-xs " + (chon.length > 3 ? "font-medium text-red-700" : "text-chu-phu")}>Đã chọn {chon.length}/3</span>
+          <span className={"text-xs " + (chon.length > 3 ? "font-medium text-danger-fg" : "text-chu-phu")}>Đã chọn {chon.length}/3</span>
         </div>
         {goiY.length === 0 && <p className="text-sm text-chu-phu">Chưa đủ căn cứ để gợi ý. Thầy/cô chọn hình thức tổ chức, bấm “Gợi ý mã theo nội dung bài” hoặc tìm mã ở ô bên dưới.</p>}
         <div className="space-y-2">

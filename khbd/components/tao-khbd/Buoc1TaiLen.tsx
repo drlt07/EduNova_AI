@@ -24,7 +24,7 @@ function guiPdf(file: File, sgk: File | null, baoTienDo: BaoTienDo): Promise<Ket
     fd.append("file", file);
     if (sgk) fd.append("sgk", sgk);
     const xhr = new XMLHttpRequest();
-    xhr.open("POST", "/api/doc-file");
+    xhr.open("POST", "/api/khbd/doc-file");
     xhr.upload.onprogress = (e) => e.lengthComputable && baoTienDo("tai_len", (e.loaded / e.total) * 100);
     xhr.upload.onload = () => baoTienDo("doc_pdf");
     xhr.onload = () => {
@@ -95,7 +95,7 @@ export function Buoc1TaiLen({
             onDrop={(e) => { e.preventDefault(); setKeo(false); chon(e.dataTransfer.files[0]); }}
             className={"rounded-lg border-2 border-dashed px-6 py-10 text-center transition-colors " + (keo ? "border-nhan bg-nhan-nhat" : "border-vien-dam bg-nen/50")}
           >
-            <span className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-white text-nhan shadow-sm ring-1 ring-vien"><IconTaiLen /></span>
+            <span className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-surface text-nhan shadow-sm ring-1 ring-vien"><IconTaiLen /></span>
             <p className="mt-4 font-medium">Kéo thả file giáo án vào đây</p>
             <p className="mt-1 text-sm text-chu-phu">hoặc</p>
             <Nut loai="phu" className="mt-3" onClick={() => input.current?.click()}>Chọn file từ máy</Nut>
@@ -119,7 +119,7 @@ export function Buoc1TaiLen({
 
           <Truong id="file-sgk" nhan="Kèm nội dung SGK" goiY="Không bắt buộc. Giúp phần soạn bám sát SGK hơn.">
             <input id="file-sgk" type="file" accept=".docx,.pdf" onChange={(e) => setSgk(e.target.files?.[0] ?? null)}
-              className="block w-full text-sm text-chu-phu file:mr-3 file:h-9 file:rounded-md file:border file:border-vien-dam file:bg-white file:px-3 file:text-sm file:font-medium file:text-chu hover:file:border-nhan" />
+              className="block w-full text-sm text-chu-phu file:mr-3 file:h-9 file:rounded-md file:border file:border-vien-dam file:bg-surface file:px-3 file:text-sm file:font-medium file:text-chu hover:file:border-nhan" />
           </Truong>
         </div>
       </Khung>
@@ -154,7 +154,7 @@ function TienDoDoc({ laPdf, giaiDoan }: { laPdf: boolean; giaiDoan: { ma: string
   const trongBuoc = giaiDoan.ma === "tai_len" && giaiDoan.phanTram !== undefined ? giaiDoan.phanTram / 100 : 0.5;
   const phanTram = viTri >= ds.length ? 100 : ((Math.max(viTri, 0) + trongBuoc) / ds.length) * 100;
   return (
-    <div className="animate-truot rounded-lg border border-nhan/25 bg-white p-4">
+    <div className="animate-truot rounded-lg border border-nhan/25 bg-surface p-4">
       <ThanhTienDo phanTram={phanTram} nhan={viTri >= ds.length ? "Đã đọc xong" : "Đang đọc giáo án"} />
       <div className="mt-3"><DanhSachTienDo viec={viec} /></div>
     </div>

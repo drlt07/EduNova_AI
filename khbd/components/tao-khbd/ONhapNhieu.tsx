@@ -26,7 +26,7 @@ export function ONhapNhieu({
             return (
               <button key={g} type="button" onClick={() => batTat(g)} aria-pressed={chon}
                 className={"inline-flex h-8 items-center gap-1.5 rounded-full border px-3 text-[13px] transition-colors " +
-                  (chon ? "border-nhan bg-nhan-nhat font-medium text-nhan" : "border-vien-dam bg-white hover:border-nhan")}>
+                  (chon ? "border-nhan bg-nhan-nhat font-medium text-nhan" : "border-vien-dam bg-surface hover:border-nhan")}>
                 {chon && <IconDung className="h-3.5 w-3.5" />}{g}
               </button>
             );
@@ -38,7 +38,7 @@ export function ONhapNhieu({
           {tuNhap.map((v) => (
             <span key={v} className="inline-flex h-8 items-center gap-1.5 rounded-full border border-nhan bg-nhan-nhat pl-3 pr-1.5 text-[13px] font-medium text-nhan">
               {v}
-              <button type="button" aria-label={`Bỏ ${v}`} onClick={() => onDoi(giaTri.filter((x) => x !== v))} className="grid h-5 w-5 place-items-center rounded-full hover:bg-white">×</button>
+              <button type="button" aria-label={`Bỏ ${v}`} onClick={() => onDoi(giaTri.filter((x) => x !== v))} className="grid h-5 w-5 place-items-center rounded-full hover:bg-surface">×</button>
             </span>
           ))}
         </div>

@@ -21,7 +21,7 @@ npm run dev          # http://localhost:3000
 |---|---|
 | `npm run lint` | ESLint (Next.js core-web-vitals + TypeScript + React Compiler rules) |
 | `npm run typecheck` | `next typegen` + `tsc --noEmit` (TypeScript strict) |
-| `npm test` | Unit test (Vitest) |
+| `npm test` | Unit test (Vitest) của EduNova và của trợ lý KHBD (`npm run test:khbd`) |
 | `npm run build` / `npm start` | Build & chạy production |
 | `npm run e2e` | Kiểm thử chấp nhận A–D bằng Playwright (cần server đang chạy, `BASE_URL` mặc định `http://localhost:3100`) |
 | `npm run a11y` | Quét accessibility bằng axe-core (`THEME=light` để quét giao diện sáng) |
@@ -47,6 +47,8 @@ Tài khoản demo (trang `/login`): **Trần Thu Hà** (giáo viên 10A1/11A2/12
 | Luyện tập & kiểm tra: 8 dạng câu (trắc nghiệm, đúng/sai, sắp xếp kéo thả/bàn phím, điền code, dự đoán đầu ra, tìm lỗi, tự luận, thực hành mô phỏng); chế độ luyện tập/thích ứng (luật)/kiểm tra có giờ + khóa gia sư | **REAL** | Dự đoán đầu ra và điền code được chấm bằng cách chạy chương trình |
 | Xưởng dự án (mẫu, tệp, chạy/xem trước, việc cần làm, nhật ký, quyền xem), Hồ sơ (huy hiệu, sản phẩm, xem lại quá trình), Nhiệm vụ (giáo viên giao / tự chọn), Cài đặt (cỡ chữ, tương phản, báo lỗi) | **REAL** (lưu cục bộ) | Làm dự án theo nhóm: **PLANNED** |
 | Smart Traffic City 3D (`/student/games/traffic-city`, `/labs/smart-coding-city`): giao lộ low-poly bằng React Three Fiber + Three.js + Drei (WebGL), camera isometric xoay/zoom, bóng đổ, 4 cột đèn, 4 ô tô, nhà, cây, công viên; Start/Pause/Reset, chuyển đèn, chế độ tự động/thủ công, bấm xe/cột đèn trong cảnh | **REAL** | Mọi vật thể là mesh dựng bằng code, không tải asset. Logic tách riêng: `src/lib/traffic/traffic-controller.ts` (pha đèn, luôn qua vàng → đỏ toàn phần), `simulation-state.ts` (xe dừng trước vạch, quyết định đèn vàng, giữ khoảng cách, phát hiện vượt đỏ/xung đột); hiển thị: `src/components/traffic3d/` (Scene3D, Vehicle, TrafficLight, CityProps). Trình soạn Python điều khiển đèn/xe: **PLANNED** |
+| Khóa học & bài giảng: giáo viên dựng khóa theo lớp/bộ sách/chủ đề/bài, khối nội dung kéo thả (kiến thức, video/hình, mô phỏng, Python, luyện tập, tài liệu), điều kiện hoàn thành, học lần lượt, phát hành cho lớp; học sinh học theo trình tự | **REAL** (lưu cục bộ) | Tệp tải lên ≤ 1 MB ở bản demo |
+| Trợ lý xây dựng KHBD (`khbd/`, `/teacher/lesson-planner/assistant`): chọn bài → tải KHBD (.docx/.pdf) hoặc soạn mới từ chương trình → chọn tích hợp (năng lực số, AI, tiếng Anh, LHĐN) → lập kế hoạch → soạn → gắn mô phỏng vào hoạt động → kiểm tra, xuất Word/PDF, lưu vào KHBD có phiên bản | **REAL** (pipeline) / AI: khóa máy chủ, khóa riêng GV, hoặc quyền Claude của bản demo | Pipeline và 319 test của trợ lý giữ nguyên; xem `khbd/CLAUDE.md` |
 | Gia sư AI (5 chế độ, 4 nút nhanh, mini quiz, không đưa lời giải, tự khóa khi kiểm tra) | **DEMO** | Câu trả lời soạn sẵn theo chủ đề, gắn nhãn “bản mẫu” |
 | Python đầy đủ (Pyodide Worker), Inside Computer 3D (R3F + GLB), Phaser labs, 10 lab còn lại | **PLANNED** | Lab 3D hiển thị danh sách mesh bắt buộc và **báo thiếu asset**, không dựng giả |
 | Supabase Auth/RLS/Storage, LLM thật, xuất Word, parse docx/pdf | **PLANNED** | Bản nháp schema + RLS: `supabase/schema.sql` (chưa áp dụng, chưa kiểm thử) |

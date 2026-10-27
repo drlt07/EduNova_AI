@@ -22,7 +22,7 @@ const MUC: [TenTrang, string][] = [
 export function KhungTrang({ banDo, hienTai, children }: { banDo: BanDo; hienTai?: TenTrang; children: ReactNode }) {
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="sticky top-0 z-30 border-b border-vien bg-white">
+      <header className="sticky top-0 z-30 border-b border-vien bg-surface">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-6 gap-y-2 px-4 py-3 sm:h-16 sm:flex-nowrap sm:px-6 sm:py-0">
           <a href={banDo["trang-chu"]} className="flex shrink-0 items-center gap-2.5">
             <span className="grid h-9 w-9 place-items-center rounded-[10px] bg-nhan text-white shadow-[0_4px_10px_-4px_rgb(31_79_182/0.6)]"><IconSach className="h-[18px] w-[18px]" /></span>
@@ -43,7 +43,7 @@ export function KhungTrang({ banDo, hienTai, children }: { banDo: BanDo; hienTai
         </div>
       </header>
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6 sm:py-10">{children}</main>
-      <footer className="border-t border-vien bg-white">
+      <footer className="border-t border-vien bg-surface">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-6 gap-y-1 px-4 py-5 text-xs text-chu-phu sm:px-6">
           <span className="font-medium text-chu">Soạn KHBD THPT</span>
           <span>Khung KHBD Giai đoạn 1 – 3 · Năng lực số theo Thông tư 02/2025/TT-BGDĐT · Chương trình GDPT 2018</span>

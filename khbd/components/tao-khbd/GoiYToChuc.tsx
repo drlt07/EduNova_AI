@@ -53,7 +53,7 @@ export function NutGoiYTheoBai({ goiY, onKetQua }: { goiY: (signal: AbortSignal)
           {tt.dang ? <><IconXoay /> Đang đọc giáo án…</> : tt.xong ? "Gợi ý lại" : "Gợi ý cách triển khai theo nội dung bài"}
         </Nut>
       </div>
-      {tt.loi && <p className="mt-2 text-sm text-red-700">{tt.loi}</p>}
+      {tt.loi && <p className="mt-2 text-sm text-danger-fg">{tt.loi}</p>}
     </div>
   );
 }

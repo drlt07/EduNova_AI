@@ -4,7 +4,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { useFieldArray, useForm, useWatch, type Control } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { AlertCircle, ArrowLeft, Bot, CheckCircle2, History, Info, Plus, Save, Send, Trash2, Wand2 } from "lucide-react";
+import { AlertCircle, ArrowLeft, Bot, CheckCircle2, FileText, History, Info, Plus, Save, Send, Trash2, Wand2 } from "lucide-react";
 import { toast } from "sonner";
 import { LESSONS, OBJECTIVES, TEXTBOOKS, getLesson, getObjective, getTextbook } from "@/lib/data/curriculum";
 import { LAB_TEMPLATES, getLab } from "@/lib/data/labs";
@@ -119,6 +119,12 @@ function Editor({ plan }: { plan: LessonPlan }) {
             <Badge tone={plan.status === "published" ? "success" : "neutral"}>{plan.status === "published" ? "Đã xuất bản" : "Nháp"}</Badge>
             <Badge>v{plan.currentVersion}</Badge>
           </div>
+          {plan.assistantFile && (
+            <p className="mt-2 flex flex-wrap items-center gap-2 text-sm text-muted">
+              <FileText className="size-4 text-cyan-fg" aria-hidden /> Bản Word do trợ lý soạn:
+              <a href={plan.assistantFile.dataUrl} download={plan.assistantFile.name} className="font-medium text-cyan-fg hover:underline">{plan.assistantFile.name}</a>
+            </p>
+          )}
         </div>
         <div className="flex flex-wrap gap-2">
           <Button variant="secondary" onClick={saveDraft}><Save /> Lưu nháp</Button>

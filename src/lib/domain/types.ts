@@ -172,6 +172,8 @@ export interface LessonPlan {
   activities: PlanActivity[];
   notes: string;
   uploadedFile?: { name: string; size: number; parsed: false };
+  /** File Word do trợ lý soạn KHBD tạo (bản demo lưu dạng data URL trong trình duyệt) */
+  assistantFile?: { name: string; size: number; dataUrl: string; savedAt: string };
   currentVersion: number;
   createdAt: string;
   updatedAt: string;

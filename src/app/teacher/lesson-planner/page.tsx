@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { Suspense, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { FilePlus2, NotebookPen, Search, Trash2 } from "lucide-react";
+import { FilePlus2, NotebookPen, Search, Trash2, Wand2 } from "lucide-react";
 import { toast } from "sonner";
 import { LESSONS, TEXTBOOKS, getLesson, getTextbook } from "@/lib/data/curriculum";
 import type { Grade, TextbookId } from "@/lib/domain/types";
@@ -60,8 +60,8 @@ function LessonPlannerList() {
     <>
       <PageHeader
         title="Kế hoạch bài dạy"
-        description="Soạn KHBD theo 4 hoạt động: Mở đầu, Hình thành kiến thức, Luyện tập, Vận dụng."
-        actions={<Button onClick={() => setOpen(true)}><FilePlus2 /> KHBD mới</Button>}
+        description="Soạn KHBD theo 4 hoạt động: Mở đầu, Hình thành kiến thức, Luyện tập, Vận dụng — tự soạn hoặc dùng trợ lý (tải KHBD có sẵn hoặc soạn mới, gắn mô phỏng, xuất Word)."
+        actions={<><Button asChild><Link href="/teacher/lesson-planner/assistant"><Wand2 /> Soạn với trợ lý</Link></Button><Button variant="secondary" onClick={() => setOpen(true)}><FilePlus2 /> KHBD mới</Button></>}
       />
       <div className="mb-4 grid gap-3 sm:grid-cols-[1fr_160px_160px]">
         <div className="relative">

@@ -116,6 +116,16 @@ trong `docs/khung_khbd.docx`. Đọc file này và `PLAN.md` trước khi làm b
 - Regex với chữ tiếng Việt: không dùng `\b` sau/trước chữ có dấu; dùng `(?!\p{L})` với cờ `u`.
 - Danh sách trong JSON luôn là mảng, mỗi phần tử một ý, không kí hiệu đầu dòng.
 
+## Khi chạy trong EduNova
+
+- Thư mục này là `khbd/` của EduNova; import nội bộ dùng `@khbd/…`. Test: `npm run test:khbd` (ở gốc EduNova).
+- API: `/api/khbd/soan`, `/api/khbd/doc-file`, `/api/khbd/mau` (`src/app/api/khbd/`). Giao diện điều phối:
+  `src/components/khbd/` (chọn bài, soạn mới, học liệu – mô phỏng, lưu). Cách chạy (máy chủ hay bản demo một file):
+  `src/lib/khbd/runtime.ts` và `spa/shims/khbd-runtime.ts`.
+- Giao diện theo EduNova (GV yêu cầu): màu lấy từ `src/app/khbd.css`; các quy tắc ở mục Giao diện dưới đây áp dụng cho
+  nội dung và cách viết chữ, không áp dụng cho màu/kiểu nút khi chạy trong EduNova.
+- Học liệu/mô phỏng GV gắn: `NoiDungSoan.hoc_lieu` → `6-xuat-file/hoc-lieu.ts` (chèn sau biên tập, không đổi chữ GV).
+
 ## Giao diện
 
 - Giống phần mềm quản lý trường học / LMS: nền trắng, viền mảnh, một màu nhấn xanh dương đậm,

@@ -41,11 +41,11 @@ function TheChon({ id, chon, onDoi, tieuDe, moTa, kieu = "checkbox", ten, goiY }
 }) {
   return (
     <label htmlFor={id} className={"relative flex cursor-pointer gap-3 rounded-xl border p-4 transition-all duration-150 " +
-      (chon ? "border-nhan bg-nhan-nhat/70 ring-1 ring-nhan" : "border-vien bg-white hover:-translate-y-px hover:border-nhan-vua hover:shadow-[var(--shadow-the)]")}>
+      (chon ? "border-nhan bg-nhan-nhat/70 ring-1 ring-nhan" : "border-vien bg-surface hover:-translate-y-px hover:border-nhan-vua hover:shadow-[var(--shadow-the)]")}>
       <input id={id} type={kieu} name={ten} className="peer sr-only" checked={chon} onChange={(e) => onDoi(e.target.checked)} />
       <span aria-hidden="true" className={"mt-0.5 grid h-5 w-5 shrink-0 place-items-center border transition-colors peer-focus-visible:ring-2 peer-focus-visible:ring-nhan " +
-        (kieu === "radio" ? "rounded-full " : "rounded ") + (chon ? "border-nhan bg-nhan text-white" : "border-vien-dam bg-white")}>
-        {chon && (kieu === "radio" ? <span className="h-2 w-2 animate-bat rounded-full bg-white" /> : <IconDung className="h-3.5 w-3.5 animate-bat" />)}
+        (kieu === "radio" ? "rounded-full " : "rounded ") + (chon ? "border-nhan bg-nhan text-white" : "border-vien-dam bg-surface")}>
+        {chon && (kieu === "radio" ? <span className="h-2 w-2 animate-bat rounded-full bg-surface" /> : <IconDung className="h-3.5 w-3.5 animate-bat" />)}
       </span>
       <span>
         <span className="block text-sm font-medium">{tieuDe}</span>
@@ -144,7 +144,7 @@ export function Buoc2LuaChon({
             <div role="radiogroup" aria-labelledby="nhan-lop" className="grid h-10 grid-cols-3 overflow-hidden rounded-md border border-vien-dam">
               {([10, 11, 12] as const).map((l) => (
                 <button key={l} type="button" role="radio" aria-checked={thongTin.lop === l} onClick={() => setThongTin({ ...thongTin, lop: l })}
-                  className={"border-r border-vien-dam text-sm last:border-r-0 " + (thongTin.lop === l ? "bg-nhan font-medium text-white" : "bg-white hover:bg-nen")}>
+                  className={"border-r border-vien-dam text-sm last:border-r-0 " + (thongTin.lop === l ? "bg-nhan font-medium text-white" : "bg-surface hover:bg-nen")}>
                   Lớp {l}
                 </button>
               ))}
@@ -278,7 +278,7 @@ export function Buoc2LuaChon({
                     return (
                       <div key={d.ma} className="flex flex-col gap-2 p-3 sm:flex-row sm:items-center">
                         <span className="min-w-0 flex-1 text-sm">{d.vanBan}</span>
-                        <select aria-label={`${tenMach} cho: ${d.vanBan}`} className={oNhap + " sm:w-40 " + (viTri < 0 ? "border-amber-300" : "")} value={viTri} onChange={(e) => ganYeuCau(d.ma, Number(e.target.value))}>
+                        <select aria-label={`${tenMach} cho: ${d.vanBan}`} className={oNhap + " sm:w-40 " + (viTri < 0 ? "border-warning/40" : "")} value={viTri} onChange={(e) => ganYeuCau(d.ma, Number(e.target.value))}>
                           <option value={-1}>Chưa gán</option>
                           {lc.mach.map((m, i) => <option key={i} value={i}>{tenMach} {i + 1}{m.ten ? `: ${m.ten}` : ""}</option>)}
                         </select>

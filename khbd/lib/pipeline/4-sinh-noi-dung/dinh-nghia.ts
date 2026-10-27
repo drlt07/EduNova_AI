@@ -3,6 +3,7 @@
  * LLM không thấy khung có ngoặc [ ]; không nhận lại văn bản GV để viết lại, chỉ đọc để tham khảo
  * và trả mã đoạn khi cần dùng. Mã năng lực và vị trí chọn từ enum lấy trong dữ liệu.
  */
+import type { HocLieuGan } from "@khbd/lib/pipeline/6-xuat-file/hoc-lieu";
 import { phutHoatDong, phutTrongTen, thietBiCoSan } from "@khbd/lib/pipeline/5-kiem-tra/kha-thi";
 import { GOI_Y_KHUNG, boNgoac, nhiemVuHd3TheoMon } from "@khbd/lib/pipeline/2-lua-chon/goi-y-to-chuc";
 import * as z from "zod/v4";
@@ -223,6 +224,8 @@ export type NoiDungSoan = Partial<{
   gd1: Gd1; hd1: Hd1; hd2: Hd2; cau_hoi: CauHoi; hd3: Hd3; hd4: Hd4; dac_thu: DacThu;
   nls: NlsSoan; ai: AiSoan; kiem_dinh: KiemDinh; tieng_anh: TiengAnhSoan; clil: ClilSoan;
   doc_hinh: DocHinhSoan;
+  /** Học liệu số / mô phỏng EduNova GV gắn vào hoạt động (không do LLM soạn) */
+  hoc_lieu: HocLieuGan[];
 }> & Partial<Record<`tk_${string}`, HdMoi>>;
 
 // ---------- Nội dung gửi LLM ----------

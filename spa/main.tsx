@@ -28,6 +28,7 @@ import TCourses from "@/app/teacher/courses/page";
 import TCourse from "@/app/teacher/courses/[id]/page";
 import TPlanner from "@/app/teacher/lesson-planner/page";
 import TPlanEditor from "@/app/teacher/lesson-planner/[id]/page";
+import TPlanAssistant from "@/app/teacher/lesson-planner/assistant/page";
 import TBuilder from "@/app/teacher/activity-builder/page";
 import TLabs from "@/app/teacher/labs/page";
 import TResources from "@/app/teacher/resources/page";
@@ -114,6 +115,7 @@ const ROUTES: Route[] = [
   r("/teacher/courses", "teacher", C(TCourses)),
   r("/teacher/courses/:id", "teacher", (p) => <TCourse key={p.id} />),
   r("/teacher/lesson-planner", "teacher", C(TPlanner)),
+  r("/teacher/lesson-planner/assistant", "teacher", C(TPlanAssistant)),
   r("/teacher/lesson-planner/:id", "teacher", (p) => <TPlanEditor key={p.id} />),
   r("/teacher/activity-builder", "teacher", C(TBuilder)),
   r("/teacher/labs", "teacher", C(TLabs)),

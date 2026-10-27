@@ -161,6 +161,16 @@
     Test `tests/soan-lai-hoat-dong.test.ts`. 316 test đạt.
   - Không khóa cứng nút "Tiếp tục": bước 4 còn phần lỗi vẫn đi tiếp được (phần đó giữ nội dung GV), bước 5 còn lỗi
     kiểm tra thì nút "Vẫn tiếp tục để tải về" kèm cảnh báo. Bước 3 chỉ chặn khi GV sửa phút làm sai tổng.
+- **Tích hợp vào EduNova (thư mục `khbd/` của EduNova):** mã nguồn, dữ liệu, luật, mẫu Word và test giữ nguyên; alias
+  `@/` đổi thành `@khbd/`. Test chạy bằng `npm run test:khbd` (thư mục làm việc `khbd/`). API của máy chủ chuyển sang
+  `/api/khbd/soan`, `/api/khbd/doc-file`, `/api/khbd/mau` (thêm `?giaoAn=` cho giáo án mẫu). Giao diện các bước dùng màu của
+  EduNova (`src/app/khbd.css` ánh xạ `nen/nhan/vien/chu` sang biến màu EduNova; `Nut` theo kiểu nút EduNova) theo yêu cầu GV
+  "giao diện khớp với web EduNova" — khác phần Giao diện trong CLAUDE.md, áp dụng khi chạy trong EduNova.
+  - Mới: `6-xuat-file/hoc-lieu.ts` — học liệu số / mô phỏng EduNova GV gắn vào hoạt động (`NoiDungSoan.hoc_lieu`), chèn sau
+    biên tập vào cuối hoạt động (đoạn `bo_sung`, `vai` buoc/buoc_viec, có `hd`) và một dòng ở Thiết bị dạy học;
+    `hoatDongDeGanHocLieu`, `tomTatHoatDong` trong `ghep.ts`. Test `tests/hoc-lieu.test.ts`. 319 test đạt.
+  - EduNova thêm bước chọn bài (lớp, SGK, bài, số tiết), "Soạn mới" (bản khởi đầu dựng từ dữ liệu bài học → .docx →
+    pipeline như file tải lên), bước học liệu – mô phỏng, lưu vào KHBD EduNova có phiên bản, in PDF.
 - **Việc tiếp theo:** hỏi GV loại hình "khác" muốn tạo lại (đã chọn "Something else" khi chọn phạm vi); chạy thử
   đọc hình với khóa thật; chạy thử với khóa thật của GV (Claude, Gemini) và chỉnh luật theo kết quả; trang duyệt có sửa trực
   tiếp, "Bỏ", "Soạn lại mục này"; xuất bộ câu hỏi theo nền tảng; dữ liệu năng lực số (chờ nguyên văn);

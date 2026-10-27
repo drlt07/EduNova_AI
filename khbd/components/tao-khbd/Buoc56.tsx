@@ -20,7 +20,7 @@ import { HinhTaoLai } from "./HinhTaoLai";
 export type HamLayMau = () => Promise<Uint8Array>;
 export type HamLuuFile = (tenFile: string, duLieu: Uint8Array) => Promise<void>;
 
-export const layMauQuaMayChu: HamLayMau = async () => new Uint8Array(await (await fetch("/api/mau")).arrayBuffer());
+export const layMauQuaMayChu: HamLayMau = async () => new Uint8Array(await (await fetch("/api/khbd/mau")).arrayBuffer());
 
 export const luuQuaTrinhDuyet: HamLuuFile = async (tenFile, duLieu) => {
   const url = URL.createObjectURL(new Blob([duLieu.slice()], { type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" }));
@@ -139,7 +139,7 @@ export function Buoc5KiemTra({ phanTich, thongTin, luaChon, keHoach, layMau = la
                 {Object.entries({ ...NHAN_LOAI, ...TEN_LOAI_BIEN_TAP }).map(([loai, ten]) => (
                   <li key={loai} className="flex items-center gap-2">
                     {loaiLoi.has(loai)
-                      ? <span className="grid h-5 w-5 place-items-center rounded-full bg-red-600 text-xs font-bold text-white">!</span>
+                      ? <span className="grid h-5 w-5 place-items-center rounded-full bg-danger text-xs font-bold text-white">!</span>
                       : <span className="grid h-5 w-5 animate-bat place-items-center rounded-full bg-nhan text-white"><IconDung className="h-3 w-3" /></span>}
                     {ten}
                   </li>
@@ -174,7 +174,7 @@ export function Buoc5KiemTra({ phanTich, thongTin, luaChon, keHoach, layMau = la
           )}
           <Khung tieuDe="Xem trước bài soạn" moTa="Bố cục theo khung mới. Định dạng chính xác (phông, lề, công thức Word) xem trong file tải về.">
             <div className="max-h-[36rem] overflow-y-auto rounded-md border border-vien bg-nen/50 p-3 sm:p-6">
-              <article className="ban-xem-truoc mx-auto max-w-[46rem] bg-white px-6 py-8 shadow-sm ring-1 ring-vien sm:px-12" dangerouslySetInnerHTML={{ __html: boFile.html }} />
+              <article className="ban-xem-truoc mx-auto max-w-[46rem] bg-[#fff] px-6 py-8 shadow-sm ring-1 ring-vien sm:px-12" dangerouslySetInnerHTML={{ __html: boFile.html }} />
             </div>
           </Khung>
         </>

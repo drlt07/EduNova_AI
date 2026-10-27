@@ -78,14 +78,14 @@ export function Buoc3KeHoach({
               </thead>
               <tbody className="divide-y divide-vien">
                 {anhXa.map((dong, i) => (
-                  <tr key={dong.hoatDongCu} className={dong.dich.length === 0 ? "bg-amber-50/60" : ""}>
+                  <tr key={dong.hoatDongCu} className={dong.dich.length === 0 ? "bg-warning/10" : ""}>
                     <td className="px-5 py-2.5">{dong.tenCu}</td>
                     {DICH.map((d) => {
                       const chon = dong.dich.includes(d);
                       return (
                         <td key={d} className="text-center">
                           <button type="button" aria-pressed={chon} aria-label={`${dong.tenCu} → ${TEN_DICH[d]}`} onClick={() => doiDich(i, d, !chon)}
-                            className={"inline-grid h-6 w-6 place-items-center rounded border transition-colors " + (chon ? "border-nhan bg-nhan text-white" : "border-vien-dam bg-white hover:border-nhan")}>
+                            className={"inline-grid h-6 w-6 place-items-center rounded border transition-colors " + (chon ? "border-nhan bg-nhan text-white" : "border-vien-dam bg-surface hover:border-nhan")}>
                             {chon && <IconDung className="h-3.5 w-3.5" />}
                           </button>
                         </td>
@@ -106,10 +106,10 @@ export function Buoc3KeHoach({
               const tong = t.muc.reduce((s, m) => s + m.phut, 0);
               const du = tong === 45;
               return (
-                <div key={t.tiet} className={"overflow-hidden rounded-md border " + (du ? "border-vien" : "border-red-300")}>
+                <div key={t.tiet} className={"overflow-hidden rounded-md border " + (du ? "border-vien" : "border-danger/40")}>
                   <div className="flex items-center justify-between bg-nen/70 px-4 py-2.5">
                     <span className="text-sm font-medium">Tiết {t.tiet}{t.nhan && <span className="font-normal text-chu-phu"> · {t.nhan}</span>}</span>
-                    <span className={"text-xs font-medium tabular-nums " + (du ? "text-chu-phu" : "text-red-700")}>{tong}/45 phút</span>
+                    <span className={"text-xs font-medium tabular-nums " + (du ? "text-chu-phu" : "text-danger-fg")}>{tong}/45 phút</span>
                   </div>
                   <div className="flex h-1.5 bg-vien" aria-hidden="true">
                     {t.muc.map((m, mi) => <span key={mi} style={{ width: `${(m.phut / 45) * 100}%` }} className={"border-r border-white last:border-r-0 " + ["bg-nhan", "bg-nhan/70", "bg-nhan/45", "bg-nhan/25"][mi % 4]} />)}

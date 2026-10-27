@@ -3,6 +3,7 @@
  * Đoạn của GV chép nguyên văn (nguon: giu_nguyen); phần thêm (câu cố định của khung, mã năng lực
  * tra từ dữ liệu, nội dung LLM) là bo_sung.
  */
+import { chenHocLieu, hoatDongCuaBan, TRUONG_HOAT_DONG, type HoatDongBan } from "./hoc-lieu";
 import { doanCuaHoatDong } from "../3-ke-hoach/tach-doan";
 import type { DoanGoc, HoatDongCu, PhanTichGiaoAn, ThongTinBai } from "../kieu";
 import type { LuaChon } from "../2-lua-chon/lua-chon";
@@ -556,7 +557,28 @@ export function lapBanSoan(pt: PhanTichGiaoAn, tt: ThongTinBai, lc: LuaChon, kh:
 /** Ghép → biên tập trên dữ liệu có cấu trúc → dữ liệu cho mẫu Word. */
 export function ghepDuLieu(pt: PhanTichGiaoAn, tt: ThongTinBai, lc: LuaChon, kh: KeHoach, tc: TuyChonXuat, nd: NoiDungSoan = {}, traChiBao?: TraChiBao): DuLieuMau {
   const { ban } = bienTap(lapBanSoan(pt, tt, lc, kh, nd, traChiBao), nguCanhBienTap(pt, lc));
-  return dungDuLieuMau(ban, tc);
+  // Học liệu GV gắn chèn sau biên tập: là lựa chọn của GV, bước biên tập không được bỏ.
+  return dungDuLieuMau(chenHocLieu(ban, nd.hoc_lieu), tc);
+}
+
+/** Hoạt động của bản soạn (sau biên tập) để GV chọn chỗ gắn học liệu, mô phỏng. */
+export function hoatDongDeGanHocLieu(pt: PhanTichGiaoAn, tt: ThongTinBai, lc: LuaChon, kh: KeHoach, nd: NoiDungSoan = {}, traChiBao?: TraChiBao): HoatDongBan[] {
+  const { ban } = bienTap(lapBanSoan(pt, tt, lc, kh, nd, traChiBao), nguCanhBienTap(pt, lc));
+  return hoatDongCuaBan(ban, pt);
+}
+
+export type TomTatHoatDong = HoatDongBan & { loai?: HoatDongCu["loai"]; dong: { vai?: Doan["vai"]; chu: string }[] };
+
+/** Từng hoạt động của bản soạn cuối (sau biên tập, đã gắn học liệu) kèm các dòng chữ và vai của dòng — để app khác lưu lại. */
+export function tomTatHoatDong(pt: PhanTichGiaoAn, tt: ThongTinBai, lc: LuaChon, kh: KeHoach, nd: NoiDungSoan = {}, traChiBao?: TraChiBao): TomTatHoatDong[] {
+  const { ban: daBienTap } = bienTap(lapBanSoan(pt, tt, lc, kh, nd, traChiBao), nguCanhBienTap(pt, lc));
+  const ban = chenHocLieu(daBienTap, nd.hoc_lieu);
+  const khoi = ban.phan.filter((p) => TRUONG_HOAT_DONG.includes(p.truong)).flatMap((p) => p.khoi).filter((k): k is Doan => !("loai" in k));
+  return hoatDongCuaBan(ban, pt).map((h) => ({
+    ...h,
+    loai: pt.hoatDong.find((x) => x.ma === h.hd)?.loai,
+    dong: khoi.filter((k) => k.hd === h.hd && k.kieu !== "TenHoatDong").map((k) => ({ vai: k.vai, chu: chuDoan(k) })).filter((d) => d.chu),
+  }));
 }
 
 /** Đoạn của KHBD gốc phải còn nguyên văn trong file xuất (trừ dòng đã được thay có chủ đích, vd năng lực gốc). */

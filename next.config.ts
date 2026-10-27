@@ -10,6 +10,8 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  // Trợ lý soạn KHBD đọc .docx/.pdf ở máy chủ
+  serverExternalPackages: ["pdf-parse", "mammoth", "@xmldom/xmldom"],
   turbopack: {
     rules: {
       "*.css": {
