@@ -7,6 +7,7 @@ import type {
   ActivityDraft,
   Course,
   CourseProgress,
+  TutorEvent,
   AIInteraction,
   Assessment,
   Assignment,
@@ -38,6 +39,21 @@ import type {
 import { compileRule, gardenTestCases, runRule, runTests } from "@/lib/sim/smart-garden";
 import { SEED_CLASSES, SEED_ENROLLMENTS, SEED_USERS } from "./people";
 import { seedCourses } from "./courses-seed";
+
+/** Dữ liệu demo: lượt hỏi AI Gia sư của lớp 10A1 (chỉ dữ liệu tổng hợp, không có nội dung tin nhắn). */
+function seedTutorEvents(at: (days: number, hours?: number) => string): TutorEvent[] {
+  const rows: [string, TutorEvent["capability"], string, TutorEvent["activity"], string | undefined, string][] = [
+    ["s1", "debug", "if", "code", "Sai kiểm thử", "O10-F-02"], ["s2", "debug", "if", "code", "Sai kiểm thử", "O10-F-02"],
+    ["s3", "debug", "if", "code", "SyntaxError", "O10-F-02"], ["s4", "guide", "if", "code", undefined, "O10-F-02"],
+    ["s5", "debug", "logic", "simulation", "Quên điều kiện hết nước", "O10-F-03"], ["s2", "explain", "logic", "lesson", undefined, "O10-F-03"],
+    ["s6", "debug", "test", "simulation", "Sai ở giá trị biên", "O10-F-04"], ["s3", "debug", "test", "simulation", "Sai ở giá trị biên", "O10-F-04"],
+    ["s4", "explain", "if", "lesson", undefined, "O10-F-02"], ["s1", "practice", "if", "free", undefined, "O10-F-02"],
+    ["s5", "debug", "if", "simulation", "Vượt đèn đỏ", "O10-F-02"], ["s6", "guide", "loop", "code", undefined, "O10-F-05"],
+  ];
+  return rows.map(([studentId, capability, topic, activity, errorType, objectiveId], i) => ({
+    id: `te-seed-${i}`, studentId, at: at(-(i % 6), -i), capability, topic, activity, level: activity === "free" || activity === "lesson" ? "free" : "guided", errorType, objectiveId, source: "rules",
+  }));
+}
 
 export interface DemoData {
   users: User[];
@@ -71,6 +87,7 @@ export interface DemoData {
   notifRead: Record<string, string[]>;
   courses: Course[];
   courseProgress: CourseProgress[];
+  tutorEvents: TutorEvent[];
 }
 
 export const SEED_RUBRIC_CRITERIA = (prefix: string) => [
@@ -364,6 +381,7 @@ export function buildSeed(now: Date = new Date()): DemoData {
     users: SEED_USERS,
     courses: seedCourses(at(-10)),
     courseProgress: [],
+    tutorEvents: seedTutorEvents(at),
     classes: SEED_CLASSES,
     enrollments: SEED_ENROLLMENTS,
     lessonPlans: [ifPlan, dbPlan, t2Plan],

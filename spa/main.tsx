@@ -56,6 +56,7 @@ import SProject from "@/app/student/projects/[id]/page";
 import SProgress from "@/app/student/progress/page";
 import SPortfolio from "@/app/student/portfolio/page";
 import SSettings from "@/app/student/settings/page";
+import SProfile from "@/app/student/profile/page";
 import Admin from "@/app/admin/page";
 
 /** Trang bài học cũng là async server component trong Next. */
@@ -144,6 +145,7 @@ const ROUTES: Route[] = [
   r("/student/missions/:id", "student", (p) => <SMission key={p.id} />),
   r("/student/portfolio", "student", C(SPortfolio)),
   r("/student/settings", "student", C(SSettings)),
+  r("/student/profile", "student", C(SProfile)),
   r("/admin", "admin", C(Admin)),
 ];
 

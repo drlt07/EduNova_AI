@@ -16,6 +16,7 @@ export default defineConfig({
       { find: /^next\/link$/, replacement: shim("link.tsx") },
       { find: /^next\/dynamic$/, replacement: shim("dynamic.tsx") },
       { find: /^@\/lib\/ai\/client$/, replacement: shim("ai-client.ts") },
+      { find: /^@\/lib\/ai\/tutor-runtime$/, replacement: shim("tutor-runtime.ts") },
       { find: /^@\/lib\/khbd\/runtime$/, replacement: shim("khbd-runtime.ts") },
       { find: /^@khbd\//, replacement: path.resolve(__dirname, "../khbd") + "/" },
       { find: /^@\//, replacement: path.resolve(__dirname, "../src") + "/" },

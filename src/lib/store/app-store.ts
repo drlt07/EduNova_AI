@@ -10,6 +10,7 @@ import type {
   ActivityQuestion,
   Bookmark,
   Course,
+  TutorEvent,
   PracticeAttempt,
   StudentProject,
   UserPrefs,
@@ -141,6 +142,7 @@ interface Actions {
   unpublishCourse: (id: string, actorId: string) => void;
   markCourseBlock: (studentId: string, courseId: string, blockId: string, done: boolean, score?: number) => void;
   setCourseLastLesson: (studentId: string, courseId: string, lessonId: string) => void;
+  logTutorEvent: (e: Omit<TutorEvent, "id" | "at">) => void;
 }
 
 export type AppState = DemoData & Session & Actions;
@@ -457,6 +459,7 @@ export const useApp = create<AppState>()(
               return { ...p, done: next };
             }),
           })),
+        logTutorEvent: (e) => set((s) => ({ tutorEvents: [{ ...e, id: uid("te"), at: now() }, ...s.tutorEvents].slice(0, 2000) })),
         setCourseLastLesson: (studentId, courseId, lessonId) =>
           set((s) => ({ courseProgress: upsertCourseProgress(s.courseProgress, studentId, courseId, (p) => ({ ...p, lastLessonId: lessonId })) })),
       } as AppState;

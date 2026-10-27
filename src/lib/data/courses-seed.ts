@@ -35,9 +35,9 @@ else:
 - Dùng elif khi có nhiều hơn hai trường hợp, ví dụ đèn xanh, vàng, đỏ.`,
   },
   { id: "seed-cb-if-2", kind: "media", title: "Sơ đồ khối câu lệnh if/else", required: false, mediaUrl: IF_FLOWCHART, body: "Quan sát hai nhánh Đúng/Sai trước khi viết chương trình." },
-  { id: "seed-cb-if-3", kind: "simulation", title: "Mô phỏng Thành phố giao thông", required: true, labSlug: "smart-coding-city", body: "Quan sát xe dừng khi đèn đỏ và đi khi đèn xanh. Chuyển sang chế độ thủ công và tự điều khiển đèn cho 12 lượt xe qua an toàn." },
+  { id: "seed-cb-if-3", kind: "simulation", title: "Mô phỏng Thành phố giao thông", required: true, labSlug: "smart-coding-city", tutorLevel: "free", body: "Quan sát xe dừng khi đèn đỏ và đi khi đèn xanh. Chuyển sang chế độ thủ công và tự điều khiển đèn cho 12 lượt xe qua an toàn." },
   { id: "seed-cb-if-4", kind: "python", title: "Bài thực hành Python: Xếp loại học tập", required: true, exerciseId: "if-grade", body: "Viết chương trình dùng if/elif/else. Bấm Kiểm thử, đạt tất cả trường hợp là hoàn thành." },
-  { id: "seed-cb-if-5", kind: "practice", title: "Bài luyện tập cuối bài", required: true, practiceSetId: "if-basic", minScore: 70, body: "Làm bộ câu hỏi, đạt từ 70% trở lên là hoàn thành." },
+  { id: "seed-cb-if-5", kind: "practice", title: "Bài luyện tập cuối bài", required: true, practiceSetId: "if-basic", minScore: 70, tutorLevel: "guided", body: "Làm bộ câu hỏi, đạt từ 70% trở lên là hoàn thành." },
 ];
 
 /** Khóa học mẫu của cô Hà cho 10A1: khung theo chương trình, bài "Câu lệnh rẽ nhánh" có đủ các loại nội dung. */

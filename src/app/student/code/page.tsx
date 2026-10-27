@@ -1,4 +1,5 @@
 "use client";
+import { TutorScope } from "@/components/tutor/tutor-provider";
 import { Suspense, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { CheckCircle2, Code2, FolderOpen, Globe, History, RotateCcw } from "lucide-react";
@@ -81,6 +82,7 @@ function Editor({ exId }: { exId: string }) {
     if (e.kind === "run") d.saveCode(user.id, exId, code);
   }
   return (
+    <TutorScope title={ex ? `Tin học ${ex.grade} – ${ex.title}` : "Phòng lập trình"} topic={ex?.topic.includes("lặp") ? "loop" : ex?.topic.includes("logic") ? "logic" : "if"} level="guided" objectiveId={ex?.objectiveIds[0]}>
     <div className="min-w-0 space-y-4">
       {ex && (
         <Card>
@@ -123,6 +125,7 @@ function Editor({ exId }: { exId: string }) {
         </CardContent>
       </Card>
     </div>
+    </TutorScope>
   );
 }
 

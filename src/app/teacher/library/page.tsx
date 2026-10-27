@@ -59,7 +59,7 @@ export default function LibraryPage() {
 
   return (
     <>
-      <PageHeader title="Thư viện chia sẻ" description="Chia sẻ KHBD, thiết lập thí nghiệm và học liệu với đồng nghiệp; sao chép tài liệu được chia sẻ về để dùng." />
+      <PageHeader title="Thư viện dùng chung" description="Chia sẻ KHBD, thiết lập thí nghiệm và học liệu với đồng nghiệp; sao chép tài liệu được chia sẻ về để dùng." />
       <FilterGroup label="Phạm vi thư viện" value={tab} onChange={(v) => setTab(v as "mine" | "shared")} options={[{ value: "mine", label: "Của tôi" }, { value: "shared", label: "Được chia sẻ với tôi" }]} />
       <div className="my-4 grid gap-3 sm:grid-cols-[1fr_180px_180px]">
         <Input type="search" aria-label="Tìm trong thư viện" placeholder="Tìm…" value={q} onChange={(e) => setQ(e.target.value)} />

@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, ShieldAlert, X } from "lucide-react";
+import { Menu, Settings, ShieldAlert, UserRound, X } from "lucide-react";
 import { useState } from "react";
 import type { Role } from "@/lib/domain/types";
 import { useCurrentUser, useHydrated } from "@/lib/store/hooks";
@@ -15,7 +15,6 @@ import { NotificationBell, PrefsApplier, SearchPalette } from "@/components/stud
 import { TutorProvider } from "@/components/tutor/tutor-provider";
 import { motion } from "motion/react";
 import { ThemeToggle } from "./theme-toggle";
-import { Avatar } from "@/components/ui/misc";
 
 function SidebarNav({ role, onNavigate }: { role: Role; onNavigate?: () => void }) {
   const pathname = usePathname();
@@ -112,9 +111,14 @@ export function AppShell({ role, children }: { role: Role; children: React.React
           </div>
           <div className="flex items-center gap-2">
             {isStudent && <NotificationBell studentId={user!.id} />}
+            {hydrated && user?.role === "teacher" && role === "teacher" && (
+              <Link href="/teacher/settings" aria-label="Cài đặt" aria-current={pathname.startsWith("/teacher/settings") ? "page" : undefined} className="grid size-9 place-items-center rounded-xl text-muted hover:bg-surface-2 hover:text-fg">
+                <Settings className="size-[18px]" />
+              </Link>
+            )}
             {isStudent && (
               <Link href="/student/profile" aria-current={pathname.startsWith("/student/profile") ? "page" : undefined} className="flex items-center gap-2 rounded-xl px-2 py-1.5 text-sm font-medium text-fg hover:bg-surface-2">
-                <Avatar user={user!} size={28} />
+                <UserRound className="size-[18px] text-cyan-fg" aria-hidden />
                 <span className="hidden md:inline">Trang cá nhân</span>
               </Link>
             )}

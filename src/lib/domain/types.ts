@@ -530,6 +530,8 @@ export interface CourseBlock {
   minScore?: number;
   /** Bắt buộc để hoàn thành bài */
   required: boolean;
+  /** Mức hỗ trợ của AI Gia sư cho khối này (mặc định: luyện tập có hướng dẫn) */
+  tutorLevel?: "free" | "guided" | "exam";
 }
 
 export interface CourseLesson {
@@ -572,4 +574,23 @@ export interface CourseProgress {
   done: Record<string, { at: string; score?: number }>;
   lastLessonId?: string;
   updatedAt: string;
+}
+
+/* ---------- AI Gia sư ---------- */
+/**
+ * Một lượt học sinh hỏi AI Gia sư, chỉ ghi dữ liệu tổng hợp được (không lưu nội dung tin nhắn)
+ * để giáo viên thấy học sinh hay hỏi gì, lỗi phổ biến và kiến thức cần củng cố.
+ */
+export interface TutorEvent {
+  id: string;
+  studentId: string;
+  at: string;
+  capability: "explain" | "guide" | "debug" | "practice";
+  topic: string;
+  activity: "code" | "simulation" | "quiz" | "lesson" | "free";
+  level: "free" | "guided" | "exam";
+  /** Loại lỗi đọc từ trạng thái thật (SyntaxError, sai kiểm thử, vượt đèn đỏ…) */
+  errorType?: string;
+  objectiveId?: string;
+  source: "ai" | "rules";
 }

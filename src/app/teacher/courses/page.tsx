@@ -15,6 +15,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { EmptyState } from "@/components/ui/feedback";
 import { Checkbox, Field, Input, Select, Textarea } from "@/components/ui/form";
 import { PageHeader } from "@/components/ui/misc";
+import { SharedResources } from "@/components/teacher/shared-resources";
 
 export default function TeacherCoursesPage() {
   const { d, user } = useSessionData();
@@ -29,6 +30,7 @@ export default function TeacherCoursesPage() {
         description="Xây khóa học theo khối lớp, bộ sách, chủ đề và bài học; mỗi bài gồm kiến thức, video, mô phỏng, thực hành Python và luyện tập."
         actions={<Button onClick={() => setOpen(true)}><Plus /> Tạo khóa học</Button>}
       />
+      <SharedResources items={["labs", "resources", "activity", "library"]} />
       {courses.length === 0 ? (
         <EmptyState icon={BookMarked} title="Chưa có khóa học" description="Tạo khóa học đầu tiên — có thể dựng sẵn khung chủ đề và bài theo chương trình." action={<Button onClick={() => setOpen(true)}><Plus /> Tạo khóa học</Button>} />
       ) : (

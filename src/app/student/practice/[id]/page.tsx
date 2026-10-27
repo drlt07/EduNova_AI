@@ -18,7 +18,7 @@ import { ErrorState, PageSkeleton } from "@/components/ui/feedback";
 import { PageHeader } from "@/components/ui/misc";
 import { AnimatedBar, Celebrate } from "@/components/motion";
 import { QuestionView } from "@/components/student/question-view";
-import { useTutor, useTutorLock } from "@/components/tutor/tutor-provider";
+import { useTutor, useTutorActivity, useTutorLock } from "@/components/tutor/tutor-provider";
 
 type Mode = "practice" | "adaptive" | "exam";
 const MODE_NAME: Record<Mode, string> = { practice: "Luyện tập", adaptive: "Thích ứng", exam: "Kiểm tra" };
@@ -101,11 +101,19 @@ function Session({ setId, mode, pool, passedLevels, onRestart }: { setId: string
     return () => window.clearInterval(t);
   }, [mode, finished, limit]);
 
+  // AI Gia sư đọc câu đang làm và câu trả lời của em; bài kiểm tra → gia sư tắt
+  const cur = order[idx];
+  const touchTutor = useTutorActivity(
+    "quiz",
+    () => (cur ? { kind: "quiz", question: cur.prompt, answer: answers[cur.id] !== undefined ? toText(answers[cur.id]) : undefined, correct: graded[cur.id] ? graded[cur.id].status === "correct" : undefined } : undefined),
+    { title: `Luyện tập – ${getSet(setId)?.title ?? ""}`, topic: cur ? (cur.objectiveId.endsWith("05") ? "loop" : cur.objectiveId.startsWith("O10-A") ? "binary" : "if") : "if", level: mode === "exam" ? "exam" : "guided", objectiveId: cur?.objectiveId },
+  );
+
   if (finished) return <Result order={order} answers={answers} graded={graded} onRestart={onRestart} />;
 
   const q = order[idx];
   const g = graded[q.id];
-  const check = () => setGraded((s) => ({ ...s, [q.id]: gradeQuestion(q, answers[q.id] ?? null, { passedLevels }) }));
+  const check = () => { touchTutor(); setGraded((s) => ({ ...s, [q.id]: gradeQuestion(q, answers[q.id] ?? null, { passedLevels }) })); };
   const total = mode === "adaptive" ? Math.min(ADAPTIVE_LEN, pool.length) : order.length;
   const next = () => {
     if (mode === "adaptive") {
@@ -157,7 +165,7 @@ function Session({ setId, mode, pool, passedLevels, onRestart }: { setId: string
             {mode === "exam" ? (
               <span className="flex items-center gap-1 text-xs text-muted"><Lock className="size-3.5" aria-hidden /> Gia sư AI tạm khóa trong bài kiểm tra</span>
             ) : (
-              <Button variant="ghost" size="sm" onClick={() => tutor.open({ title: q.prompt, topic: q.objectiveId.endsWith("05") ? "loop" : q.objectiveId.startsWith("O10-A") ? "binary" : "if", ref: q.id })}><Bot className="size-4" /> Hỏi gia sư</Button>
+              <Button variant="ghost" size="sm" onClick={() => { touchTutor(); tutor.open({ capability: g && g.status !== "correct" ? "debug" : "guide" }); }}><Bot className="size-4" /> Hỏi AI Gia sư</Button>
             )}
           </div>
         </CardContent>

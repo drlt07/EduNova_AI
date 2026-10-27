@@ -1,4 +1,6 @@
 "use client";
+import type { Topic } from "@/lib/ai/tutor";
+import { TutorScope } from "@/components/tutor/tutor-provider";
 import { useMemo, useState } from "react";
 import { ArrowLeft, ArrowRight, CheckCircle2, Circle, Lock, Unlock } from "lucide-react";
 import type { Course, CourseProgress, PracticeAttempt } from "@/lib/domain/types";
@@ -21,6 +23,16 @@ export interface CoursePlayerProps {
   onOpenLesson?: (lessonId: string) => void;
   onPythonTests?: (exerciseId: string, passed: number, total: number, code: string, errorType?: string) => void;
   onPythonSave?: (exerciseId: string, code: string) => void;
+}
+
+/** Chủ đề của gia sư theo bài trong chương trình (L-10-if-kntt → if). */
+function topicOf(lessonId?: string): Topic {
+  if (!lessonId) return "general";
+  if (lessonId.includes("-if-")) return "if";
+  if (lessonId.includes("-loop-")) return "loop";
+  if (lessonId.includes("-binary-")) return "binary";
+  if (lessonId.includes("-debug-")) return "test";
+  return "general";
 }
 
 /** Khung học khóa học: cây chủ đề/bài bên trái (trạng thái khóa, hoàn thành), nội dung bài bên phải. */
@@ -94,8 +106,8 @@ export function CoursePlayer({ course, studentId, progress, practiceAttempts, pr
             </div>
             {cur.lesson.blocks.length === 0 && <EmptyState title="Bài chưa có nội dung" description="Giáo viên sẽ bổ sung nội dung cho bài này." />}
             {cur.lesson.blocks.map((b) => (
+              <TutorScope key={b.id} title={`${cur.lesson.title} – ${b.title}`} topic={topicOf(cur.lesson.lessonId)} level={b.tutorLevel ?? "guided"}>
               <BlockView
-                key={b.id}
                 block={b}
                 done={isBlockDone(b, ctx)}
                 preview={preview}
@@ -105,6 +117,7 @@ export function CoursePlayer({ course, studentId, progress, practiceAttempts, pr
                 onPythonTests={(p, t, c, e) => b.exerciseId && onPythonTests?.(b.exerciseId, p, t, c, e)}
                 onPythonSave={(c) => b.exerciseId && onPythonSave?.(b.exerciseId, c)}
               />
+              </TutorScope>
             ))}
             <div className="flex flex-wrap justify-between gap-2">
               <Button variant="secondary" disabled={idx <= 0} onClick={() => open(states[idx - 1].lesson.id)}><ArrowLeft /> Bài trước</Button>

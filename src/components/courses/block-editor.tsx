@@ -1,4 +1,5 @@
 "use client";
+import { LEVEL_LABEL } from "@/lib/ai/tutor-core";
 import { useId, useRef } from "react";
 import { ChevronDown, ChevronUp, GripVertical, Trash2, Upload, X } from "lucide-react";
 import { toast } from "sonner";
@@ -142,6 +143,11 @@ export function BlockEditor({ block, grade, index, count, open, dragging, onTogg
           {block.kind === "file" && <FilePicker accept={FILE_ACCEPT} label="Tải tài liệu lên (Word, PDF, slide…)" value={block.file} onPick={(file) => onChange({ file, title: block.title === BLOCK_LABEL.file ? file.name : block.title })} onClear={() => onChange({ file: undefined })} />}
           <Field label={block.kind === "text" ? "Nội dung" : "Hướng dẫn cho học sinh"} htmlFor={`${id}-body`}>
             <Textarea id={`${id}-body`} rows={block.kind === "text" ? 9 : 3} value={block.body ?? ""} onChange={(e) => onChange({ body: e.target.value })} className={block.kind === "text" ? "font-mono text-[13px]" : undefined} />
+          </Field>
+          <Field label="Mức hỗ trợ của AI Gia sư" htmlFor={`${id}-tutor`} hint="Học tự do: giải thích chi tiết, có ví dụ. Có hướng dẫn: câu hỏi gợi mở, gợi ý tăng dần. Kiểm tra: gia sư tắt.">
+            <Select id={`${id}-tutor`} value={block.tutorLevel ?? "guided"} onChange={(e) => onChange({ tutorLevel: e.target.value as CourseBlock["tutorLevel"] })}>
+              {(["free", "guided", "exam"] as const).map((l) => <option key={l} value={l}>{LEVEL_LABEL[l]}</option>)}
+            </Select>
           </Field>
           <Checkbox label="Bắt buộc để hoàn thành bài" checked={block.required} onChange={(e) => onChange({ required: e.target.checked })} />
         </div>

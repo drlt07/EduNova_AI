@@ -17,7 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Notice, Progress } from "@/components/ui/feedback";
 import { Label, Textarea } from "@/components/ui/form";
 import { LabPreview } from "@/components/labs/lab-preview";
-import { useTutor } from "@/components/tutor/tutor-provider";
+import { useTutor, useTutorActivity } from "@/components/tutor/tutor-provider";
 import { lessonLabs } from "./lesson-card";
 import { IfVisualizer } from "./if-visualizer";
 import { Quiz } from "./quiz";
@@ -66,6 +66,7 @@ function SectionBar({ id, title }: { id: string; title: string }) {
   const done = !!p?.sectionsDone.includes(id);
   const confused = !!p?.confused.includes(id);
   const topic = lesson.key.includes("if") ? "if" : lesson.key.includes("loop") ? "loop" : lesson.key.includes("binary") ? "binary" : "general";
+  const touchTutor = useTutorActivity("lesson", () => ({ kind: "lesson", section: title }), { title: `${lesson.title} — ${title}`, topic, level: "free", objectiveId: lesson.objectiveIds[0] });
   return (
     <div className="mt-5 flex flex-wrap items-center gap-2 border-t border-line pt-4">
       {id === "kiem-tra" ? (
@@ -81,7 +82,7 @@ function SectionBar({ id, title }: { id: string; title: string }) {
       <Button size="sm" variant="ghost" aria-pressed={confused} onClick={() => toggleConfused(studentId, lesson.id, id)} className={cn(confused && "bg-warning/15 text-warning-fg")}>
         <HelpCircle className="size-4" /> {confused ? "Em chưa hiểu phần này" : "Chưa hiểu"}
       </Button>
-      <Button size="sm" variant="ghost" onClick={() => tutor.open({ title: `${lesson.title} — ${title}`, topic, ref: `${lesson.id}#${id}` })}><Bot className="size-4" /> Hỏi gia sư</Button>
+      <Button size="sm" variant="ghost" onClick={() => { touchTutor(); tutor.open({ capability: confused ? "explain" : "guide" }); }}><Bot className="size-4" /> Hỏi AI Gia sư</Button>
       {confused && <span className="w-full text-xs text-warning-fg">Giáo viên sẽ thấy phần này cần giảng lại. Em có thể hỏi gia sư hoặc xem lại ví dụ.</span>}
     </div>
   );

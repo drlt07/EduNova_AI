@@ -1,4 +1,5 @@
 "use client";
+import { TutorInsightsCard } from "@/components/teacher/tutor-insights";
 import { useMemo, useState } from "react";
 import { Bar, BarChart, CartesianGrid, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { Activity, CheckCheck, Download, FlaskConical, Lightbulb, Users, X } from "lucide-react";
@@ -72,8 +73,8 @@ export default function AnalyticsPage() {
   return (
     <>
       <PageHeader
-        title="Thống kê học tập"
-        description="Mức đạt theo mục tiêu, tỉ lệ nộp bài, lỗi thường gặp và số lần thử của học sinh."
+        title="Kết quả học tập"
+        description="Mức độ hiểu bài theo mục tiêu, tỉ lệ nộp, lỗi thường gặp, số lần thử và những điều học sinh hay hỏi AI Gia sư."
         actions={<Button variant="secondary" onClick={() => { downloadText(`edunova-bao-cao-${new Date().toISOString().slice(0, 10)}.csv`, exportAssessmentsCsv(d, user.id, f)); toast.success("Đã xuất CSV"); }}><Download /> Xuất báo cáo (CSV)</Button>}
       />
       <div className="mb-5 flex flex-wrap gap-3">
@@ -163,6 +164,7 @@ export default function AnalyticsPage() {
         </Card>
       </div>
 
+      <TutorInsightsCard classId={classId || undefined} />
       <Card className="mt-6 border-violet/30">
         <CardHeader className="flex-row flex-wrap items-start justify-between gap-3">
           <div>

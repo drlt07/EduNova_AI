@@ -42,7 +42,7 @@ export default function ResourcesPage() {
   return (
     <>
       <PageHeader
-        title="Học liệu"
+        title="Học liệu & ngân hàng câu hỏi"
         description="Ngân hàng câu hỏi, thẻ ghi nhớ, sơ đồ, phiếu học tập. Nội dung tạo tự động cần được duyệt trước khi dùng."
         actions={<Button onClick={() => setOpen(true)}><Sparkles /> Tạo tự động</Button>}
       />

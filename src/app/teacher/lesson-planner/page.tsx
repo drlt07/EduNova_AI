@@ -59,7 +59,7 @@ function LessonPlannerList() {
   return (
     <>
       <PageHeader
-        title="Kế hoạch bài dạy"
+        title="Trợ lý KHBD AI"
         description="Soạn KHBD theo 4 hoạt động: Mở đầu, Hình thành kiến thức, Luyện tập, Vận dụng — tự soạn hoặc dùng trợ lý (tải KHBD có sẵn hoặc soạn mới, gắn mô phỏng, xuất Word)."
         actions={<><Button asChild><Link href="/teacher/lesson-planner/assistant"><Wand2 /> Soạn với trợ lý</Link></Button><Button variant="secondary" onClick={() => setOpen(true)}><FilePlus2 /> KHBD mới</Button></>}
       />

@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Scene3D } from "./scene-3d";
+import { useTutorActivity } from "@/components/tutor/tutor-provider";
 
 const LIGHT_CLS: Record<LightColor, string> = { red: "bg-[#ff3b30]", yellow: "bg-[#ffcc00]", green: "bg-[#30d158]" };
 const LIGHT_VI: Record<LightColor, string> = { red: "Đỏ", yellow: "Vàng", green: "Xanh" };
@@ -29,7 +30,26 @@ export function SmartTrafficCity() {
   const [clickedCar, setClickedCar] = useState(false);
 
   const refresh = useCallback(() => setSnap(snapshot(sim.current, remaining(sim.current.controller))), []);
-  const start = () => { sim.current.running = true; refresh(); };
+  // AI Gia sư đọc trạng thái thật của giao lộ: pha đèn, chế độ, xe đang chờ, vượt đỏ, xung đột
+  const touchTutor = useTutorActivity("simulation", () => {
+    const st = snapshot(sim.current, remaining(sim.current.controller));
+    const waiting = st.vehicles.filter((v) => v.status === "waiting" && v.waitTime > 15);
+    const problems = [
+      ...(st.stats.violations > 0 ? [`Đã có ${st.stats.violations} lần xe vượt đèn đỏ.`] : []),
+      ...(st.stats.conflicts > 0 ? [`Đã có ${st.stats.conflicts} lần hai hướng xe cùng vào giao lộ (xung đột).`] : []),
+      ...waiting.map((v) => `${v.name} (đi ${APPROACH_LABEL[v.approach]}) đã chờ ${v.waitTime.toFixed(0)} giây ở đèn đỏ.`),
+    ];
+    return {
+      kind: "simulation",
+      sim: "mô phỏng Thành phố giao thông",
+      summary: `Pha đèn: ${PHASE_LABEL[st.phase]}; chế độ ${st.mode === "manual" ? "thủ công" : "tự động"}; ${st.running ? "đang chạy" : "đang dừng"}; ${st.stats.passed} lượt xe đã qua giao lộ.`,
+      problems,
+      facts: { phase: st.phase, mode: st.mode, passed: st.stats.passed, stopsAtRed: st.stats.stopsAtRed, violations: st.stats.violations, conflicts: st.stats.conflicts, errorType: st.stats.violations ? "Vượt đèn đỏ" : st.stats.conflicts ? "Xung đột giao lộ" : waiting.length ? "Xe chờ quá lâu" : "" },
+    };
+  });
+
+  const start = () => {
+    touchTutor(); sim.current.running = true; refresh(); };
   const pause = () => { sim.current.running = false; refresh(); };
   const reset = () => {
     const prev = sim.current;

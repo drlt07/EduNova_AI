@@ -35,7 +35,7 @@ export default function LabStudioPage() {
 
   return (
     <>
-      <PageHeader title="Phòng thí nghiệm ảo" description="Thiết lập sẵn ngưỡng, mức độ và các trường hợp kiểm tra để dùng lại khi giao bài." />
+      <PageHeader title="Kho mô phỏng" description="Thiết lập sẵn ngưỡng, mức độ và các trường hợp kiểm tra để dùng lại khi giao bài." />
       <div className="grid gap-6 xl:grid-cols-[300px_minmax(0,1fr)]">
         <nav aria-label="Danh sách phòng thí nghiệm" className="space-y-2">
           {LAB_TEMPLATES.map((l) => (

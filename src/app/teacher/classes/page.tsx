@@ -54,7 +54,7 @@ export default function ClassesPage() {
 
   return (
     <>
-      <PageHeader title="Lớp học" description="Quản lý lớp, mã mời, danh sách học sinh và trạng thái học tập. Bạn chỉ thấy lớp mình phụ trách." actions={<Button onClick={() => { form.reset({ name: "", grade: 10, textbookId: "kntt", pathway: "chung", schoolYear: "2026–2027" }); setDialog("create"); }}><Plus /> Lớp mới</Button>} />
+      <PageHeader title="Lớp học của tôi" description="Quản lý lớp, mã mời, danh sách học sinh và trạng thái học tập. Bạn chỉ thấy lớp mình phụ trách." actions={<Button onClick={() => { form.reset({ name: "", grade: 10, textbookId: "kntt", pathway: "chung", schoolYear: "2026–2027" }); setDialog("create"); }}><Plus /> Lớp mới</Button>} />
       {classes.length === 0 ? <EmptyState icon={Users} title="Chưa có lớp nào" /> : (
         <div className="grid gap-6 xl:grid-cols-[300px_minmax(0,1fr)]">
           <ul className="space-y-2" aria-label="Danh sách lớp">

@@ -1,4 +1,6 @@
 "use client";
+import { LEVEL_FROM_HINT } from "@/lib/ai/tutor-core";
+import { TutorScope } from "@/components/tutor/tutor-provider";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useState } from "react";
@@ -91,6 +93,7 @@ function Mission({ assignmentId }: { assignmentId: string }) {
   }
 
   return (
+    <TutorScope title={assignment.title} topic="logic" level={LEVEL_FROM_HINT[assignment.hintMode]} objectiveId={activity?.objectiveIds?.[0]}>
     <>
       <Button asChild variant="ghost" size="sm" className="mb-3"><Link href="/student/missions"><ArrowLeft /> Nhiệm vụ</Link></Button>
       <PageHeader
@@ -199,6 +202,7 @@ function Mission({ assignmentId }: { assignmentId: string }) {
         </DialogContent>
       </Dialog>
     </>
+    </TutorScope>
   );
 }
 

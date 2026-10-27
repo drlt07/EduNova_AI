@@ -11,6 +11,7 @@ import { Label, Textarea } from "@/components/ui/form";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CodeEditor } from "@/components/labs/code-editor";
 import { CodeVisualizer } from "./visualizer";
+import { useTutorActivity } from "@/components/tutor/tutor-provider";
 
 export interface TestRow {
   name: string;
@@ -60,10 +61,20 @@ export function PythonWorkspace({
   const [tab, setTab] = useState("console");
   const [plain, setPlain] = useState(false);
   const lastVars = useMemo(() => result?.trace[result.trace.length - 1]?.vars ?? [], [result]);
+  // AI Gia sư đọc đúng bài làm hiện tại: mã nguồn, lỗi khi chạy, kết quả kiểm thử
+  const touchTutor = useTutorActivity("code", () => ({
+    kind: "code",
+    task: exercise?.task,
+    exerciseId: exercise?.id,
+    code,
+    runError: result?.error ? { type: result.error.type, line: result.error.line, explain: result.error.explain } : undefined,
+    tests: tests?.map((t) => ({ name: t.name, stdin: t.stdin, expected: t.expected, actual: t.actual, pass: t.pass, error: t.error })),
+  }));
 
   function run(visual: boolean) {
     const r = runPython(code, { stdin: stdin.split("\n").filter((l, i, a) => l !== "" || i < a.length - 1) });
     setResult(r);
+    touchTutor();
     setTab(visual ? "steps" : "console");
     onEvent?.({ kind: "run", result: r });
   }
@@ -71,6 +82,7 @@ export function PythonWorkspace({
     if (!exercise) return;
     const rows = runExerciseTests(exercise, code);
     setTests(rows);
+    touchTutor();
     setTab("tests");
     onEvent?.({ kind: "test", tests: rows });
   }

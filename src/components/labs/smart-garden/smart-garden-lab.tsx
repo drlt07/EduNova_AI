@@ -22,6 +22,7 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox, Input, Label, Select } from "@/components/ui/form";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { GardenScene } from "./garden-scene";
+import { useTutorActivity } from "@/components/tutor/tutor-provider";
 
 export interface SmartGardenLabProps {
   params: SmartGardenParams;
@@ -94,8 +95,27 @@ export function SmartGardenLab({ params, testCases, mode, attemptId, initialRule
     log("rule_change", { rule: text, source: "builder" });
   }
 
+  // AI Gia sư đọc trạng thái thật của vườn: độ ẩm, bình nước, luật đang dùng, trường hợp kiểm thử sai
+  const touchTutor = useTutorActivity("simulation", () => {
+    const failing = (tests ?? []).filter((t) => !t.pass);
+    const name = (id: string) => testCases.find((c) => c.id === id)?.name ?? id;
+    const first = failing[0];
+    return {
+      kind: "simulation",
+      sim: "mô phỏng Vườn tưới thông minh",
+      summary: `Độ ẩm ${humidity}%, bình ${hasWater ? "còn" : "hết"} nước, luật đang dùng: ${ruleText}${compiled.ok ? "" : " (luật đang có lỗi cú pháp)"}.`,
+      problems: [
+        ...(!compiled.ok ? ["Luật tưới đang có lỗi cú pháp nên chưa chạy được."] : []),
+        ...failing.map((t) => `Trường hợp “${name(t.caseId)}”: cần bơm ${t.expected ? "BẬT" : "TẮT"} nhưng luật của em cho ${t.actual === null ? "lỗi" : t.actual ? "BẬT" : "TẮT"}.`),
+        ...(last && !last.pass ? [`Lần chạy gần nhất (độ ẩm ${last.input.humidity}%, ${last.input.hasWater ? "còn" : "hết"} nước) máy bơm ${last.pump ? "bật" : "tắt"}, chưa đúng yêu cầu.`] : []),
+      ],
+      facts: { humidity, hasWater, rule: ruleText, testsRun: tests ? tests.length : 0, errorType: first ? (first.category === "boundary" ? "Sai ở giá trị biên" : first.category === "no-water" ? "Quên điều kiện hết nước" : "Sai kiểm thử") : "" },
+    };
+  });
+
   function run() {
     if (!compiled.ok) return;
+    touchTutor();
     const input = { humidity, hasWater };
     const out = runRule(compiled.ast, input, params);
     setLast({ ...out, input });
@@ -107,6 +127,7 @@ export function SmartGardenLab({ params, testCases, mode, attemptId, initialRule
     if (!compiled.ok) return;
     const results = runTests(compiled.ast, testCases, params);
     setTests(results);
+    touchTutor();
     const passed = results.filter((r) => r.pass).length;
     log("test", { rule: ruleText, cases: results.length }, { passed, total: results.length, failed: results.filter((r) => !r.pass).map((r) => r.caseId) }, passed === results.length);
     onTestResults?.(results, ruleText);

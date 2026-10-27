@@ -4,20 +4,14 @@ import {
   BookOpenCheck,
   Bot,
   ClipboardCheck,
-  FlaskConical,
   Dumbbell,
   Gamepad2,
   GraduationCap,
   Home,
   LayoutDashboard,
-  Library,
-  ListChecks,
   NotebookPen,
-  Settings,
   Shield,
-  Sparkles,
   Users,
-  Wand2,
 } from "lucide-react";
 import type { Role } from "@/lib/domain/types";
 
@@ -30,19 +24,15 @@ export interface NavItem {
 }
 
 export const NAV: Record<Role, NavItem[]> = {
+  // 6 chức năng của giáo viên. Kho mô phỏng, học liệu, ngân hàng câu hỏi là tài nguyên dùng chung,
+  // mở từ Khóa học hoặc Bài tập & Đánh giá (match) chứ không phải mục menu riêng.
   teacher: [
     { href: "/teacher/dashboard", label: "Tổng quan", icon: LayoutDashboard },
-    { href: "/teacher/courses", label: "Khóa học & bài giảng", icon: BookMarked },
-    { href: "/teacher/lesson-planner", label: "Kế hoạch bài dạy", icon: NotebookPen },
-    { href: "/teacher/activity-builder", label: "Thiết kế hoạt động", icon: Wand2 },
-    { href: "/teacher/labs", label: "Phòng thí nghiệm ảo", icon: FlaskConical },
-    { href: "/teacher/resources", label: "Học liệu", icon: Sparkles },
-    { href: "/teacher/classes", label: "Lớp học", icon: Users },
-    { href: "/teacher/assignments", label: "Giao nhiệm vụ", icon: ListChecks },
-    { href: "/teacher/assessment", label: "Chấm bài", icon: ClipboardCheck },
-    { href: "/teacher/analytics", label: "Thống kê học tập", icon: BarChart3 },
-    { href: "/teacher/library", label: "Thư viện chia sẻ", icon: Library },
-    { href: "/teacher/settings", label: "Cài đặt", icon: Settings },
+    { href: "/teacher/classes", label: "Lớp học của tôi", icon: Users },
+    { href: "/teacher/courses", label: "Khóa học", icon: BookMarked, match: ["/teacher/activity-builder", "/teacher/labs", "/teacher/resources", "/teacher/library"] },
+    { href: "/teacher/assignments", label: "Bài tập & Đánh giá", icon: ClipboardCheck, match: ["/teacher/assessment"] },
+    { href: "/teacher/analytics", label: "Kết quả học tập", icon: BarChart3 },
+    { href: "/teacher/lesson-planner", label: "Trợ lý KHBD AI", icon: NotebookPen },
   ],
   // 5 chức năng của học sinh; trang con (match) vẫn đánh dấu đúng mục cha. Kết quả học tập nằm ở Trang cá nhân.
   student: [

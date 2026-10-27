@@ -14,6 +14,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { EmptyState, Progress } from "@/components/ui/feedback";
 import { Field, Input, Select } from "@/components/ui/form";
 import { PageHeader } from "@/components/ui/misc";
+import { SharedResources } from "@/components/teacher/shared-resources";
 
 const HINT: Record<HintMode, string> = HINT_LABEL;
 const toLocal = (iso: string) => { const d = new Date(iso); return new Date(d.getTime() - d.getTimezoneOffset() * 60_000).toISOString().slice(0, 16); };
@@ -46,13 +47,14 @@ export default function AssignmentsPage() {
   return (
     <>
       <PageHeader
-        title="Giao nhiệm vụ"
-        description="Theo dõi tiến độ nộp bài, chỉnh hạn nộp và giao lại hoạt động cho lớp khác."
+        title="Bài tập & Đánh giá"
+        description="Giao bài cho lớp, theo dõi tiến độ nộp, chỉnh hạn nộp và mức hỗ trợ của AI Gia sư; chấm và nhận xét ở mục Chấm bài."
         actions={<>
           <Button variant="secondary" onClick={() => setCreating(true)} disabled={!activities.length}><Plus /> Giao hoạt động có sẵn</Button>
           <Button asChild><Link href="/teacher/activity-builder"><Wand2 /> Hoạt động mới</Link></Button>
         </>}
       />
+      <SharedResources title="Trong mục này" items={["assign", "grade", "activity", "labs", "resources"]} />
       <div className="mb-4 flex flex-wrap gap-3">
         <Select aria-label="Lọc lớp" className="w-44" value={classId} onChange={(e) => setClassId(e.target.value)}>
           <option value="">Mọi lớp</option>

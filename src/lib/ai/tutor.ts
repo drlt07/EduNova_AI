@@ -25,7 +25,7 @@ export interface TutorOutput {
   hintLevel: number;
 }
 
-const LIB: Record<Exclude<Topic, "general">, { explain: string; simpler: string; example: { text: string; code: string }; hints: string[]; socratic: string[]; objective: string }> = {
+export const LIB: Record<Exclude<Topic, "general">, { explain: string; simpler: string; example: { text: string; code: string }; hints: string[]; socratic: string[]; objective: string }> = {
   if: {
     explain: "Câu lệnh if giúp chương trình chọn việc cần làm. Python kiểm tra điều kiện: nếu True thì chạy khối lệnh thụt lề bên dưới, nếu False thì bỏ qua (hoặc chạy nhánh else).",
     simpler: "Hãy nghĩ if giống câu “Nếu trời mưa thì mang ô”. Máy tính kiểm tra “trời mưa?” — đúng thì làm, sai thì thôi.",

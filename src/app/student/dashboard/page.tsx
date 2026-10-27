@@ -4,7 +4,7 @@ import { useMemo } from "react";
 import { motion } from "motion/react";
 import { ArrowRight, Award, BookOpen, CalendarClock, Code2, FolderKanban, Gamepad2, Lock, PlayCircle, Sparkles, Target } from "lucide-react";
 import { GAMES } from "@/lib/data/games";
-import { LESSONS, DIFFICULTY_LABEL } from "@/lib/data/curriculum";
+import { LESSONS, DIFFICULTY_LABEL, TOPICS } from "@/lib/data/curriculum";
 import { getLessonContent } from "@/lib/data/lesson-content";
 import { computeAchievements } from "@/lib/store/achievements";
 import { MISSION_STATUS_LABEL, studentMissions } from "@/lib/store/student";
@@ -16,6 +16,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/feedback";
 import { AnimatedBar, CountUp, FadeIn, Stagger, StaggerItem } from "@/components/motion";
+
+/** Bốn chức năng còn lại của học sinh (Trang chủ là trang này). */
+const FUNCTIONS = [
+  { href: "/student/courses", icon: BookOpen, label: "Khóa học của tôi", desc: "Học các bài và làm nhiệm vụ thầy cô giao." },
+  { href: "/student/games", icon: Gamepad2, label: "Tình huống mô phỏng", desc: "Khám phá thuật toán, máy tính, mạng qua tình huống tương tác." },
+  { href: "/student/practice", icon: Code2, label: "Luyện tập", desc: "Lập trình, trắc nghiệm, HTML/CSS; SQL và mạng ảo sắp có." },
+  { href: "/student/tutor", icon: Sparkles, label: "AI Gia sư", desc: "Giải thích, gợi mở từng bước, chỉ ra lỗi và gợi ý bài luyện." },
+];
 
 const CONT_ICON: Record<ContinueItem["kind"], typeof BookOpen> = { lesson: BookOpen, game: Gamepad2, code: Code2, mission: Target, project: FolderKanban };
 
@@ -37,6 +45,8 @@ export default function StudentDashboard() {
       tips: studySuggestions(d, user.id),
       ach,
       recommended,
+      program: TOPICS.map((t) => ({ ...t, count: LESSONS.filter((l) => l.grade === grade && l.textbookId === book && l.topicId === t.id).length })).filter((t) => t.count > 0),
+      featured: GAMES.filter((g) => g.status === "available").sort((a, b) => Number(b.grade === grade) - Number(a.grade === grade)).slice(0, 3),
       stats: {
         lessons: d.lessonProgress.filter((p) => p.studentId === user.id).length,
         practice: d.practiceAttempts.filter((p) => p.studentId === user.id).length,
@@ -58,8 +68,8 @@ export default function StudentDashboard() {
             {data.todo.length ? <>Em có <b className="text-fg">{data.todo.length}</b> nhiệm vụ cần làm, gần nhất hạn {relativeDays(data.todo[0].assignment.dueAt)}.</> : "Em không có nhiệm vụ nào đang chờ. Thử một trò chơi hoặc bài luyện tập nhé!"}
           </motion.p>
           <div className="mt-5 flex flex-wrap gap-2">
-            {data.cont[0] ? <Button asChild><Link href={data.cont[0].href}><PlayCircle className="size-4" /> Học tiếp: {data.cont[0].title}</Link></Button> : <Button asChild><Link href="/student/learning"><BookOpen className="size-4" /> Vào bài học</Link></Button>}
-            <Button asChild variant="secondary"><Link href="/student/games"><Gamepad2 className="size-4" /> Trò chơi mô phỏng</Link></Button>
+            {data.cont[0] ? <Button asChild><Link href={data.cont[0].href}><PlayCircle className="size-4" /> Học tiếp: {data.cont[0].title}</Link></Button> : <Button asChild><Link href="/student/courses"><BookOpen className="size-4" /> Vào khóa học</Link></Button>}
+            <Button asChild variant="secondary"><Link href="/student/games"><Gamepad2 className="size-4" /> Tình huống mô phỏng</Link></Button>
           </div>
           <dl className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
             {([["Bài đã học", data.stats.lessons], ["Lượt luyện tập", data.stats.practice], ["Bài code đạt", data.stats.code], ["Huy hiệu", data.stats.badges]] as const).map(([k, v]) => (
@@ -71,6 +81,54 @@ export default function StudentDashboard() {
           </dl>
         </div>
       </section>
+
+      <section aria-labelledby="explore-h">
+        <h2 id="explore-h" className="mb-3 text-lg font-semibold text-fg">Học trên EduNova</h2>
+        <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          {FUNCTIONS.map((f) => (
+            <li key={f.href}>
+              <Link href={f.href} className="group flex h-full flex-col gap-2 rounded-2xl border border-line bg-surface p-4 transition-colors hover:border-cyan/40">
+                <f.icon className="size-5 text-cyan-fg" aria-hidden />
+                <span className="font-semibold text-fg">{f.label}</span>
+                <span className="text-sm text-muted">{f.desc}</span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <div className="grid gap-5 lg:grid-cols-2">
+        <Card>
+          <CardHeader className="flex-row items-center justify-between"><CardTitle as="h2">Chương trình Tin học {data.grade}</CardTitle><Link href="/student/learning" className="text-sm text-cyan-fg hover:underline">Tất cả bài</Link></CardHeader>
+          <CardContent>
+            <ul className="space-y-2">
+              {data.program.map((t) => (
+                <li key={t.id} className="flex items-center gap-3 rounded-xl bg-surface-2 px-3 py-2 text-sm">
+                  <span className="grid size-7 shrink-0 place-items-center rounded-lg bg-cyan/15 font-mono text-xs font-bold text-cyan-fg">{t.code}</span>
+                  <span className="min-w-0 flex-1 text-fg">{t.name}</span>
+                  <span className="text-xs text-muted">{t.count} bài</span>
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex-row items-center justify-between"><CardTitle as="h2">Hoạt động nổi bật</CardTitle><Link href="/student/games" className="text-sm text-cyan-fg hover:underline">Kho mô phỏng</Link></CardHeader>
+          <CardContent>
+            <ul className="space-y-2">
+              {data.featured.map((g) => (
+                <li key={g.slug}>
+                  <Link href={`/student/games/${g.slug}`} className="flex items-center gap-3 rounded-xl border border-line px-3 py-2.5 hover:border-cyan/40">
+                    <Gamepad2 className="size-4 shrink-0 text-cyan-fg" aria-hidden />
+                    <span className="min-w-0 flex-1"><span className="block text-sm font-medium text-fg">{g.title}</span><span className="block text-xs text-muted">Tin {g.grade} · {g.focus} · {g.minutes} phút</span></span>
+                    <ArrowRight className="size-4 text-cyan-fg" aria-hidden />
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+      </div>
 
       <div className="grid gap-5 xl:grid-cols-3">
         <Card className="xl:col-span-2">

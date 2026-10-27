@@ -15,6 +15,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { EmptyState, Notice, PageSkeleton } from "@/components/ui/feedback";
 import { Field, Select, Textarea } from "@/components/ui/form";
 import { Avatar, PageHeader } from "@/components/ui/misc";
+import { SharedResources } from "@/components/teacher/shared-resources";
 import { EventTimeline } from "@/components/labs/event-timeline";
 
 function AssessmentInner() {
@@ -44,6 +45,7 @@ function AssessmentInner() {
 
   return (
     <>
+      <SharedResources title="Bài tập & Đánh giá" items={["assign", "grade"]} />
       <PageHeader title="Chấm bài" description="Xem bài làm, kết quả máy kiểm tra và quá trình làm bài của học sinh, rồi chấm theo tiêu chí." />
       <div className="grid gap-6 xl:grid-cols-[340px_minmax(0,1fr)]">
         <aside aria-label="Hàng đợi bài nộp" className="space-y-3">
