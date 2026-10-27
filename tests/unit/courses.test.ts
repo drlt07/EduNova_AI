@@ -53,9 +53,11 @@ describe("Khóa học: soạn và phát hành", () => {
   it("dựng khung theo chương trình đúng khối/bộ sách, có khối kiến thức", () => {
     const topics = scaffoldTopics(10, "kntt");
     const lessons = topics.flatMap((t) => t.lessons);
-    expect(lessons.length).toBeGreaterThan(3);
-    expect(lessons.every((l) => l.lessonId?.endsWith("-kntt") && l.blocks[0].kind === "text")).toBe(true);
-    expect(lessons.some((l) => l.lessonId === "L-10-if-kntt")).toBe(true);
+    expect(topics).toHaveLength(6);
+    expect(lessons).toHaveLength(34);
+    expect(lessons.every((l) => l.blocks[0].kind === "text")).toBe(true);
+    expect(lessons.find((l) => l.lessonId === "L-10-if-kntt")?.title).toBe("Bài 19. Câu lệnh rẽ nhánh if");
+    expect(scaffoldTopics(10, "cd").flatMap((t) => t.lessons).every((l) => l.lessonId?.endsWith("-cd"))).toBe(true);
   });
 
   it("kéo thả sắp xếp không làm mất phần tử", () => {

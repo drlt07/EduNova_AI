@@ -52,7 +52,7 @@ export function seedCourses(createdAt: string): Course[] {
       return {
         ...l,
         id: isIf ? "seed-cl-if" : `seed-cl-${n}`,
-        title: isIf ? "Câu lệnh rẽ nhánh" : l.title,
+        title: isIf ? "Bài 19. Câu lệnh rẽ nhánh if" : l.title,
         blocks: isIf ? IF_BLOCKS : l.blocks.map((b, bi) => ({ ...b, id: `seed-cb-${n}-${bi}` })),
       };
     }),

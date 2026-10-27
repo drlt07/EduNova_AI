@@ -3,7 +3,8 @@
  * Không phụ thuộc React/store để kiểm thử được bằng Vitest.
  */
 import type { Course, CourseBlock, CourseBlockKind, CourseLesson, CourseProgress, CourseTopic, Grade, PracticeAttempt, TextbookId } from "@/lib/domain/types";
-import { LESSONS, TOPICS } from "@/lib/data/curriculum";
+import { LESSONS, TOPICS, getLesson } from "@/lib/data/curriculum";
+import { SGK_KNTT, sgkLessonId } from "@/lib/data/sgk-kntt";
 import { uid } from "@/lib/utils";
 
 export const BLOCK_LABEL: Record<CourseBlockKind, string> = {
@@ -33,8 +34,23 @@ export function newTopic(title: string, topicId?: string, lessons: CourseLesson[
   return { id: uid("ct"), title, topicId, lessons };
 }
 
-/** Khung khóa học theo khối lớp + bộ sách: chủ đề → bài học, mỗi bài có sẵn khối kiến thức từ tóm tắt bài. */
+/**
+ * Khung khóa học theo khối lớp + bộ sách: chủ đề → bài học. Bộ KNTT dựng đúng mục lục SGK; bài nào có
+ * bài tương tác EduNova thì gắn vào và lấy tóm tắt làm khối kiến thức.
+ */
 export function scaffoldTopics(grade: Grade, book: TextbookId): CourseTopic[] {
+  if (book === "kntt") {
+    return SGK_KNTT[grade].map((t) =>
+      newTopic(
+        `Chủ đề ${t.no}. ${t.title}`,
+        undefined,
+        t.lessons.map((l) => {
+          const id = sgkLessonId(l);
+          return newLesson(`Bài ${l.no}. ${l.title}`, id, [newBlock("text", { body: (id && getLesson(id)?.summary) || `Nội dung Bài ${l.no} theo SGK Tin học ${grade} (Kết nối tri thức).` })]);
+        }),
+      ),
+    );
+  }
   const lessons = LESSONS.filter((l) => l.grade === grade && l.textbookId === book).sort((a, b) => a.order - b.order);
   return TOPICS.flatMap((t) => {
     const ls = lessons.filter((l) => l.topicId === t.id);

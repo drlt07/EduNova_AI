@@ -101,7 +101,13 @@ export function AppShell({ role, children }: { role: Role; children: React.React
         </div>
       )}
 
-      <div className="flex min-w-0 flex-1 flex-col">
+      <div className="relative flex min-w-0 flex-1 flex-col">
+        {/* Nền lưới và quầng màu như trang chủ */}
+        <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-[560px] overflow-hidden">
+          <div className="absolute inset-0 bg-grid [mask-image:linear-gradient(to_bottom,black,transparent)]" />
+          <div className="absolute -top-40 left-1/3 h-[420px] w-[720px] rounded-full bg-[radial-gradient(closest-side,rgba(79,127,255,0.22),transparent)]" />
+          <div className="absolute -top-24 right-0 h-[360px] w-[480px] rounded-full bg-[radial-gradient(closest-side,rgba(168,85,247,0.16),transparent)]" />
+        </div>
         <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-3 border-b border-line bg-bg/80 px-4 backdrop-blur-xl sm:px-6">
           <div className="flex min-w-0 flex-1 items-center gap-2">
             <Button variant="ghost" size="icon" className="lg:hidden" aria-label="Mở menu" onClick={() => setOpen(true)}>
@@ -126,7 +132,7 @@ export function AppShell({ role, children }: { role: Role; children: React.React
             {hydrated && <RoleSwitcher />}
           </div>
         </header>
-        <main id="main" className="mx-auto w-full max-w-[1400px] flex-1 px-4 py-6 pb-24 sm:px-6 lg:px-8">
+        <main id="main" className="relative mx-auto w-full max-w-[1400px] flex-1 px-4 py-6 pb-24 sm:px-6 lg:px-8">
           <motion.div key={pathname} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.22, ease: "easeOut" }}>
             {isStudent ? <TutorProvider userId={user!.id}>{body}</TutorProvider> : body}
           </motion.div>

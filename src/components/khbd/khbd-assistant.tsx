@@ -19,7 +19,6 @@ import { chiBaoNc1, docHinhQuaMayChu, giaLapQuaMayChu, goiYQuaMayChu, goiYToChuc
 import { docCacHinh, docDuocAnh, layHinh } from "@khbd/lib/pipeline/4-sinh-noi-dung/doc-hinh";
 import { adapterTuKhoa, docKhoaAi, luuKhoaAi, xoaKhoaAi, type KhoaAi } from "@khbd/lib/llm/khoa-nguoi-dung";
 import type { HocLieuGan } from "@khbd/lib/pipeline/6-xuat-file/hoc-lieu";
-import type { Grade, TextbookId } from "@/lib/domain/types";
 import { getLesson } from "@/lib/data/curriculum";
 import { KHBD_RUNTIME } from "@/lib/khbd/runtime";
 import { cn } from "@/lib/utils";
@@ -71,10 +70,13 @@ function Stepper({ man }: { man: number }) {
  * Trợ lý xây dựng KHBD: EduNova chọn bài, dựng bản khởi đầu, gắn mô phỏng và lưu; phân tích – soạn – kiểm tra – xuất Word
  * do trợ lý KHBD (khbd/) đảm nhận, giữ nguyên luật và kiểm tra của trợ lý.
  */
-export function KhbdAssistant({ onSaved }: { onSaved?: (planId: string) => void }) {
+export function KhbdAssistant({ onSaved, initialLessonId }: { onSaved?: (planId: string) => void; initialLessonId?: string }) {
   const rt = KHBD_RUNTIME;
   const [man, setMan] = useState(1);
-  const [chon, setChon] = useState<LessonChoice>({ grade: 10 as Grade, textbookId: "kntt" as TextbookId, lessonId: "L-10-if-kntt", periods: 2, source: "upload" });
+  const [chon, setChon] = useState<LessonChoice>(() => {
+    const start = (initialLessonId && getLesson(initialLessonId)) || getLesson("L-10-if-kntt")!;
+    return { grade: start.grade, textbookId: start.textbookId, lessonId: start.id, periods: 2, source: "upload" };
+  });
   const lesson = getLesson(chon.lessonId);
 
   // Khóa AI riêng của GV (chỉ app Next.js) — giống TaoKhbd của trợ lý
