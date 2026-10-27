@@ -185,3 +185,18 @@ html[data-contrast="high"] {
   --muted: var(--fg);
   --line: color-mix(in srgb, var(--fg) 45%, transparent);
 }
+/* Minh họa mô phỏng ở trang chủ (tự tắt khi giảm chuyển động nhờ luật chung phía trên) */
+@keyframes sim-drive {
+  0% { transform: translate(0, 0); }
+  50% { transform: translate(46px, -8px); }
+  100% { transform: translate(0, 0); }
+}
+.sim-drive { animation: sim-drive 6s ease-in-out infinite; }
+@keyframes sim-blink {
+  50% { opacity: 0.35; }
+}
+.sim-blink { animation: sim-blink 1.6s ease-in-out infinite; }
+@keyframes sim-flow {
+  to { stroke-dashoffset: -22; }
+}
+.sim-flow { animation: sim-flow 1.2s linear infinite; }

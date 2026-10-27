@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { ChevronRight, ShieldAlert } from "lucide-react";
 import { LESSONS, OBJECTIVES, PATHWAY_LABEL, TEXTBOOKS, TOPICS } from "@/lib/data/curriculum";
 import { LAB_TEMPLATES } from "@/lib/data/labs";
@@ -11,6 +12,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export function CurriculumClient() {
   const [book, setBook] = useState<TextbookId>("kntt");
+  // ?grade=10|11|12 từ trang chủ mở sẵn đúng khối lớp
+  const qGrade = useSearchParams().get("grade");
+  const initialGrade = qGrade === "11" || qGrade === "12" ? qGrade : "10";
   return (
     <div>
       <div className="mb-6 flex flex-wrap items-end gap-4">
@@ -25,7 +29,7 @@ export function CurriculumClient() {
           Nội dung minh họa, cần đối chiếu với sách giáo khoa.
         </div>
       </div>
-      <Tabs defaultValue="10">
+      <Tabs defaultValue={initialGrade} key={initialGrade}>
         <TabsList aria-label="Chọn lớp">
           {[10, 11, 12].map((g) => <TabsTrigger key={g} value={String(g)}>Tin học {g}</TabsTrigger>)}
         </TabsList>

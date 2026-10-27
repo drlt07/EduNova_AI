@@ -48,21 +48,27 @@ export interface Scene3DProps {
   onSelectCar: (id: string | null) => void;
   onLightClick: () => void;
   onTick: () => void;
+  /** Bản xem trước (trang chủ): không xoay/zoom bằng chuột, camera quay chậm, bóng đổ nhẹ hơn. */
+  preview?: boolean;
 }
 
 /** Canvas WebGL của React Three Fiber: camera isometric (orthographic) xoay/zoom được, ánh sáng ban ngày, bóng đổ mềm. */
-export function Scene3D({ sim, phase, selectedCar, onSelectCar, onLightClick, onTick }: Scene3DProps) {
+export function Scene3D({ sim, phase, selectedCar, onSelectCar, onLightClick, onTick, preview = false }: Scene3DProps) {
   return (
     <Canvas
       shadows="percentage"
-      dpr={[1, 2]}
+      dpr={preview ? [1, 1.5] : [1, 2]}
       gl={{ antialias: true }}
       onPointerMissed={() => onSelectCar(null)}
       fallback={<div className="grid h-full place-items-center p-6 text-center text-sm text-white">Trình duyệt này không hỗ trợ WebGL nên không hiển thị được cảnh 3D. Hãy thử Chrome, Edge hoặc Firefox bản mới và bật tăng tốc phần cứng.</div>}
     >
       <color attach="background" args={["#cfe9ff"]} />
-      <OrthographicCamera makeDefault position={[46, 44, 46]} zoom={15} near={-200} far={400} />
+      <OrthographicCamera makeDefault position={[46, 44, 46]} zoom={preview ? 11 : 15} near={-200} far={400} />
       <OrbitControls
+        enableZoom={!preview}
+        enableRotate={!preview}
+        autoRotate={preview}
+        autoRotateSpeed={0.35}
         makeDefault
         target={[0, 0, 0]}
         enableDamping
@@ -71,7 +77,7 @@ export function Scene3D({ sim, phase, selectedCar, onSelectCar, onLightClick, on
         maxZoom={45}
         minPolarAngle={0.25}
         maxPolarAngle={1.25}
-        enablePan
+        enablePan={!preview}
         screenSpacePanning={false}
       />
       <hemisphereLight args={["#e0f2ff", "#7c9a5a", 1.1]} />
@@ -80,7 +86,7 @@ export function Scene3D({ sim, phase, selectedCar, onSelectCar, onLightClick, on
         position={[28, 46, 18]}
         intensity={2.4}
         color="#fff4e0"
-        shadow-mapSize={[2048, 2048]}
+        shadow-mapSize={preview ? [1024, 1024] : [2048, 2048]}
         shadow-camera-left={-55}
         shadow-camera-right={55}
         shadow-camera-top={55}

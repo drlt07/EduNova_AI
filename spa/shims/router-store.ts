@@ -20,7 +20,11 @@ export function navigate(href: string, opts: { replace?: boolean; scroll?: boole
   if (!opts.replace) history.push(loc);
   loc = next;
   subs.forEach((f) => f());
-  if (opts.scroll !== false && !opts.replace) window.scrollTo({ top: 0 });
+  const hash = new URL(href, "https://app.local").hash.slice(1);
+  if (hash) {
+    // chờ trang mới render xong rồi cuộn tới mục (#lien-he, #dieu-khoan…)
+    requestAnimationFrame(() => document.getElementById(decodeURIComponent(hash))?.scrollIntoView({ block: "start" }));
+  } else if (opts.scroll !== false && !opts.replace) window.scrollTo({ top: 0 });
 }
 export function back() {
   const prev = history.pop();

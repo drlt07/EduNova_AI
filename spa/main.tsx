@@ -14,6 +14,8 @@ import Curriculum from "@/app/(public)/curriculum/page";
 import Labs from "@/app/(public)/labs/page";
 import LabDetailPage from "@/app/(public)/labs/[slug]/page";
 import About from "@/app/(public)/about/page";
+import Guide from "@/app/(public)/huong-dan/page";
+import Policy from "@/app/(public)/chinh-sach/page";
 import Login from "@/app/(public)/login/page";
 import Register from "@/app/(public)/register/page";
 import NotFound from "@/app/not-found";
@@ -99,6 +101,8 @@ const ROUTES: Route[] = [
   r("/labs/:slug", "public", (p) => <LabDetail slug={p.slug} />),
   r("/bai-hoc/:id", "public", (p) => <AsyncPage page={LessonPage} params={p} />),
   r("/about", "public", C(About)),
+  r("/huong-dan", "public", C(Guide)),
+  r("/chinh-sach", "public", C(Policy)),
   r("/login", "public", C(Login)),
   r("/register", "public", C(Register)),
   r("/teacher(?:/dashboard)?", "teacher", C(TDashboard)),
