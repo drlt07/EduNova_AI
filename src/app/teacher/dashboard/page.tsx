@@ -1,16 +1,17 @@
 "use client";
 import Link from "next/link";
 import { useMemo } from "react";
-import { BarChart3, ClipboardCheck, Lightbulb, ListChecks, NotebookPen, Plus, Users, Wand2 } from "lucide-react";
+import { BarChart3, ClipboardCheck, ListChecks, NotebookPen, Plus, Users, Wand2 } from "lucide-react";
 import { useSessionData } from "@/lib/store/use-role";
 import { teacherAssignments, teacherClasses, teacherSubmissions } from "@/lib/store/scoped";
 import { completion, objectiveMastery, refinementSuggestions } from "@/lib/analytics/compute";
 import { formatDate, relativeDays } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState, Progress } from "@/components/ui/feedback";
 import { PageHeader, StatCard } from "@/components/ui/misc";
-import { WeekCalendar, isThisWeek, vnWeekday, type CalendarItem } from "@/components/layout/week-calendar";
+import { isThisWeek } from "@/components/layout/week-calendar";
+import { ClassInsights, WeekTimetable } from "@/components/teacher/dashboard-panels";
 
 export default function TeacherDashboard() {
   const { d, user } = useSessionData();
@@ -23,11 +24,8 @@ export default function TeacherDashboard() {
     const classIds = new Set(classes.map((c) => c.id));
     const studentIds = new Set(d.enrollments.filter((e) => classIds.has(e.classId)).map((e) => e.studentId));
     const recent = d.auditLog.filter((a) => a.actorId === user.id || studentIds.has(a.actorId)).slice(0, 7);
-    const calendar: CalendarItem[] = [
-      ...classes.flatMap((c) => c.schedule.map((s) => ({ weekday: s.weekday, title: c.name, detail: `${s.period} · ${s.room}`, tone: "class" as const }))),
-      ...assignments.filter((a) => isThisWeek(a.dueAt)).map((a) => ({ weekday: vnWeekday(a.dueAt), title: "Hạn nộp", detail: `${d.classes.find((c) => c.id === a.classId)?.name}: ${a.title}`, tone: "deadline" as const })),
-    ];
-    return { classes, assignments, subs, plans, pending, recent, calendar, comp: completion(d, user.id), mastery: objectiveMastery(d, user.id), suggestions: refinementSuggestions(d, user.id).slice(0, 2) };
+    const deadlines = assignments.filter((a) => isThisWeek(a.dueAt)).map((a) => ({ id: a.id, dueAt: a.dueAt, className: d.classes.find((c) => c.id === a.classId)?.name ?? "", title: a.title }));
+    return { classes, assignments, subs, plans, pending, recent, deadlines, comp: completion(d, user.id), mastery: objectiveMastery(d, user.id), suggestions: refinementSuggestions(d, user.id).slice(0, 3) };
   }, [d, user.id]);
   const name = (id: string) => d.users.find((u) => u.id === id)?.name ?? id;
 
@@ -50,41 +48,12 @@ export default function TeacherDashboard() {
         <StatCard label="Bài chờ chấm" value={data.pending.length} hint={`${data.comp.graded} bài đã chấm`} icon={ClipboardCheck} tone="success" />
       </div>
 
-      <div className="mt-6 grid gap-6 xl:grid-cols-[1.6fr_1fr]">
-        <Card>
-          <CardHeader><CardTitle as="h2">Lịch tuần này</CardTitle><CardDescription>Tiết dạy theo thời khóa biểu lớp và hạn nộp nhiệm vụ.</CardDescription></CardHeader>
-          <CardContent tabIndex={0} aria-label="Lịch tuần (cuộn ngang trên màn hình nhỏ)" className="overflow-x-auto"><div className="min-w-[560px]"><WeekCalendar items={data.calendar} /></div></CardContent>
-        </Card>
-        <Card className="border-violet/30 bg-gradient-to-b from-violet/10 to-transparent">
-          <CardHeader>
-            <CardTitle as="h2" className="flex items-center gap-2"><Lightbulb className="size-4 text-violet-fg" /> Gợi ý cải tiến</CardTitle>
-            <CardDescription>Dựa trên kết quả chấm bài gần đây</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {data.mastery.length === 0 ? (
-              <p className="text-sm text-muted">Chưa có đánh giá chính thức nào để phân tích.</p>
-            ) : (
-              <ul className="space-y-3">
-                {data.mastery.map((m) => (
-                  <li key={m.objectiveId}>
-                    <div className="mb-1 flex justify-between text-xs"><span className="font-mono text-cyan-fg">{m.objectiveId}</span><span className="text-fg">đạt {m.mastery}%</span></div>
-                    <Progress value={m.mastery} tone={m.mastery < 70 ? "warning" : "success"} label={`Mức đạt ${m.objectiveId}`} />
-                  </li>
-                ))}
-              </ul>
-            )}
-            {data.suggestions.map((s) => (
-              <div key={s.id} className="rounded-xl border border-line bg-surface p-3 text-sm">
-                <p className="text-xs font-semibold text-warning-fg">{s.trigger}</p>
-                <p className="mt-1 text-fg">{s.suggestion}</p>
-              </div>
-            ))}
-            <Button asChild variant="outline" size="sm"><Link href="/teacher/analytics"><BarChart3 /> Xem thống kê</Link></Button>
-          </CardContent>
-        </Card>
+      <div className="mt-6 grid items-start gap-6 xl:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
+        <WeekTimetable classes={data.classes} deadlines={data.deadlines} />
+        <ClassInsights mastery={data.mastery} suggestions={data.suggestions} />
       </div>
 
-      <div className="mt-6 grid gap-6 xl:grid-cols-3">
+      <div className="mt-6 grid gap-6 xl:grid-cols-3 [&>*]:min-w-0">
         <Card className="xl:col-span-2">
           <CardHeader><CardTitle as="h2">Nhiệm vụ đang mở</CardTitle></CardHeader>
           <CardContent>
