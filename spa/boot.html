@@ -1,0 +1,22 @@
+<title>EduNova AI</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap">
+{{CSS}}
+<style>
+#boot{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:#f4f7fb;color:#0b1220;font-family:"Be Vietnam Pro",system-ui,sans-serif;padding:24px max(16px,env(safe-area-inset-right,0px)) 24px max(16px,env(safe-area-inset-left,0px));text-align:center}
+#boot .ring{width:44px;height:44px;border-radius:50%;border:4px solid #dfe5ef;border-top-color:#0e93b0;animation:bootspin .9s linear infinite}
+@keyframes bootspin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){#boot .ring{animation:none}}
+#boot-error{position:fixed;left:max(16px,env(safe-area-inset-left,0px));right:max(16px,env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:9999;background:#fde8ec;color:#7a1024;border:1px solid #d0334a;border-radius:12px;padding:12px 14px;font:13px/1.5 system-ui,sans-serif;white-space:pre-wrap;max-height:40vh;overflow:auto}
+</style>
+<div id="root"><div id="boot"><div class="ring" aria-hidden="true"></div><strong style="font-size:20px">EduNova AI</strong><span style="color:#4b5a70">Đang tải ứng dụng…</span></div></div>
+<div id="boot-error" hidden></div>
+<script>
+(function(){
+  function show(msg){var el=document.getElementById("boot-error");if(!el)return;el.hidden=false;el.textContent="Lỗi khi chạy EduNova AI — hãy chụp màn hình này gửi lại:\n"+msg;}
+  window.addEventListener("error",function(e){show((e.message||"Lỗi không xác định")+(e.lineno?" @"+e.lineno:""));});
+  window.addEventListener("unhandledrejection",function(e){var r=e.reason;show("Promise: "+(r&&r.message?r.message:String(r)));});
+  setTimeout(function(){if(document.getElementById("boot"))show("Ứng dụng chưa khởi động sau 15 giây.");},15000);
+})();
+</script>
+<script>{{JS}}</script>

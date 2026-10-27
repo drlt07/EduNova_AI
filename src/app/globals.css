@@ -1,0 +1,187 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --bg: #f4f7fb;
+  --surface: #ffffff;
+  --surface-2: #eef2f8;
+  --sidebar: #ffffff;
+  --line: #dfe5ef;
+  --fg: #0b1220;
+  --muted: #4b5a70;
+  --cyan: #0e93b0;
+  --blue: #3b63e0;
+  --violet: #7344e0;
+  --success: #0f9d63;
+  --warning: #b86e00;
+  --danger: #d0334a;
+  --ring: #0e93b0;
+  --grid: rgba(11, 18, 32, 0.05);
+  /* màu chữ trên nền sáng: tương phản ≥ 4.5:1 */
+  --cyan-fg: #065d72;
+  --blue-fg: #2a47b3;
+  --violet-fg: #5a2fc2;
+  --success-fg: #05663f;
+  --warning-fg: #774600;
+  --danger-fg: #a01f36;
+}
+
+.dark {
+  --bg: #0b1220;
+  --surface: #111a2e;
+  --surface-2: #16223b;
+  --sidebar: #111d33;
+  --line: #22314f;
+  --fg: #f8fafc;
+  --muted: #9aabc4;
+  --cyan: #22d3ee;
+  --blue: #4f7fff;
+  --violet: #8b5cf6;
+  --success: #34d399;
+  --warning: #fbbf24;
+  --danger: #fb7185;
+  --ring: #22d3ee;
+  --grid: rgba(148, 163, 184, 0.07);
+  /* màu chữ trên nền tối: tương phản ≥ 4.5:1 */
+  --cyan-fg: #22d3ee;
+  --blue-fg: #93b4ff;
+  --violet-fg: #c4b5fd;
+  --success-fg: #34d399;
+  --warning-fg: #fbbf24;
+  --danger-fg: #fb7185;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-sidebar: var(--sidebar);
+  --color-line: var(--line);
+  --color-fg: var(--fg);
+  --color-muted: var(--muted);
+  --color-cyan: var(--cyan);
+  --color-blue: var(--blue);
+  --color-violet: var(--violet);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-danger: var(--danger);
+  --color-ring: var(--ring);
+  --color-cyan-fg: var(--cyan-fg);
+  --color-blue-fg: var(--blue-fg);
+  --color-violet-fg: var(--violet-fg);
+  --color-success-fg: var(--success-fg);
+  --color-warning-fg: var(--warning-fg);
+  --color-danger-fg: var(--danger-fg);
+  --font-sans: var(--font-be-vietnam), "Inter", system-ui, sans-serif;
+  --font-mono: ui-monospace, "SFMono-Regular", "JetBrains Mono", Menlo, monospace;
+  --radius-card: 16px;
+}
+
+html {
+  color-scheme: light;
+}
+html.dark {
+  color-scheme: dark;
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+.bg-grid {
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+.text-gradient {
+  background: linear-gradient(100deg, var(--cyan), var(--blue) 45%, var(--violet));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.skip-link {
+  position: absolute;
+  left: -9999px;
+}
+.skip-link:focus {
+  left: 16px;
+  top: 12px;
+  z-index: 100;
+  background: var(--surface);
+  color: var(--fg);
+  padding: 8px 12px;
+  border-radius: 10px;
+}
+
+@keyframes flow {
+  to {
+    stroke-dashoffset: -24;
+  }
+}
+.water-flow {
+  stroke-dasharray: 6 6;
+  animation: flow 0.6s linear infinite;
+}
+@keyframes drip {
+  0% { transform: translateY(0); opacity: 1; }
+  100% { transform: translateY(26px); opacity: 0; }
+}
+.drip {
+  animation: drip 0.9s ease-in infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@keyframes farm-sway {
+  0%, 100% { transform: rotate(-2deg); }
+  50% { transform: rotate(2deg); }
+}
+.farm-sway {
+  animation: farm-sway 3.2s ease-in-out infinite;
+}
+@keyframes farm-sun {
+  to { transform: rotate(360deg); }
+}
+.farm-sun {
+  animation: farm-sun 40s linear infinite;
+}
+@keyframes blob-float {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(18px, -12px) scale(1.06); }
+}
+.blob-float {
+  animation: blob-float 9s ease-in-out infinite;
+}
+@keyframes line-flash {
+  from { background: color-mix(in srgb, var(--cyan) 35%, transparent); }
+  to { background: transparent; }
+}
+.flash {
+  animation: line-flash 0.9s ease-out;
+}
+/* Trợ năng: cỡ chữ và tương phản cao do học sinh chọn */
+html[data-contrast="high"] {
+  --muted: var(--fg);
+  --line: color-mix(in srgb, var(--fg) 45%, transparent);
+}
