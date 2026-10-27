@@ -5,6 +5,7 @@ import { Providers } from "@/components/layout/providers";
 import { SiteHeader } from "@/components/layout/site-header";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { AppShell } from "@/components/layout/app-shell";
+import { LoginGate } from "@/components/layout/login-gate";
 import { ParamsContext } from "./shims/navigation";
 import { getLoc, subscribe } from "./shims/router-store";
 
@@ -156,7 +157,7 @@ function App() {
         <div className="flex min-h-screen flex-col">
           <SiteHeader />
           <main id="main" className="flex-1" key={loc.pathname}>
-            {body}
+            <LoginGate>{body}</LoginGate>
           </main>
           <SiteFooter />
         </div>

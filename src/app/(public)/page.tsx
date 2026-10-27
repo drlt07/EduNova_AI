@@ -13,6 +13,7 @@ import {
   GraduationCap,
   Hourglass,
   Lightbulb,
+  Lock,
   NotebookPen,
   Play,
   Sparkles,
@@ -120,6 +121,10 @@ export default function HomePage() {
                 <RoleLink role="student">Bắt đầu học tập</RoleLink>
               </Button>
             </div>
+            <p className="mt-4 flex items-center gap-2 text-sm text-muted">
+              <Lock className="size-4 shrink-0 text-cyan-fg" aria-hidden />
+              Đăng nhập để sử dụng các chức năng — bản dùng thử có sẵn tài khoản, không cần mật khẩu.
+            </p>
           </div>
           <div className="relative">
             <div className="rounded-[22px] border border-line bg-surface/80 p-3 shadow-[0_30px_80px_-30px_rgba(34,211,238,0.35)] backdrop-blur">
