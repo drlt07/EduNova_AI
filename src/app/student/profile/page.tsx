@@ -109,8 +109,8 @@ export default function StudentProfilePage() {
 
       <section aria-labelledby="more-h" className="mt-8">
         <h2 id="more-h" className="mb-3 text-lg font-semibold text-fg">Khác</h2>
-        <div className="grid gap-3 sm:grid-cols-3">
-          {([["/student/progress", LineChart, "Tiến độ theo chủ đề", "Mức đạt từng yêu cầu cần đạt"], ["/student/portfolio", Award, "Thành tích và sản phẩm", "Huy hiệu, sản phẩm, xem lại quá trình"], ["/student/settings", Settings, "Cài đặt", "Cỡ chữ, tương phản, báo lỗi"]] as const).map(([href, Icon, t, desc]) => (
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {([["/student/dashboard", BookMarked, "Tổng quan học tập", "Học tiếp, gợi ý, thành tích gần đây"], ["/student/progress", LineChart, "Tiến độ theo chủ đề", "Mức đạt từng yêu cầu cần đạt"], ["/student/portfolio", Award, "Thành tích và sản phẩm", "Huy hiệu, sản phẩm, xem lại quá trình"], ["/student/settings", Settings, "Cài đặt", "Cỡ chữ, tương phản, báo lỗi"]] as const).map(([href, Icon, t, desc]) => (
             <Link key={href} href={href} className="flex gap-3 rounded-2xl border border-line bg-surface p-4 hover:border-cyan/40">
               <Icon className="size-5 shrink-0 text-cyan-fg" aria-hidden />
               <span><span className="block font-medium text-fg">{t}</span><span className="block text-sm text-muted">{desc}</span></span>

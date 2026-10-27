@@ -24,9 +24,10 @@ export interface NavItem {
 }
 
 export const NAV: Record<Role, NavItem[]> = {
-  // 6 chức năng của giáo viên. Kho mô phỏng, học liệu, ngân hàng câu hỏi là tài nguyên dùng chung,
+  // Trang chủ chung + 6 chức năng của giáo viên. Kho mô phỏng, học liệu, ngân hàng câu hỏi là tài nguyên dùng chung,
   // mở từ Khóa học hoặc Bài tập & Đánh giá (match) chứ không phải mục menu riêng.
   teacher: [
+    { href: "/", label: "Trang chủ", icon: Home },
     { href: "/teacher/dashboard", label: "Tổng quan", icon: LayoutDashboard },
     { href: "/teacher/classes", label: "Lớp học của tôi", icon: Users },
     { href: "/teacher/courses", label: "Khóa học", icon: BookMarked, match: ["/teacher/activity-builder", "/teacher/labs", "/teacher/resources", "/teacher/library"] },
@@ -34,15 +35,16 @@ export const NAV: Record<Role, NavItem[]> = {
     { href: "/teacher/analytics", label: "Kết quả học tập", icon: BarChart3 },
     { href: "/teacher/lesson-planner", label: "Trợ lý KHBD AI", icon: NotebookPen },
   ],
-  // 5 chức năng của học sinh; trang con (match) vẫn đánh dấu đúng mục cha. Kết quả học tập nằm ở Trang cá nhân.
+  // 5 chức năng của học sinh (Trang chủ = trang giới thiệu chung); trang con (match) vẫn đánh dấu đúng mục cha. Kết quả học tập nằm ở Trang cá nhân.
   student: [
-    { href: "/student/dashboard", label: "Trang chủ", icon: Home },
-    { href: "/student/courses", label: "Khóa học của tôi", icon: BookMarked, match: ["/student/missions", "/student/learning"] },
+    { href: "/", label: "Trang chủ", icon: Home },
+    { href: "/student/courses", label: "Khóa học của tôi", icon: BookMarked, match: ["/student/missions", "/student/learning", "/student/dashboard"] },
     { href: "/student/games", label: "Tình huống mô phỏng", icon: Gamepad2 },
     { href: "/student/practice", label: "Luyện tập", icon: Dumbbell, match: ["/student/code", "/student/projects"] },
     { href: "/student/tutor", label: "AI Gia sư", icon: Bot },
   ],
   admin: [
+    { href: "/", label: "Trang chủ", icon: Home },
     { href: "/admin", label: "Quản trị", icon: Shield },
     { href: "/curriculum", label: "Chương trình", icon: BookOpenCheck },
     { href: "/labs", label: "Thư viện thí nghiệm", icon: GraduationCap },
@@ -50,4 +52,5 @@ export const NAV: Record<Role, NavItem[]> = {
 };
 
 export const ROLE_LABEL: Record<Role, string> = { teacher: "Giáo viên", student: "Học sinh", admin: "Quản trị viên" };
-export const ROLE_HOME: Record<Role, string> = { teacher: "/teacher/dashboard", student: "/student/dashboard", admin: "/admin" };
+/** Trang vào sau khi đăng nhập (Trang chủ chung là trang giới thiệu "/"). */
+export const ROLE_HOME: Record<Role, string> = { teacher: "/teacher/dashboard", student: "/student/courses", admin: "/admin" };

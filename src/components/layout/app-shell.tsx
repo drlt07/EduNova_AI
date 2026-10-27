@@ -22,7 +22,7 @@ function SidebarNav({ role, onNavigate }: { role: Role; onNavigate?: () => void 
     <nav aria-label={`Điều hướng ${ROLE_LABEL[role]}`} className="flex flex-col gap-0.5">
       {NAV[role].map((item) => {
         const under = (h: string) => pathname === h || pathname.startsWith(h + "/");
-        const active = pathname === item.href || (item.href !== "/admin" && pathname.startsWith(item.href + "/")) || (item.match?.some(under) ?? false);
+        const active = item.href === "/" ? pathname === "/" : pathname === item.href || (item.href !== "/admin" && pathname.startsWith(item.href + "/")) || (item.match?.some(under) ?? false);
         return (
           <Link
             key={item.href}
