@@ -2,14 +2,16 @@
 import { useSyncExternalStore } from "react";
 import { useApp } from "./app-store";
 import { getUser } from "./scoped";
+import { useAuthReady } from "@/lib/auth/session-state";
 
-/** true sau khi mock repository nạp xong dữ liệu từ localStorage (server luôn false). */
+/** true sau khi kho dữ liệu nạp xong từ localStorage và (đăng nhập thật) đã xác minh phiên (server luôn false). */
 export function useHydrated(): boolean {
-  return useSyncExternalStore(
+  const store = useSyncExternalStore(
     (cb) => useApp.persist.onFinishHydration(cb),
     () => useApp.persist.hasHydrated(),
     () => false,
   );
+  return useAuthReady() && store;
 }
 
 export function useCurrentUser() {

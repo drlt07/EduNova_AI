@@ -3,16 +3,9 @@ import { Suspense, useEffect } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { PageSkeleton } from "@/components/ui/feedback";
 import { useCurrentUser, useHydrated } from "@/lib/store/hooks";
+import { isGatedPath } from "@/lib/auth/paths";
 
-/**
- * Trang công khai nhưng là chức năng (kho mô phỏng, chương trình, bài học): phải đăng nhập mới dùng được.
- * Trang chủ, Giới thiệu, Hướng dẫn, Chính sách, Đăng nhập/Đăng ký vẫn mở cho khách.
- */
-export const GATED_PREFIXES = ["/labs", "/curriculum", "/explore", "/bai-hoc"];
-
-export function isGatedPath(pathname: string) {
-  return GATED_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`));
-}
+export { GATED_PREFIXES, isGatedPath } from "@/lib/auth/paths";
 
 function Gate({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();

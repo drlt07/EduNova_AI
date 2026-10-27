@@ -6,8 +6,10 @@
  */
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
+import { AUTH_MODE } from "@/lib/supabase/config";
 import type {
   ActivityQuestion,
+  User,
   Bookmark,
   Course,
   TutorEvent,
@@ -70,6 +72,8 @@ interface Session {
 interface Actions {
   login: (userId: string) => void;
   logout: () => void;
+  /** Đăng nhập thật (Supabase): đưa hồ sơ đã xác thực vào phiên; vai trò lấy từ cơ sở dữ liệu. */
+  signInAs: (user: User) => void;
   resetDemo: () => void;
   // Lesson plans
   createLessonPlan: (p: Omit<LessonPlan, "id" | "createdAt" | "updatedAt" | "currentVersion" | "curriculumVerified">) => string;
@@ -161,6 +165,7 @@ export const useApp = create<AppState>()(
         userId: null,
         login: (userId) => set({ userId }),
         logout: () => set({ userId: null }),
+        signInAs: (user) => set((s) => ({ users: [...s.users.filter((u) => u.id !== user.id), user], userId: user.id })),
         resetDemo: () => set((s) => ({ ...buildSeed(), userId: s.userId })),
 
         createLessonPlan: (p) => {
@@ -473,6 +478,8 @@ export const useApp = create<AppState>()(
         // chỉ lưu dữ liệu, không lưu hàm
         const out: Record<string, unknown> = {};
         for (const [k, v] of Object.entries(s)) if (typeof v !== "function") out[k] = v;
+        // đăng nhập thật: phiên nằm trong cookie Supabase, không lưu người dùng hiện tại vào localStorage
+        if (AUTH_MODE === "supabase") delete out.userId;
         return out as Partial<AppState>;
       },
     },

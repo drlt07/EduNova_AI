@@ -53,4 +53,4 @@ export const NAV: Record<Role, NavItem[]> = {
 
 export const ROLE_LABEL: Record<Role, string> = { teacher: "Giáo viên", student: "Học sinh", admin: "Quản trị viên" };
 /** Trang vào sau khi đăng nhập (Trang chủ chung là trang giới thiệu "/"). */
-export const ROLE_HOME: Record<Role, string> = { teacher: "/teacher/dashboard", student: "/student/courses", admin: "/admin" };
+export { ROLE_HOME } from "@/lib/auth/paths";

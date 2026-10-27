@@ -6,7 +6,9 @@ import { useHydrated } from "@/lib/store/hooks";
 import { cn } from "@/lib/utils";
 import { Avatar } from "@/components/ui/misc";
 import { ROLE_HOME, ROLE_LABEL } from "@/components/layout/nav-config";
-import { isGatedPath } from "@/components/layout/login-gate";
+import { safeNext as safeNextFor } from "@/lib/auth/paths";
+import { AUTH_MODE } from "@/lib/supabase/config";
+import { PasswordLogin } from "@/components/auth/password-login";
 import type { Role } from "@/lib/domain/types";
 
 const ACCOUNTS = [
@@ -27,11 +29,7 @@ export function LoginClient() {
   const next = params.get("next");
 
   /** Chỉ quay lại đường dẫn nội bộ: trang chức năng công khai, hoặc khu vực đúng vai trò. */
-  function safeNext(role: Role) {
-    if (!next || !next.startsWith("/") || next.startsWith("//")) return null;
-    const path = next.split("?")[0];
-    return isGatedPath(path) || path.startsWith(`/${role}`) ? next : null;
-  }
+  const safeNext = (role: Role) => safeNextFor(next, role);
 
   function enter(id: string) {
     const u = users.find((x) => x.id === id);
@@ -48,6 +46,10 @@ export function LoginClient() {
           Bạn cần đăng nhập để sử dụng chức năng này. Sau khi đăng nhập, bạn sẽ được đưa trở lại trang vừa chọn.
         </p>
       )}
+      {AUTH_MODE === "supabase" && params.get("link") === "expired" && (
+        <p role="alert" className="mb-6 rounded-xl border border-warning/30 bg-warning/5 px-4 py-3 text-sm text-fg">Liên kết trong thư đã hết hạn hoặc đã dùng. Hãy đăng nhập, hoặc dùng Quên mật khẩu để nhận liên kết mới.</p>
+      )}
+      {AUTH_MODE === "supabase" ? <PasswordLogin next={next} /> : (
       <section aria-labelledby="demo-h">
         <div className="flex items-center gap-2">
           <h2 id="demo-h" className="text-lg font-semibold text-fg">Chọn tài khoản dùng thử</h2>
@@ -79,6 +81,7 @@ export function LoginClient() {
           })}
         </ul>
       </section>
+      )}
     </div>
   );
 }

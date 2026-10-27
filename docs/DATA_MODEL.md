@@ -1,6 +1,6 @@
 # Data model
 
-Kiểu TypeScript: `src/lib/domain/types.ts`. Bản nháp SQL + RLS: `supabase/schema.sql`.
+Kiểu TypeScript: `src/lib/domain/types.ts`. SQL + RLS: `supabase/migrations/20261027000000_init.sql` (kiểm thử: `tests/db/rls.test.ts`).
 
 | Thực thể | Khóa ngoại chính | Owner / Scope |
 |---|---|---|

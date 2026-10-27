@@ -51,7 +51,9 @@ Tài khoản demo (trang `/login`): **Trần Thu Hà** (giáo viên 10A1/11A2/12
 | Trợ lý xây dựng KHBD (`khbd/`, `/teacher/lesson-planner/assistant`): chọn bài → tải KHBD (.docx/.pdf) hoặc soạn mới từ chương trình → chọn tích hợp (năng lực số, AI, tiếng Anh, LHĐN) → lập kế hoạch → soạn → gắn mô phỏng vào hoạt động → kiểm tra, xuất Word/PDF, lưu vào KHBD có phiên bản | **REAL** (pipeline) / AI: khóa máy chủ, khóa riêng GV, hoặc quyền Claude của bản demo | Pipeline và 319 test của trợ lý giữ nguyên; xem `khbd/CLAUDE.md` |
 | Gia sư AI (5 chế độ, 4 nút nhanh, mini quiz, không đưa lời giải, tự khóa khi kiểm tra) | **DEMO** | Câu trả lời soạn sẵn theo chủ đề, gắn nhãn “bản mẫu” |
 | Python đầy đủ (Pyodide Worker), Inside Computer 3D (R3F + GLB), Phaser labs, 10 lab còn lại | **PLANNED** | Lab 3D hiển thị danh sách mesh bắt buộc và **báo thiếu asset**, không dựng giả |
-| Supabase Auth/RLS/Storage, LLM thật, xuất Word, parse docx/pdf | **PLANNED** | Bản nháp schema + RLS: `supabase/schema.sql` (chưa áp dụng, chưa kiểm thử) |
+| Đăng nhập thật: email + mật khẩu (Supabase Auth), xác nhận email, quên/đặt lại mật khẩu, vai trò theo email trường, chặn ở máy chủ (`src/proxy.ts`) | **REAL** khi có biến môi trường Supabase | Không có biến môi trường thì chạy bản dùng thử như cũ. Hướng dẫn: `docs/AUTH.md` |
+| Phân quyền dữ liệu bằng RLS (`supabase/migrations/`) | **REAL** (đã kiểm thử trên PostgreSQL/PGlite, 22 tình huống) | Các chức năng vẫn đọc/ghi kho trên trình duyệt; chuyển sang bảng Supabase: **PLANNED** |
+| Supabase Storage, đồng bộ dữ liệu chức năng lên máy chủ | **PLANNED** | |
 
 ## Kết quả kiểm tra (lần chạy gần nhất trong môi trường phát triển)
 
@@ -66,7 +68,7 @@ Tài khoản demo (trang `/login`): **Trần Thu Hà** (giáo viên 10A1/11A2/12
 
 ```
 docs/            PRD, sitemap, kiến trúc, data model, design system, kế hoạch, screenshots
-supabase/        schema.sql (bản nháp RLS — PLANNED)
+supabase/        migrations/ (schema + RLS, kiểm thử trong tests/db)
 src/app/         (public) · teacher/* · student/* · admin · api/ai/[agent]
 src/components/  ui (kiểu shadcn), layout (shell, sidebar, role switch), labs (Smart Garden, Web Creator…)
 src/lib/         domain types · data (chương trình, lab, seed) · sim (engine) · store (repository + phân quyền)
@@ -79,7 +81,7 @@ Ghi chú kỹ thuật: Next.js 16.4 (App Router, Turbopack), React 19, Tailwind 
 ## Giới hạn đã biết
 
 - Dữ liệu chỉ tồn tại trong một trình duyệt; xóa dữ liệu trang web sẽ mất thay đổi. Không đồng bộ giữa thiết bị/người dùng thật.
-- Phân quyền hiện là lọc phía client — **không phải** biện pháp bảo mật; production phải dùng RLS phía server.
+- Bản dùng thử: phân quyền là lọc phía client, **không phải** biện pháp bảo mật. Bản có Supabase: đăng nhập và RLS đã chạy thật, nhưng dữ liệu chức năng vẫn nằm trên trình duyệt cho tới khi chuyển xong sang bảng Supabase.
 - Nội dung chương trình, tên bài, yêu cầu cần đạt là minh họa, cần giáo viên đối chiếu sách thực tế (có màn hình thẩm định trong Admin, kết quả cũng chỉ lưu cục bộ).
 - “AI” là luật/template; gợi ý điểm rubric dựa trên test và sự kiện, chỉ để tham khảo.
 - Python là tập con (không có import, class, dict, try/except…); Monaco tải từ CDN jsdelivr (tự chuyển sang trình soạn đơn giản nếu bị chặn).
@@ -89,7 +91,7 @@ Ghi chú kỹ thuật: Next.js 16.4 (App Router, Turbopack), React 19, Tailwind 
 
 ## Lộ trình
 
-1. Supabase: áp dụng & kiểm thử `schema.sql`, Auth, Storage; thay mock repository giữ nguyên chữ ký hành động.
+1. Supabase: chuyển từng chức năng từ kho trên trình duyệt sang các bảng đã có trong migration (giữ nguyên chữ ký hành động); Storage cho tệp tải lên.
 2. AI server-side thật với prompt template có version, structured output, log & hàng đợi duyệt của giáo viên.
 3. Pyodide trong Web Worker (timeout, không mạng) cho Code Playground và Smart Coding City.
 4. Inside Computer 3D (R3F + GLB có giấy phép rõ ràng), Phaser cho lab 2D/2.5D.

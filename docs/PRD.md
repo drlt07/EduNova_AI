@@ -24,7 +24,7 @@ Mọi hoạt động map theo chuỗi: `grade → textbook → topic → lesson 
 | Student | Học, làm nhiệm vụ của **lớp mình được ghi danh**, nộp bài, xem kết quả của **chính mình** |
 | Admin | Quản lý nội dung (trạng thái lab, thẩm định chương trình), tài khoản, audit log |
 
-Giai đoạn 1: **demo role switch** (không có mật khẩu). Production: Supabase Auth + RLS phía server (xem `supabase/schema.sql`, bản nháp).
+Bản dùng thử: chọn tài khoản mẫu (không mật khẩu). Bản thật: Supabase Auth (email + mật khẩu, xác nhận email, vai trò giáo viên theo email trường) + RLS phía máy chủ — xem `docs/AUTH.md`.
 
 ## 4. Phạm vi chương trình
 - GDPT 2018 – Tin học THPT, các chủ đề A–G; phân biệt nội dung **chung**, định hướng **ICT** và **CS**.

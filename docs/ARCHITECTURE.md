@@ -19,8 +19,8 @@ Next.js App Router (TypeScript strict)
 | Chủ đề | Quyết định giai đoạn 1 | Giai đoạn tích hợp |
 |---|---|---|
 | Dữ liệu | Mock repository trong trình duyệt (localStorage), seed nhất quán, nút "Khôi phục dữ liệu demo" | Supabase PostgreSQL; repository interface giữ nguyên chữ ký |
-| Auth | Demo role switch (chọn người dùng mẫu) | Supabase Auth + RLS server-side (`supabase/schema.sql` bản nháp) |
-| Phân quyền dữ liệu | Selector `scoped.ts` lọc theo owner/enrollment (mô phỏng RLS) + unit test | RLS policies; không tin client |
+| Auth | Không có biến môi trường Supabase: chọn tài khoản mẫu. Có: Supabase Auth (email + mật khẩu), `src/proxy.ts` chặn ở máy chủ | Xem `docs/AUTH.md` |
+| Phân quyền dữ liệu | Selector `scoped.ts` lọc theo owner/enrollment (mô phỏng RLS) + unit test | RLS trong `supabase/migrations/` (đã kiểm thử: `tests/db/rls.test.ts`); không tin client |
 | Mô phỏng 2D | SVG + React + engine TS thuần, deterministic | Phaser cho lab 2D/2.5D phức tạp |
 | 3D | Chưa có; trang lab hiển thị checklist mesh bắt buộc và báo thiếu asset | React Three Fiber + GLB (mesh `Case`, `Motherboard`, `CPU`, ...) |
 | Python | **Không chạy Python.** Code Playground trích điều kiện `if` và đánh giá bằng parser an toàn | Monaco + Pyodide trong Web Worker, timeout, không DOM/network |

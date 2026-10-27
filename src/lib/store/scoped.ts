@@ -1,6 +1,6 @@
 /**
  * Selector phân quyền — mô phỏng RLS ở phía client cho giai đoạn 1.
- * Production: các quy tắc này được thực thi bằng RLS trong PostgreSQL (supabase/schema.sql).
+ * Production: các quy tắc này được thực thi bằng RLS trong PostgreSQL (supabase/migrations/, kiểm thử trong tests/db).
  */
 import type { DemoData } from "@/lib/data/seed";
 import type { Assignment, ClassRoom, Submission, User } from "@/lib/domain/types";

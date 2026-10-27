@@ -18,6 +18,8 @@ export default defineConfig({
       { find: /^@\/lib\/ai\/client$/, replacement: shim("ai-client.ts") },
       { find: /^@\/lib\/ai\/tutor-runtime$/, replacement: shim("tutor-runtime.ts") },
       { find: /^@\/lib\/khbd\/runtime$/, replacement: shim("khbd-runtime.ts") },
+      { find: /^@\/lib\/supabase\/config$/, replacement: shim("supabase-config.ts") },
+      { find: /^@\/lib\/supabase\/client$/, replacement: shim("supabase-client.ts") },
       { find: /^@khbd\//, replacement: path.resolve(__dirname, "../khbd") + "/" },
       { find: /^@\//, replacement: path.resolve(__dirname, "../src") + "/" },
     ],
