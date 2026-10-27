@@ -1,0 +1,52 @@
+/*
+ * Bảng màu và nền tảng giao diện, dùng chung cho app và bản xem trước.
+ * Bố cục: nền xám lạnh rất nhạt, nội dung trên các tấm trắng bo 14px, bóng mềm;
+ * một màu nhấn xanh dương đậm và các sắc nhạt của chính nó.
+ */
+@theme {
+  --font-sans: "Be Vietnam Pro", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --color-nen: #f5f7fb;
+  --color-nen-dam: #eef2f8;
+  --color-nhan: #1f4fb6;
+  --color-nhan-dam: #183e90;
+  --color-nhan-nhat: #edf2fd;
+  --color-nhan-vua: #c9d7f4;
+  --color-vien: #e3e8f0;
+  --color-vien-dam: #cdd5e1;
+  --color-chu: #101a2c;
+  --color-chu-phu: #5b6880;
+  --shadow-the: 0 1px 2px rgb(16 26 44 / 0.04), 0 6px 20px -8px rgb(16 26 44 / 0.10);
+  --shadow-the-noi: 0 2px 4px rgb(16 26 44 / 0.05), 0 16px 36px -12px rgb(31 79 182 / 0.22);
+}
+
+body {
+  background: var(--color-nen);
+  color: var(--color-chu);
+  font-size: 15px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3 { text-wrap: balance; letter-spacing: -0.01em; }
+
+:focus-visible {
+  outline: 2px solid var(--color-nhan);
+  outline-offset: 2px;
+}
+
+/* Tấm nội dung: nền trắng, viền mảnh, bo 14px, bóng mềm. */
+.the {
+  background: #fff;
+  border: 1px solid var(--color-vien);
+  border-radius: 14px;
+  box-shadow: var(--shadow-the);
+}
+
+/* Nhãn nhỏ viết hoa phía trên tiêu đề. */
+.nhan-muc {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-nhan);
+}

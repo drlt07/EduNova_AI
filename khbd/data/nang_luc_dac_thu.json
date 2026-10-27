@@ -1,0 +1,530 @@
+{
+  "nguon": "docs/khung_khbd.docx, mục VII (theo Chương trình GDPT 2018)",
+  "ghi_chu": "Năng lực không ghi thành phần trong khung thì thanh_phan rỗng; chọn trực tiếp năng lực.",
+  "mon": [
+    {
+      "ma_mon": "NGU_VAN",
+      "ten_mon": "Ngữ văn",
+      "nang_luc": [
+        {
+          "ma": "NGU_VAN.1",
+          "ten": "Năng lực ngôn ngữ",
+          "thanh_phan": [
+            {
+              "ma": "NGU_VAN.1.1",
+              "ten": "đọc",
+              "bieu_hien": [],
+              "da_duyet": false
+            },
+            {
+              "ma": "NGU_VAN.1.2",
+              "ten": "viết",
+              "bieu_hien": [],
+              "da_duyet": false
+            },
+            {
+              "ma": "NGU_VAN.1.3",
+              "ten": "nói và nghe",
+              "bieu_hien": [],
+              "da_duyet": false
+            }
+          ]
+        },
+        {
+          "ma": "NGU_VAN.2",
+          "ten": "năng lực văn học",
+          "thanh_phan": []
+        }
+      ],
+      "goi_y": "Học sinh xác định được vấn đề cần nghị luận và hệ thống luận điểm; viết được đoạn văn nghị luận khoảng 200 chữ có lí lẽ, bằng chứng thuyết phục, diễn đạt mạch lạc, đúng chính tả và ngữ pháp.",
+      "goi_y_thanh_phan": "viết",
+      "goi_y_nguon": "Bản nháp theo cấu trúc biểu hiện năng lực, chờ giáo viên duyệt"
+    },
+    {
+      "ma_mon": "TOAN",
+      "ten_mon": "Toán",
+      "nang_luc": [
+        {
+          "ma": "TOAN.1",
+          "ten": "Năng lực toán học",
+          "thanh_phan": [
+            {
+              "ma": "TOAN.1.1",
+              "ten": "tư duy và lập luận toán học",
+              "bieu_hien": [],
+              "da_duyet": false
+            },
+            {
+              "ma": "TOAN.1.2",
+              "ten": "mô hình hóa toán học",
+              "bieu_hien": [],
+              "da_duyet": false
+            },
+            {
+              "ma": "TOAN.1.3",
+              "ten": "giải quyết vấn đề toán học",
+              "bieu_hien": [],
+              "da_duyet": false
+            },
+            {
+              "ma": "TOAN.1.4",
+              "ten": "giao tiếp toán học",
+              "bieu_hien": [],
+              "da_duyet": false
+            },
+            {
+              "ma": "TOAN.1.5",
+              "ten": "sử dụng công cụ, phương tiện học toán",
+              "bieu_hien": [],
+              "da_duyet": false
+            }
+          ]
+        }
+      ],
+      "goi_y": "Học sinh nhận diện được các đại lượng và mối quan hệ trong tình huống thực tiễn; biểu diễn được mối quan hệ đó bằng mô hình toán học phù hợp và sử dụng mô hình để giải quyết vấn đề.",
+      "goi_y_thanh_phan": "mô hình hóa toán học",
+      "goi_y_nguon": "Ví dụ do giáo viên cung cấp"
+    },
+    {
+      "ma_mon": "NGOAI_NGU",
+      "ten_mon": "Ngoại ngữ",
+      "nang_luc": [
+        {
+          "ma": "NGOAI_NGU.1",
+          "ten": "Năng lực giao tiếp bằng ngoại ngữ",
+          "thanh_phan": [
+            {
+              "ma": "NGOAI_NGU.1.1",
+              "ten": "nghe",
+              "bieu_hien": [],
+              "da_duyet": false
+            },
+            {
+              "ma": "NGOAI_NGU.1.2",
+              "ten": "nói",
+              "bieu_hien": [],
+              "da_duyet": false
+            },
+            {
+              "ma": "NGOAI_NGU.1.3",
+              "ten": "đọc",
+              "bieu_hien": [],
+              "da_duyet": false
+            },
+            {
+              "ma": "NGOAI_NGU.1.4",
+              "ten": "viết",
+              "bieu_hien": [],
+              "da_duyet": false
+            }
+          ]
+        }
+      ],
+      "goi_y": "Học sinh sử dụng được từ vựng và cấu trúc ngữ pháp của bài để thực hiện hội thoại 6–8 lượt về chủ đề cho trước; trao đổi thông tin rõ ràng, phát âm dễ hiểu và đáp lời phù hợp với tình huống giao tiếp.",
+      "goi_y_thanh_phan": "nói",
+      "goi_y_nguon": "Bản nháp theo cấu trúc biểu hiện năng lực, chờ giáo viên duyệt"
+    },
+    {
+      "ma_mon": "VAT_LI",
+      "ten_mon": "Vật lí",
+      "nang_luc": [
+        {
+          "ma": "VAT_LI.1",
+          "ten": "Năng lực vật lí",
+          "thanh_phan": [
+            {
+              "ma": "VAT_LI.1.1",
+              "ten": "nhận thức vật lí",
+              "bieu_hien": [],
+              "da_duyet": false
+            },
+            {
+              "ma": "VAT_LI.1.2",
+              "ten": "tìm hiểu thế giới tự nhiên dưới góc độ vật lí",
+              "bieu_hien": [],
+              "da_duyet": false
+            },
+            {
+              "ma": "VAT_LI.1.3",
+              "ten": "vận dụng kiến thức, kĩ năng đã học",
+              "bieu_hien": [],
+              "da_duyet": false
+            }
+          ]
+        }
+      ],
+      "goi_y": "Học sinh vận dụng được định luật, mô hình vật lí đã học để giải thích hiện tượng trong thực tiễn; chỉ ra được nguyên nhân và điều kiện xảy ra hiện tượng bằng lập luận có căn cứ.",
+      "goi_y_thanh_phan": "vận dụng kiến thức, kĩ năng đã học",
+      "goi_y_nguon": "Bản nháp theo cấu trúc biểu hiện năng lực, chờ giáo viên duyệt"
+    },
+    {
+      "ma_mon": "HOA_HOC",
+      "ten_mon": "Hóa học",
+      "nang_luc": [
+        {
+          "ma": "HOA_HOC.1",
+          "ten": "Năng lực hóa học",
+          "thanh_phan": [
+            {
+              "ma": "HOA_HOC.1.1",
+              "ten": "nhận thức hóa học",
+              "bieu_hien": [],
+              "da_duyet": false
+            },
+            {
+              "ma": "HOA_HOC.1.2",
+              "ten": "tìm hiểu thế giới tự nhiên dưới góc độ hóa học",
+              "bieu_hien": [],
+              "da_duyet": false
+            },
+            {
+              "ma": "HOA_HOC.1.3",
+              "ten": "vận dụng kiến thức, kĩ năng đã học",
+              "bieu_hien": [],
+              "da_duyet": false
+            }
+          ]
+        }
+      ],
+      "goi_y": "Học sinh tiến hành được thí nghiệm theo đúng quy trình và quy tắc an toàn; quan sát, mô tả được hiện tượng, giải thích được hiện tượng bằng kiến thức hóa học và viết được phương trình hóa học minh họa.",
+      "goi_y_thanh_phan": "tìm hiểu thế giới tự nhiên dưới góc độ hóa học",
+      "goi_y_nguon": "Bản nháp theo cấu trúc biểu hiện năng lực, chờ giáo viên duyệt"
+    },
+    {
+      "ma_mon": "SINH_HOC",
+      "ten_mon": "Sinh học",
+      "nang_luc": [
+        {
+          "ma": "SINH_HOC.1",
+          "ten": "Năng lực sinh học",
+          "thanh_phan": [
+            {
+              "ma": "SINH_HOC.1.1",
+              "ten": "nhận thức sinh học",
+              "bieu_hien": [],
+              "da_duyet": false
+            },
+            {
+              "ma": "SINH_HOC.1.2",
+              "ten": "tìm hiểu thế giới sống",
+              "bieu_hien": [],
+              "da_duyet": false
+            },
+            {
+              "ma": "SINH_HOC.1.3",
+              "ten": "vận dụng kiến thức, kĩ năng đã học",
+              "bieu_hien": [],
+              "da_duyet": false
+            }
+          ]
+        }
+      ],
+      "goi_y": "Học sinh trình bày được các giai đoạn và mối quan hệ giữa các thành phần của quá trình sinh học; biểu diễn được quá trình đó bằng sơ đồ đúng và giải thích được vai trò của từng giai đoạn.",
+      "goi_y_thanh_phan": "nhận thức sinh học",
+      "goi_y_nguon": "Bản nháp theo cấu trúc biểu hiện năng lực, chờ giáo viên duyệt"
+    },
+    {
+      "ma_mon": "LICH_SU",
+      "ten_mon": "Lịch sử",
+      "nang_luc": [
+        {
+          "ma": "LICH_SU.1",
+          "ten": "Năng lực lịch sử",
+          "thanh_phan": [
+            {
+              "ma": "LICH_SU.1.1",
+              "ten": "tìm hiểu lịch sử",
+              "bieu_hien": [],
+              "da_duyet": false
+            },
+            {
+              "ma": "LICH_SU.1.2",
+              "ten": "nhận thức và tư duy lịch sử",
+              "bieu_hien": [],
+              "da_duyet": false
+            },
+            {
+              "ma": "LICH_SU.1.3",
+              "ten": "vận dụng kiến thức, kĩ năng đã học",
+              "bieu_hien": [],
+              "da_duyet": false
+            }
+          ]
+        }
+      ],
+      "goi_y": "Học sinh khai thác được thông tin từ tư liệu lịch sử (văn bản, hình ảnh, số liệu); xác định được nội dung chính và giá trị của tư liệu, từ đó rút ra được nhận xét có căn cứ về sự kiện, nhân vật lịch sử.",
+      "goi_y_thanh_phan": "tìm hiểu lịch sử",
+      "goi_y_nguon": "Bản nháp theo cấu trúc biểu hiện năng lực, chờ giáo viên duyệt"
+    },
+    {
+      "ma_mon": "DIA_LI",
+      "ten_mon": "Địa lí",
+      "nang_luc": [
+        {
+          "ma": "DIA_LI.1",
+          "ten": "Năng lực địa lí",
+          "thanh_phan": [
+            {
+              "ma": "DIA_LI.1.1",
+              "ten": "nhận thức khoa học địa lí",
+              "bieu_hien": [],
+              "da_duyet": false
+            },
+            {
+              "ma": "DIA_LI.1.2",
+              "ten": "tìm hiểu địa lí",
+              "bieu_hien": [],
+              "da_duyet": false
+            },
+            {
+              "ma": "DIA_LI.1.3",
+              "ten": "vận dụng kiến thức, kĩ năng đã học",
+              "bieu_hien": [],
+              "da_duyet": false
+            }
+          ]
+        }
+      ],
+      "goi_y": "Học sinh xử lí được bảng số liệu để lựa chọn và vẽ đúng dạng biểu đồ thích hợp; nhận xét, giải thích được đặc điểm và xu hướng của đối tượng địa lí thể hiện trên biểu đồ.",
+      "goi_y_thanh_phan": "tìm hiểu địa lí",
+      "goi_y_nguon": "Bản nháp theo cấu trúc biểu hiện năng lực, chờ giáo viên duyệt"
+    },
+    {
+      "ma_mon": "GDKT_PL",
+      "ten_mon": "GDKT&PL",
+      "nang_luc": [
+        {
+          "ma": "GDKT_PL.1",
+          "ten": "Năng lực điều chỉnh hành vi",
+          "thanh_phan": []
+        },
+        {
+          "ma": "GDKT_PL.2",
+          "ten": "năng lực phát triển bản thân",
+          "thanh_phan": []
+        },
+        {
+          "ma": "GDKT_PL.3",
+          "ten": "năng lực tìm hiểu và tham gia hoạt động kinh tế – xã hội",
+          "thanh_phan": []
+        }
+      ],
+      "goi_y": "Học sinh nhận diện được hành vi đúng, sai trong tình huống cụ thể dựa trên chuẩn mực đạo đức và quy định pháp luật; đánh giá được hậu quả của hành vi và đề xuất được cách ứng xử phù hợp.",
+      "goi_y_thanh_phan": "Năng lực điều chỉnh hành vi",
+      "goi_y_nguon": "Bản nháp theo cấu trúc biểu hiện năng lực, chờ giáo viên duyệt"
+    },
+    {
+      "ma_mon": "CONG_NGHE",
+      "ten_mon": "Công nghệ",
+      "nang_luc": [
+        {
+          "ma": "CONG_NGHE.1",
+          "ten": "Năng lực công nghệ",
+          "thanh_phan": [
+            {
+              "ma": "CONG_NGHE.1.1",
+              "ten": "nhận thức công nghệ",
+              "bieu_hien": [],
+              "da_duyet": false
+            },
+            {
+              "ma": "CONG_NGHE.1.2",
+              "ten": "giao tiếp công nghệ",
+              "bieu_hien": [],
+              "da_duyet": false
+            },
+            {
+              "ma": "CONG_NGHE.1.3",
+              "ten": "sử dụng công nghệ",
+              "bieu_hien": [],
+              "da_duyet": false
+            },
+            {
+              "ma": "CONG_NGHE.1.4",
+              "ten": "đánh giá công nghệ",
+              "bieu_hien": [],
+              "da_duyet": false
+            },
+            {
+              "ma": "CONG_NGHE.1.5",
+              "ten": "thiết kế kĩ thuật",
+              "bieu_hien": [],
+              "da_duyet": false
+            }
+          ]
+        }
+      ],
+      "goi_y": "Học sinh xác định được yêu cầu, tiêu chí của sản phẩm; phác thảo được phương án thiết kế đáp ứng yêu cầu cho trước và lựa chọn được vật liệu, giải pháp kĩ thuật phù hợp.",
+      "goi_y_thanh_phan": "thiết kế kĩ thuật",
+      "goi_y_nguon": "Bản nháp theo cấu trúc biểu hiện năng lực, chờ giáo viên duyệt"
+    },
+    {
+      "ma_mon": "TIN_HOC",
+      "ten_mon": "Tin học",
+      "nang_luc": [
+        {
+          "ma": "TIN_HOC.1",
+          "ten": "Năng lực tin học",
+          "thanh_phan": [
+            {
+              "ma": "TIN_HOC.1.NLa",
+              "ten": "sử dụng và quản lí các phương tiện CNTT-TT",
+              "bieu_hien": [],
+              "da_duyet": false
+            },
+            {
+              "ma": "TIN_HOC.1.NLb",
+              "ten": "ứng xử phù hợp trong môi trường số",
+              "bieu_hien": [],
+              "da_duyet": false
+            },
+            {
+              "ma": "TIN_HOC.1.NLc",
+              "ten": "giải quyết vấn đề với sự hỗ trợ của CNTT-TT",
+              "bieu_hien": [],
+              "da_duyet": false
+            },
+            {
+              "ma": "TIN_HOC.1.NLd",
+              "ten": "ứng dụng CNTT-TT trong học và tự học",
+              "bieu_hien": [],
+              "da_duyet": false
+            },
+            {
+              "ma": "TIN_HOC.1.NLe",
+              "ten": "hợp tác trong môi trường số",
+              "bieu_hien": [],
+              "da_duyet": false
+            }
+          ]
+        }
+      ],
+      "goi_y": "Học sinh phân tích được bài toán, xác định được dữ liệu vào và kết quả ra; viết và chạy được chương trình đúng cú pháp để giải quyết bài toán, kiểm thử và sửa lỗi để chương trình cho kết quả đúng.",
+      "goi_y_thanh_phan": "giải quyết vấn đề với sự hỗ trợ của CNTT-TT",
+      "goi_y_nguon": "Bản nháp theo cấu trúc biểu hiện năng lực, chờ giáo viên duyệt"
+    },
+    {
+      "ma_mon": "GDTC",
+      "ten_mon": "Giáo dục thể chất",
+      "nang_luc": [
+        {
+          "ma": "GDTC.1",
+          "ten": "Năng lực thể chất",
+          "thanh_phan": [
+            {
+              "ma": "GDTC.1.1",
+              "ten": "chăm sóc sức khỏe",
+              "bieu_hien": [],
+              "da_duyet": false
+            },
+            {
+              "ma": "GDTC.1.2",
+              "ten": "vận động cơ bản",
+              "bieu_hien": [],
+              "da_duyet": false
+            },
+            {
+              "ma": "GDTC.1.3",
+              "ten": "hoạt động thể dục thể thao",
+              "bieu_hien": [],
+              "da_duyet": false
+            }
+          ]
+        }
+      ],
+      "goi_y": "Học sinh thực hiện được động tác, kĩ thuật của bài đúng nhịp, đúng phương hướng và biên độ; phối hợp được các cử động nhịp nhàng và tự sửa được lỗi động tác khi được nhắc.",
+      "goi_y_thanh_phan": "vận động cơ bản",
+      "goi_y_nguon": "Bản nháp theo cấu trúc biểu hiện năng lực, chờ giáo viên duyệt"
+    },
+    {
+      "ma_mon": "AM_NHAC",
+      "ten_mon": "Âm nhạc",
+      "nang_luc": [
+        {
+          "ma": "AM_NHAC.1",
+          "ten": "Năng lực âm nhạc",
+          "thanh_phan": [
+            {
+              "ma": "AM_NHAC.1.1",
+              "ten": "thể hiện âm nhạc",
+              "bieu_hien": [],
+              "da_duyet": false
+            },
+            {
+              "ma": "AM_NHAC.1.2",
+              "ten": "cảm thụ và hiểu biết âm nhạc",
+              "bieu_hien": [],
+              "da_duyet": false
+            },
+            {
+              "ma": "AM_NHAC.1.3",
+              "ten": "ứng dụng và sáng tạo âm nhạc",
+              "bieu_hien": [],
+              "da_duyet": false
+            }
+          ]
+        }
+      ],
+      "goi_y": "Học sinh hát được bài hát đúng cao độ, trường độ và sắc thái; thể hiện được tính chất âm nhạc của bài hát và phối hợp được với bạn khi hát theo nhóm.",
+      "goi_y_thanh_phan": "thể hiện âm nhạc",
+      "goi_y_nguon": "Bản nháp theo cấu trúc biểu hiện năng lực, chờ giáo viên duyệt"
+    },
+    {
+      "ma_mon": "MI_THUAT",
+      "ten_mon": "Mĩ thuật",
+      "nang_luc": [
+        {
+          "ma": "MI_THUAT.1",
+          "ten": "Năng lực mĩ thuật",
+          "thanh_phan": [
+            {
+              "ma": "MI_THUAT.1.1",
+              "ten": "quan sát và nhận thức thẩm mĩ",
+              "bieu_hien": [],
+              "da_duyet": false
+            },
+            {
+              "ma": "MI_THUAT.1.2",
+              "ten": "sáng tạo và ứng dụng thẩm mĩ",
+              "bieu_hien": [],
+              "da_duyet": false
+            },
+            {
+              "ma": "MI_THUAT.1.3",
+              "ten": "phân tích và đánh giá thẩm mĩ",
+              "bieu_hien": [],
+              "da_duyet": false
+            }
+          ]
+        }
+      ],
+      "goi_y": "Học sinh vận dụng được yếu tố và nguyên lí tạo hình để thực hiện sản phẩm mĩ thuật theo chủ đề; tạo được sản phẩm có bố cục hợp lí, thể hiện được ý tưởng cá nhân và giới thiệu được sản phẩm.",
+      "goi_y_thanh_phan": "sáng tạo và ứng dụng thẩm mĩ",
+      "goi_y_nguon": "Bản nháp theo cấu trúc biểu hiện năng lực, chờ giáo viên duyệt"
+    },
+    {
+      "ma_mon": "HDTN_HN",
+      "ten_mon": "HĐTN, HN",
+      "nang_luc": [
+        {
+          "ma": "HDTN_HN.1",
+          "ten": "Năng lực thích ứng với cuộc sống",
+          "thanh_phan": []
+        },
+        {
+          "ma": "HDTN_HN.2",
+          "ten": "năng lực thiết kế và tổ chức hoạt động",
+          "thanh_phan": []
+        },
+        {
+          "ma": "HDTN_HN.3",
+          "ten": "năng lực định hướng nghề nghiệp",
+          "thanh_phan": []
+        }
+      ],
+      "goi_y": "Học sinh xác định được mục tiêu, nội dung và nguồn lực của hoạt động; lập được kế hoạch có phân công nhiệm vụ, thời gian cụ thể cho nhóm và tổ chức thực hiện được theo kế hoạch.",
+      "goi_y_thanh_phan": "năng lực thiết kế và tổ chức hoạt động",
+      "goi_y_nguon": "Bản nháp theo cấu trúc biểu hiện năng lực, chờ giáo viên duyệt"
+    }
+  ]
+}

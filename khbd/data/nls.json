@@ -1,0 +1,513 @@
+{
+  "mien": [
+    {
+      "ma": "1",
+      "ten": ""
+    },
+    {
+      "ma": "2",
+      "ten": ""
+    },
+    {
+      "ma": "3",
+      "ten": ""
+    },
+    {
+      "ma": "4",
+      "ten": ""
+    },
+    {
+      "ma": "5",
+      "ten": ""
+    },
+    {
+      "ma": "6",
+      "ten": ""
+    }
+  ],
+  "thanhPhan": [
+    {
+      "ma": "1.1",
+      "ten": "Duyệt, tìm kiếm và lọc dữ liệu, thông tin và nội dung số",
+      "maMien": "1",
+      "moTa": "Xác định được nhu cầu thông tin, tìm kiếm được dữ liệu, thông tin và nội dung trong môi trường số, truy cập chúng và khai thác được kết quả tìm kiếm. Tạo và cập nhật được chiến lược tìm kiếm."
+    },
+    {
+      "ma": "1.2",
+      "ten": "Đánh giá dữ liệu, thông tin và nội dung số",
+      "maMien": "1",
+      "moTa": "Phân tích, so sánh và đánh giá được độ tin cậy và tính xác thực của nguồn dữ liệu, thông tin và nội dung số. Phân tích, giải thích và đánh giá được dữ liệu, thông tin và nội dung số."
+    },
+    {
+      "ma": "1.3",
+      "ten": "Quản lý dữ liệu, thông tin và nội dung số",
+      "maMien": "1",
+      "moTa": "Tổ chức, lưu trữ và truy xuất được dữ liệu, thông tin và nội dung trong môi trường số. Tổ chức và sắp xếp được chúng trong một môi trường có cấu trúc."
+    },
+    {
+      "ma": "2.1",
+      "ten": "Tương tác thông qua công nghệ số",
+      "maMien": "2",
+      "moTa": "Tương tác thông qua các công nghệ số khác nhau và nhận biết được phương tiện giao tiếp số nào phù hợp cho một bối cảnh cụ thể."
+    },
+    {
+      "ma": "2.2",
+      "ten": "Chia sẻ thông tin và nội dung thông qua công nghệ số",
+      "maMien": "2",
+      "moTa": "Chia sẻ dữ liệu, thông tin và nội dung số với người khác thông qua các công nghệ số phù hợp. Đóng vai trò là người trung gian, hiểu biết về thực hành trích dẫn và ghi chú nguồn."
+    },
+    {
+      "ma": "2.3",
+      "ten": "Sử dụng công nghệ số để thực hiện trách nhiệm công dân",
+      "maMien": "2",
+      "moTa": "Tham gia đóng góp cho xã hội thông qua việc sử dụng các dịch vụ số công và tư. Tìm kiếm được cơ hội, để trao quyền và thu hút công dân thông qua các công nghệ số phù hợp."
+    },
+    {
+      "ma": "2.4",
+      "ten": "Hợp tác thông qua công nghệ số",
+      "maMien": "2",
+      "moTa": "Sử dụng được các công cụ và công nghệ số cho các quá trình hợp tác cũng như để cùng xây dựng và đồng sáng tạo dữ liệu, tài nguyên và kiến thức."
+    },
+    {
+      "ma": "2.5",
+      "ten": "Thực hiện quy tắc ứng xử trên mạng",
+      "maMien": "2",
+      "moTa": "Nhận thức được các chuẩn mực hành vi và kiến thức khi sử dụng công nghệ số và tương tác trong môi trường số. Điều chỉnh được các chiến lược giao tiếp phù hợp với đối tượng cụ thể và nhận thức được sự đa dạng về văn hóa và thế hệ trong môi trường số."
+    },
+    {
+      "ma": "2.6",
+      "ten": "Quản lý danh tính số",
+      "maMien": "2",
+      "moTa": "Tạo và quản lý được một hoặc nhiều danh tính số để bảo vệ danh tiếng của bản thân, làm việc với dữ liệu mà một người tạo ra bằng nhiều công cụ, môi trường và dịch vụ số."
+    },
+    {
+      "ma": "3.1",
+      "ten": "Phát triển nội dung số",
+      "maMien": "3",
+      "moTa": "Tạo và chỉnh sửa được nội dung số ở các định dạng khác nhau, nhằm thể hiện bản thân thông qua các phương tiện số."
+    },
+    {
+      "ma": "3.2",
+      "ten": "Tích hợp và tạo lập lại nội dung số",
+      "maMien": "3",
+      "moTa": "Sửa đổi, tinh chỉnh và tích hợp được thông tin và nội dung mới vào khối kiến thức và tài nguyên hiện có để tạo ra nội dung và kiến thức mới, độc đáo và phù hợp."
+    },
+    {
+      "ma": "3.3",
+      "ten": "Thực thi bản quyền và giấy phép",
+      "maMien": "3",
+      "moTa": "Hiểu được cách áp dụng bản quyền và giấy phép cho thông tin và nội dung số."
+    },
+    {
+      "ma": "3.4",
+      "ten": "Lập trình",
+      "maMien": "3",
+      "moTa": "Lập kế hoạch và phát triển được một chuỗi các câu lệnh dễ hiểu cho một hệ thống máy tính để giải quyết một vấn đề nhất định hoặc thực hiện một nhiệm vụ cụ thể."
+    },
+    {
+      "ma": "4.1",
+      "ten": "Bảo vệ thiết bị",
+      "maMien": "4",
+      "moTa": "Bảo vệ được các thiết bị và nội dung số cũng như hiểu rõ các rủi ro và mối đe dọa trong môi trường kỹ thuật số. Biết được các biện pháp an toàn và bảo mật cũng như có sự quan tâm đúng mức đến độ tin cậy và quyền riêng tư."
+    },
+    {
+      "ma": "4.2",
+      "ten": "Bảo vệ dữ liệu cá nhân và quyền riêng tư",
+      "maMien": "4",
+      "moTa": "Bảo vệ được dữ liệu cá nhân và quyền riêng tư trong môi trường số. Hiểu được cách sử dụng và chia sẻ thông tin định danh cá nhân một cách an toàn, có khả năng bảo vệ bản thân và người khác. Hiểu được cách các dịch vụ số sử dụng “Chính sách Quyền riêng tư” để thông báo phương thức sử dụng dữ liệu cá nhân."
+    },
+    {
+      "ma": "4.3",
+      "ten": "Bảo vệ sức khỏe và an sinh số",
+      "maMien": "4",
+      "moTa": "Tránh được rủi ro và đe dọa đến sức khỏe thể chất và tinh thần khi sử dụng công nghệ số. Bảo vệ được bản thân và người khác khỏi nguy cơ trong môi trường số (ví dụ: bắt nạt trên mạng). Nhận biết được những công nghệ số giúp tăng cường thịnh vượng xã hội và sự hòa hợp trong xã hội."
+    },
+    {
+      "ma": "4.4",
+      "ten": "Bảo vệ môi trường",
+      "maMien": "4",
+      "moTa": "Nhận thức được tác động của công nghệ số và việc sử dụng công nghệ số đối với môi trường."
+    },
+    {
+      "ma": "5.1",
+      "ten": "Giải quyết các vấn đề kỹ thuật",
+      "maMien": "5",
+      "moTa": "Xác định được các vấn đề kỹ thuật khi vận hành thiết bị, sử dụng môi trường số và giải quyết chúng (từ xử lý sự cố đến giải quyết các vấn đề phức tạp hơn)."
+    },
+    {
+      "ma": "5.2",
+      "ten": "Xác định nhu cầu và giải pháp công nghệ",
+      "maMien": "5",
+      "moTa": "Đánh giá được nhu cầu và xác định, đánh giá, lựa chọn, sử dụng các công cụ số cùng với các giải pháp công nghệ khả thi để giải quyết chúng. Điều chỉnh và tùy chỉnh được môi trường số theo nhu cầu cá nhân (ví dụ: khả năng tiếp cận)."
+    },
+    {
+      "ma": "5.3",
+      "ten": "Sử dụng sáng tạo công nghệ số",
+      "maMien": "5",
+      "moTa": "Sử dụng được các công cụ và công nghệ số để tạo ra kiến thức, đổi mới quy trình và sản phẩm. Gắn kết cá nhân và tập thể vào quá trình xử lý nhận thức để hiểu và giải quyết các vấn đề mang tính khái niệm và các tình huống có vấn đề trong môi trường số."
+    },
+    {
+      "ma": "5.4",
+      "ten": "Xác định các vấn đề cần cải thiện về năng lực số",
+      "maMien": "5",
+      "moTa": "Hiểu được năng lực số của chính mình cần được cải thiện hoặc cập nhật ở đâu. Có thể hỗ trợ người khác phát triển năng lực số của họ. Tìm kiếm được cơ hội phát triển bản thân và cập nhật sự phát triển công nghệ số."
+    },
+    {
+      "ma": "6.1",
+      "ten": "Hiểu biết về AI (trong đó có Gen AI)",
+      "maMien": "6",
+      "moTa": "Hiểu được cách AI ảnh hưởng đến cuộc sống hằng ngày và vai trò của AI trong các lĩnh vực khác nhau. Nắm vững được nguyên tắc hoạt động của AI, khả năng và hạn chế của AI."
+    },
+    {
+      "ma": "6.2",
+      "ten": "Sử dụng AI có đạo đức và trách nhiệm",
+      "maMien": "6",
+      "moTa": "Sử dụng hiệu quả các hệ thống AI và hiểu rõ ứng dụng thực tế của chúng. Sử dụng được AI để tạo nội dung, khám phá kiến thức và giải quyết các vấn đề trong công việc, học tập và cuộc sống hàng ngày."
+    },
+    {
+      "ma": "6.3",
+      "ten": "Đánh giá các công cụ AI",
+      "maMien": "6",
+      "moTa": "Đánh giá và lọc được thông tin từ các nguồn được tạo ra hoặc xử lý bằng AI, để hiểu rõ hơn về tính đáng tin cậy và cách sử dụng thông tin đó. Đánh giá được AI trên các khía cạnh minh bạch, an toàn, đạo đức và tác động."
+    }
+  ],
+  "trinhDo": [
+    {
+      "ma": "5",
+      "ten": "Bậc 5",
+      "lop": "Lớp 10 – 12"
+    }
+  ],
+  "chiBao": [
+    {
+      "ma": "1.1.5.1",
+      "maThanhPhan": "1.1",
+      "trinhDo": "5",
+      "noiDung": "Đáp ứng được nhu cầu thông tin."
+    },
+    {
+      "ma": "1.1.5.2",
+      "maThanhPhan": "1.1",
+      "trinhDo": "5",
+      "noiDung": "Áp dụng được kỹ thuật tìm kiếm để lấy được dữ liệu, thông tin và nội dung trong môi trường số."
+    },
+    {
+      "ma": "1.1.5.3",
+      "maThanhPhan": "1.1",
+      "trinhDo": "5",
+      "noiDung": "Chỉ cho người khác cách truy cập những dữ liệu, thông tin và nội dung này cũng như điều hướng giữa chúng."
+    },
+    {
+      "ma": "1.1.5.4",
+      "maThanhPhan": "1.1",
+      "trinhDo": "5",
+      "noiDung": "Tự đề xuất được chiến lược tìm kiếm."
+    },
+    {
+      "ma": "1.2.5.1",
+      "maThanhPhan": "1.2",
+      "trinhDo": "5",
+      "noiDung": "Thực hiện đánh giá được độ tin cậy và độ chính xác của các nguồn dữ liệu, thông tin và nội dung số."
+    },
+    {
+      "ma": "1.2.5.2",
+      "maThanhPhan": "1.2",
+      "trinhDo": "5",
+      "noiDung": "Tiến hành đánh giá được các dữ liệu, thông tin và nội dung số khác nhau."
+    },
+    {
+      "ma": "1.3.5.1",
+      "maThanhPhan": "1.3",
+      "trinhDo": "5",
+      "noiDung": "Thao tác được thông tin, dữ liệu và nội dung để tổ chức, lưu trữ và truy xuất dễ dàng hơn."
+    },
+    {
+      "ma": "1.3.5.2",
+      "maThanhPhan": "1.3",
+      "trinhDo": "5",
+      "noiDung": "Triển khai được việc tổ chức và sắp xếp dữ liệu, thông tin và nội dung trong môi trường có cấu trúc."
+    },
+    {
+      "ma": "2.1.5.1",
+      "maThanhPhan": "2.1",
+      "trinhDo": "5",
+      "noiDung": "Sử dụng được nhiều công nghệ số để tương tác."
+    },
+    {
+      "ma": "2.1.5.2",
+      "maThanhPhan": "2.1",
+      "trinhDo": "5",
+      "noiDung": "Chỉ được cho người khác thấy phương tiện giao tiếp số nào thích hợp nhất cho một bối cảnh cụ thể."
+    },
+    {
+      "ma": "2.2.5.1",
+      "maThanhPhan": "2.2",
+      "trinhDo": "5",
+      "noiDung": "Chia sẻ dữ liệu, thông tin và nội dung số thông qua nhiều công cụ số phù hợp."
+    },
+    {
+      "ma": "2.2.5.2",
+      "maThanhPhan": "2.2",
+      "trinhDo": "5",
+      "noiDung": "Hướng dẫn người khác cách đóng vai trò trung gian để chia sẻ thông tin và nội dung thông qua công nghệ số."
+    },
+    {
+      "ma": "2.2.5.3",
+      "maThanhPhan": "2.2",
+      "trinhDo": "5",
+      "noiDung": "Áp dụng được nhiều phương pháp tham chiếu và ghi nguồn khác nhau."
+    },
+    {
+      "ma": "2.3.5.1",
+      "maThanhPhan": "2.3",
+      "trinhDo": "5",
+      "noiDung": "Đề xuất được các dịch vụ số khác nhau để tham gia vào xã hội."
+    },
+    {
+      "ma": "2.3.5.2",
+      "maThanhPhan": "2.3",
+      "trinhDo": "5",
+      "noiDung": "Sử dụng được các công nghệ số thích hợp để tự mình trang bị và tham gia vào xã hội như một công dân."
+    },
+    {
+      "ma": "2.4.5.1",
+      "maThanhPhan": "2.4",
+      "trinhDo": "5",
+      "noiDung": "Đề xuất được các công cụ và công nghệ số khác nhau cho các quá trình hợp tác."
+    },
+    {
+      "ma": "2.5.5.1",
+      "maThanhPhan": "2.5",
+      "trinhDo": "5",
+      "noiDung": "Áp dụng được các chuẩn mực hành vi và bí quyết/cách khác nhau khi sử dụng công nghệ số và tương tác trong môi trường số."
+    },
+    {
+      "ma": "2.5.5.2",
+      "maThanhPhan": "2.5",
+      "trinhDo": "5",
+      "noiDung": "Áp dụng được các chiến lược giao tiếp khác nhau trong môi trường số một cách phù hợp."
+    },
+    {
+      "ma": "2.5.5.3",
+      "maThanhPhan": "2.5",
+      "trinhDo": "5",
+      "noiDung": "Áp dụng được các khía cạnh đa dạng về văn hóa và thế hệ khác nhau để xem xét trong môi trường số."
+    },
+    {
+      "ma": "2.6.5.1",
+      "maThanhPhan": "2.6",
+      "trinhDo": "5",
+      "noiDung": "Sử dụng được nhiều danh tính số khác nhau."
+    },
+    {
+      "ma": "2.6.5.2",
+      "maThanhPhan": "2.6",
+      "trinhDo": "5",
+      "noiDung": "Áp dụng được các cách khác nhau để bảo vệ danh tính trực tuyến của bản thân."
+    },
+    {
+      "ma": "2.6.5.3",
+      "maThanhPhan": "2.6",
+      "trinhDo": "5",
+      "noiDung": "Sử dụng được dữ liệu tạo ra thông qua công cụ, môi trường và một số dịch vụ số."
+    },
+    {
+      "ma": "3.1.5.1",
+      "maThanhPhan": "3.1",
+      "trinhDo": "5",
+      "noiDung": "Áp dụng được các cách tạo và chỉnh sửa nội dung ở các định dạng khác nhau."
+    },
+    {
+      "ma": "3.1.5.2",
+      "maThanhPhan": "3.1",
+      "trinhDo": "5",
+      "noiDung": "Chỉ ra được những cách thể hiện bản thân thông qua việc tạo ra các phương tiện số."
+    },
+    {
+      "ma": "3.2.5.1",
+      "maThanhPhan": "3.2",
+      "trinhDo": "5",
+      "noiDung": "Làm việc với các mục nội dung và thông tin mới khác nhau, sửa đổi, tinh chỉnh, cải thiện và tích hợp chúng để tạo ra những mục mới và độc đáo."
+    },
+    {
+      "ma": "3.3.5.1",
+      "maThanhPhan": "3.3",
+      "trinhDo": "5",
+      "noiDung": "Áp dụng được các quy định khác nhau về bản quyền và giấy phép cho dữ liệu, thông tin và nội dung số."
+    },
+    {
+      "ma": "3.4.5.1",
+      "maThanhPhan": "3.4",
+      "trinhDo": "5",
+      "noiDung": "Tự thao tác được bằng các hướng dẫn dành cho hệ thống máy tính để giải quyết một vấn đề khác hoặc thực hiện các nhiệm vụ khác nhau."
+    },
+    {
+      "ma": "4.1.5.1",
+      "maThanhPhan": "4.1",
+      "trinhDo": "5",
+      "noiDung": "Áp dụng được các cách khác nhau để bảo vệ thiết bị và nội dung số."
+    },
+    {
+      "ma": "4.1.5.2",
+      "maThanhPhan": "4.1",
+      "trinhDo": "5",
+      "noiDung": "Nhận thức được sự đa dạng của các rủi ro và đe dọa trong môi trường số."
+    },
+    {
+      "ma": "4.1.5.3",
+      "maThanhPhan": "4.1",
+      "trinhDo": "5",
+      "noiDung": "Áp dụng được các biện pháp an toàn và bảo mật."
+    },
+    {
+      "ma": "4.1.5.4",
+      "maThanhPhan": "4.1",
+      "trinhDo": "5",
+      "noiDung": "Sử dụng được các cách thức khác nhau để quan tâm đến mức độ tin cậy và quyền riêng tư."
+    },
+    {
+      "ma": "4.2.5.1",
+      "maThanhPhan": "4.2",
+      "trinhDo": "5",
+      "noiDung": "Áp dụng được các cách thức khác nhau để bảo vệ dữ liệu cá nhân và quyền riêng tư trong môi trường số."
+    },
+    {
+      "ma": "4.2.5.2",
+      "maThanhPhan": "4.2",
+      "trinhDo": "5",
+      "noiDung": "Áp dụng được các cách thức đặc thù để chia sẻ dữ liệu cá nhân một cách an toàn."
+    },
+    {
+      "ma": "4.2.5.3",
+      "maThanhPhan": "4.2",
+      "trinhDo": "5",
+      "noiDung": "Giải thích được các tuyên bố trong chính sách quyền riêng tư về cách sử dụng dữ liệu cá nhân trong các dịch vụ số."
+    },
+    {
+      "ma": "4.3.5.1",
+      "maThanhPhan": "4.3",
+      "trinhDo": "5",
+      "noiDung": "Trình bày được các cách thức khác nhau để tránh rủi ro và đe dọa đến sức khỏe thể chất và tinh thần khi sử dụng công nghệ số."
+    },
+    {
+      "ma": "4.3.5.2",
+      "maThanhPhan": "4.3",
+      "trinhDo": "5",
+      "noiDung": "Áp dụng được các cách thức khác nhau để bảo vệ bản thân và người khác khỏi nguy cơ trong môi trường số."
+    },
+    {
+      "ma": "4.3.5.3",
+      "maThanhPhan": "4.3",
+      "trinhDo": "5",
+      "noiDung": "Trình bày được các công nghệ số khác nhau giúp tăng cường thịnh vượng xã hội và sự hòa hợp trong xã hội."
+    },
+    {
+      "ma": "4.4.5.1",
+      "maThanhPhan": "4.4",
+      "trinhDo": "5",
+      "noiDung": "Trình bày được các cách thức khác nhau để bảo vệ môi trường khỏi tác động của công nghệ số và việc sử dụng công nghệ số."
+    },
+    {
+      "ma": "5.1.5.1",
+      "maThanhPhan": "5.1",
+      "trinhDo": "5",
+      "noiDung": "Đánh giá được các vấn đề kỹ thuật khi sử dụng môi trường số và vận hành các thiết bị số."
+    },
+    {
+      "ma": "5.1.5.2",
+      "maThanhPhan": "5.1",
+      "trinhDo": "5",
+      "noiDung": "Áp dụng được các giải pháp khác nhau cho chúng."
+    },
+    {
+      "ma": "5.2.5.1",
+      "maThanhPhan": "5.2",
+      "trinhDo": "5",
+      "noiDung": "Đánh giá được nhu cầu cá nhân."
+    },
+    {
+      "ma": "5.2.5.2",
+      "maThanhPhan": "5.2",
+      "trinhDo": "5",
+      "noiDung": "Áp dụng được các công cụ số khác nhau và các giải pháp công nghệ có thể có để giải quyết những nhu cầu đó."
+    },
+    {
+      "ma": "5.2.5.3",
+      "maThanhPhan": "5.2",
+      "trinhDo": "5",
+      "noiDung": "Sử dụng được các cách khác nhau để điều chỉnh và tùy chỉnh môi trường số theo nhu cầu cá nhân."
+    },
+    {
+      "ma": "5.3.5.1",
+      "maThanhPhan": "5.3",
+      "trinhDo": "5",
+      "noiDung": "Áp dụng được các công cụ và công nghệ số khác nhau để tạo ra kiến thức cũng như các quy trình và sản phẩm đổi mới."
+    },
+    {
+      "ma": "5.3.5.2",
+      "maThanhPhan": "5.3",
+      "trinhDo": "5",
+      "noiDung": "Áp dụng xử lý nhận thức của cá nhân và tập thể để giải quyết các vấn đề khái niệm và tình huống có vấn đề khác nhau trong môi trường số."
+    },
+    {
+      "ma": "5.4.5.1",
+      "maThanhPhan": "5.4",
+      "trinhDo": "5",
+      "noiDung": "Chứng minh được năng lực số của tôi cần được cải thiện hoặc cập nhật ở đâu."
+    },
+    {
+      "ma": "5.4.5.2",
+      "maThanhPhan": "5.4",
+      "trinhDo": "5",
+      "noiDung": "Minh họa được những cách khác nhau để hỗ trợ người khác phát triển năng lực số của họ."
+    },
+    {
+      "ma": "5.4.5.3",
+      "maThanhPhan": "5.4",
+      "trinhDo": "5",
+      "noiDung": "Đề xuất được các cơ hội khác nhau để phát triển bản thân và cập nhật sự phát triển số."
+    },
+    {
+      "ma": "6.1.5.1",
+      "maThanhPhan": "6.1",
+      "trinhDo": "5",
+      "noiDung": "Đánh giá được hiệu quả của các hệ thống AI trong việc giải quyết các vấn đề cụ thể."
+    },
+    {
+      "ma": "6.1.5.2",
+      "maThanhPhan": "6.1",
+      "trinhDo": "5",
+      "noiDung": "Kiểm tra được các giới hạn và tiềm năng của AI trong các lĩnh vực khác nhau."
+    },
+    {
+      "ma": "6.2.5.1",
+      "maThanhPhan": "6.2",
+      "trinhDo": "5",
+      "noiDung": "Phát triển được các ứng dụng AI tùy chỉnh để giải quyết các vấn đề cụ thể."
+    },
+    {
+      "ma": "6.2.5.2",
+      "maThanhPhan": "6.2",
+      "trinhDo": "5",
+      "noiDung": "Điều chỉnh được các hệ thống AI để phù hợp với nhu cầu cụ thể."
+    },
+    {
+      "ma": "6.2.5.3",
+      "maThanhPhan": "6.2",
+      "trinhDo": "5",
+      "noiDung": "Đánh giá và giảm thiểu được các rủi ro đạo đức và pháp lý liên quan đến việc sử dụng AI."
+    },
+    {
+      "ma": "6.3.5.1",
+      "maThanhPhan": "6.3",
+      "trinhDo": "5",
+      "noiDung": "Phê phán được các khía cạnh kỹ thuật và đạo đức của hệ thống AI."
+    },
+    {
+      "ma": "6.3.5.2",
+      "maThanhPhan": "6.3",
+      "trinhDo": "5",
+      "noiDung": "Kiểm tra và xác minh được tính chính xác của các quyết định do hệ thống AI đưa ra."
+    }
+  ]
+}

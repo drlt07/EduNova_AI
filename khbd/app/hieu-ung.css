@@ -1,0 +1,72 @@
+/* Hiệu ứng nhẹ, dùng chung cho app và bản xem trước. Tắt khi máy đặt "giảm chuyển động". */
+@theme {
+  --animate-hien: hien 0.35s ease-out both;
+  --animate-truot: truot 0.3s ease-out both;
+  --animate-bat: bat 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  --animate-lap-lanh-xam: lap-lanh-xam 1.4s ease-in-out infinite;
+  --animate-xoay: xoay 0.9s linear infinite;
+  @keyframes hien {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: none; }
+  }
+  @keyframes truot {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: none; }
+  }
+  @keyframes bat {
+    from { transform: scale(0.4); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+  @keyframes lap-lanh-xam {
+    0%, 100% { opacity: 0.55; }
+    50% { opacity: 1; }
+  }
+  @keyframes xoay {
+    to { transform: rotate(360deg); }
+  }
+}
+
+/* Các khung xuất hiện lần lượt. */
+.hien-lan-luot > * { animation: var(--animate-hien); }
+.hien-lan-luot > *:nth-child(2) { animation-delay: 40ms; }
+.hien-lan-luot > *:nth-child(3) { animation-delay: 80ms; }
+.hien-lan-luot > *:nth-child(4) { animation-delay: 120ms; }
+.hien-lan-luot > *:nth-child(5) { animation-delay: 160ms; }
+.hien-lan-luot > *:nth-child(n + 6) { animation-delay: 200ms; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Bản xem trước bài soạn: gần với trình bày trên giấy. */
+.ban-xem-truoc { font-family: "Times New Roman", Times, serif; font-size: 15px; line-height: 1.5; color: #000; text-align: justify; }
+.ban-xem-truoc p { margin: 0 0 4px; }
+.ban-xem-truoc strong { font-weight: 700; }
+.ban-xem-truoc ul { list-style: "- "; padding-left: 1.4em; margin: 0 0 4px; }
+.ban-xem-truoc ul ul { list-style: "+ "; }
+.ban-xem-truoc table { width: 100%; border-collapse: collapse; margin: 6px 0 10px; font-size: 14px; }
+.ban-xem-truoc td, .ban-xem-truoc th { border: 1px solid #000; padding: 3px 6px; vertical-align: top; text-align: left; }
+.ban-xem-truoc math { font-size: 1.05em; }
+.ban-xem-truoc .tieu-de-mon, .ban-xem-truoc .ten-bai { text-align: center; font-weight: 700; }
+.ban-xem-truoc .ten-bai { font-size: 16px; text-transform: uppercase; margin-bottom: 8px; }
+.ban-xem-truoc .muc-lon { font-weight: 700; text-transform: uppercase; margin-top: 10px; }
+.ban-xem-truoc .muc-con { font-weight: 700; margin-top: 6px; }
+.ban-xem-truoc .cap-1 { padding-left: 1.2em; text-indent: -1.2em; }
+.ban-xem-truoc .cap-1::before { content: "-"; display: inline-block; width: 1.2em; text-indent: 0; }
+.ban-xem-truoc .cap-2 { padding-left: 2.4em; text-indent: -1.2em; }
+.ban-xem-truoc .cap-2::before { content: "+"; display: inline-block; width: 1.2em; text-indent: 0; }
+.ban-xem-truoc img { max-width: 100%; height: auto; }
+
+/* Bảng biến thiên app tạo lại (xem ở bước kiểm tra). */
+.bbt { border-collapse: collapse; border: 1px solid #000; font-family: "Times New Roman", Times, serif; font-size: 15px; color: #000; background: #fff; }
+.bbt th { border-right: 1px solid #000; padding: 2px 10px; font-style: italic; font-weight: 400; }
+.bbt td { padding: 2px 8px; text-align: center; min-width: 1.6em; white-space: nowrap; }
+.bbt tr:nth-child(-n+2) > * { border-bottom: 1px solid #000; }
+.bbt .mui-ten { font-size: 1.25em; line-height: 1; }
+.hinh-tao-lai svg { display: block; max-width: 100%; max-height: 13rem; width: auto; height: auto; }
+.bang-tao-lai { border-collapse: collapse; font-family: "Times New Roman", Times, serif; font-size: 15px; color: #000; background: #fff; }
+.bang-tao-lai td { border: 1px solid #000; padding: 3px 10px; text-align: center; }

@@ -1,0 +1,110 @@
+{
+  "nguon": "docs/khung_khbd.docx – Gợi ý hình thức tổ chức HĐ II; Gợi ý nhiệm vụ HĐ III theo môn",
+  "hd2": [
+    {
+      "hinh_thuc": "Luyện tập trên hệ thống số (2 lượt)",
+      "phu_hop": "Mọi môn, nhất là Toán, KHTN, Ngoại ngữ",
+      "dien_bien": "Lượt 1 cá nhân trên [nền tảng luyện tập] → chữa các câu sai nhiều, thảo luận cặp → lượt 2 làm lại câu sai hoặc câu tương tự",
+      "san_pham": "Kết quả lượt 1, lượt 2; câu đã sửa"
+    },
+    {
+      "hinh_thuc": "Phiên tòa giả định",
+      "phu_hop": "Lịch sử, GDCD/GDKT&PL, Ngữ văn",
+      "dien_bien": "Phân vai (thẩm phán, bên buộc tội, bên bào chữa, nhân chứng, bồi thẩm đoàn) → chuẩn bị lập luận từ tư liệu → diễn phiên tòa → bồi thẩm đoàn phán quyết kèm căn cứ",
+      "san_pham": "Bản lập luận có dẫn chứng, phán quyết"
+    },
+    {
+      "hinh_thuc": "Đóng vai, xử lí tình huống",
+      "phu_hop": "GDCD/GDKT&PL, HĐTN, Ngoại ngữ",
+      "dien_bien": "Nhận tình huống → nhóm xây dựng phương án → diễn → lớp nhận xét theo tiêu chí",
+      "san_pham": "Phương án ứng xử, kịch bản"
+    },
+    {
+      "hinh_thuc": "Tranh biện",
+      "phu_hop": "Ngữ văn, Lịch sử, Địa lí, GDKT&PL",
+      "dien_bien": "Chia phe ủng hộ/phản đối → chuẩn bị luận điểm, bằng chứng → tranh biện → tổng kết",
+      "san_pham": "Dàn ý lập luận, phiếu đánh giá"
+    },
+    {
+      "hinh_thuc": "Trạm luyện tập",
+      "phu_hop": "Toán, KHTN, Ngoại ngữ",
+      "dien_bien": "Mỗi trạm một dạng bài hoặc một mức độ; nhóm luân phiên hoặc chọn trạm theo mức đạt",
+      "san_pham": "Phiếu trạm"
+    },
+    {
+      "hinh_thuc": "Mảnh ghép",
+      "phu_hop": "Lịch sử, Địa lí, Sinh học",
+      "dien_bien": "Nhóm chuyên gia nghiên cứu một nội dung → nhóm mảnh ghép tổng hợp",
+      "san_pham": "Bảng/sơ đồ tổng hợp"
+    },
+    {
+      "hinh_thuc": "Trò chơi học tập",
+      "phu_hop": "Mọi môn",
+      "dien_bien": "Rung chuông vàng, giải mật thư, đuổi hình bắt chữ...; câu hỏi tăng dần mức độ",
+      "san_pham": "Kết quả theo lượt chơi"
+    },
+    {
+      "hinh_thuc": "Thực hành có hướng dẫn",
+      "phu_hop": "Tin học, Công nghệ, GDTC, Âm nhạc, Mĩ thuật",
+      "dien_bien": "GV làm mẫu → cùng làm → HS tự làm theo nhóm mức đạt",
+      "san_pham": "Sản phẩm, phiếu quan sát"
+    }
+  ],
+  "hd3": [
+    {
+      "mon": "Toán",
+      "dang_nhiem_vu": "Giải bài toán thực tế, mô hình hóa; dùng GeoGebra, máy tính cầm tay, bảng tính",
+      "san_pham": "Lời giải, mô hình, hình vẽ động"
+    },
+    {
+      "mon": "KHTN, Vật lí, Hóa học, Sinh học",
+      "dang_nhiem_vu": "Thí nghiệm thật hoặc mô phỏng, đo đạc, xử lí số liệu, giải thích hiện tượng",
+      "san_pham": "Báo cáo thí nghiệm, bảng – đồ thị số liệu"
+    },
+    {
+      "mon": "Ngữ văn",
+      "dang_nhiem_vu": "Đọc hiểu văn bản cùng thể loại; viết đoạn/bài; nói và nghe (thuyết trình, tranh luận)",
+      "san_pham": "Đoạn văn, dàn ý, bài trình bày"
+    },
+    {
+      "mon": "Ngoại ngữ",
+      "dang_nhiem_vu": "Nhập vai, hội thoại, thuyết trình; viết email/đoạn văn",
+      "san_pham": "Hội thoại ghi âm, bài viết"
+    },
+    {
+      "mon": "Lịch sử",
+      "dang_nhiem_vu": "Khai thác tư liệu, lập trục thời gian, so sánh, đánh giá sự kiện/nhân vật",
+      "san_pham": "Trục thời gian, bảng so sánh, bài thuyết trình"
+    },
+    {
+      "mon": "Địa lí",
+      "dang_nhiem_vu": "Đọc bản đồ, vẽ và nhận xét biểu đồ, xử lí số liệu, tìm hiểu địa phương",
+      "san_pham": "Biểu đồ, bản đồ tư duy, báo cáo ngắn"
+    },
+    {
+      "mon": "GDCD/GDKT&PL",
+      "dang_nhiem_vu": "Xử lí tình huống, đóng vai, lập kế hoạch (chi tiêu, kinh doanh...)",
+      "san_pham": "Phương án ứng xử, bản kế hoạch"
+    },
+    {
+      "mon": "Công nghệ",
+      "dang_nhiem_vu": "Thiết kế, lắp ráp, vận hành, đánh giá sản phẩm/quy trình",
+      "san_pham": "Bản vẽ, sản phẩm, phiếu đánh giá"
+    },
+    {
+      "mon": "Tin học",
+      "dang_nhiem_vu": "Thực hành trên máy tính, lập trình, xử lí dữ liệu",
+      "san_pham": "Tệp sản phẩm, chương trình chạy đúng"
+    },
+    {
+      "mon": "GDTC, Âm nhạc, Mĩ thuật",
+      "dang_nhiem_vu": "Luyện tập, biểu diễn, sáng tạo",
+      "san_pham": "Phần trình diễn, tác phẩm, phiếu quan sát"
+    },
+    {
+      "mon": "HĐTN – HN",
+      "dang_nhiem_vu": "Trải nghiệm, khảo sát, dự án nhỏ",
+      "san_pham": "Kế hoạch, báo cáo, sản phẩm truyền thông"
+    }
+  ]
+}
