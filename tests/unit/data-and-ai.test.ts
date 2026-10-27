@@ -141,7 +141,7 @@ describe("AI agents (demo templates, structured output)", () => {
   });
 
   it("activity designer refuses unavailable templates", () => {
-    const r = runAgent("activity-designer", { labTemplateId: "lab-inside-computer", objectiveIds: ["O11-A-01"], mode: "explore", threshold: 40 });
+    const r = runAgent("activity-designer", { labTemplateId: "lab-database-city", objectiveIds: ["O11-F-01"], mode: "explore", threshold: 40 });
     expect(r.ok && (r.output as { flags: string[] }).flags).toContain("template-unavailable");
   });
 
