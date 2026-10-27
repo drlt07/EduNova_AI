@@ -14,8 +14,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState, Notice, PageSkeleton } from "@/components/ui/feedback";
 import { Field, Select, Textarea } from "@/components/ui/form";
-import { Avatar, PageHeader } from "@/components/ui/misc";
-import { SharedResources } from "@/components/teacher/shared-resources";
+import { Avatar } from "@/components/ui/misc";
+import { SectionHead } from "@/components/layout/section-head";
+import { AssessTabs } from "@/components/teacher/assess-tabs";
 import { EventTimeline } from "@/components/labs/event-timeline";
 
 function AssessmentInner() {
@@ -45,8 +46,8 @@ function AssessmentInner() {
 
   return (
     <>
-      <SharedResources title="Bài tập & Đánh giá" items={["assign", "grade"]} />
-      <PageHeader title="Chấm bài" description="Xem bài làm, kết quả máy kiểm tra và quá trình làm bài của học sinh, rồi chấm theo tiêu chí." />
+      <SectionHead icon={ClipboardCheck} title="Bài tập & Đánh giá" subtitle="Xem bài làm, kết quả kiểm tra tự động và quá trình làm bài, rồi chấm theo tiêu chí." />
+      <AssessTabs />
       <div className="grid gap-6 xl:grid-cols-[340px_minmax(0,1fr)]">
         <aside aria-label="Hàng đợi bài nộp" className="space-y-3">
           <div className="grid grid-cols-2 gap-2">

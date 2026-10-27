@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Suspense, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useFieldArray, useForm, useWatch, type FieldPath } from "react-hook-form";
-import { Bot, Check, ChevronLeft, ChevronRight, FileClock, Plus, Rocket, Save, Trash2 } from "lucide-react";
+import { Bot, Check, ChevronLeft, ChevronRight, ClipboardCheck, FileClock, Plus, Rocket, Save, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { LAB_TEMPLATES, getLab } from "@/lib/data/labs";
 import { getObjective } from "@/lib/data/curriculum";
@@ -18,7 +18,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState, Notice, PageSkeleton } from "@/components/ui/feedback";
 import { Checkbox, Field, Input, Select, Textarea } from "@/components/ui/form";
-import { PageHeader } from "@/components/ui/misc";
+import { SectionHead } from "@/components/layout/section-head";
+import { AssessTabs } from "@/components/teacher/assess-tabs";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { CASE_LABEL, HINT_LABEL, MODE_LABEL } from "@/lib/labels";
 import { LabIcon } from "@/components/labs/lab-card";
@@ -178,7 +179,8 @@ function Builder() {
 
   return (
     <>
-      <PageHeader title="Thiết kế hoạt động" description="Biến mục tiêu trong KHBD thành nhiệm vụ thí nghiệm có câu hỏi, tiêu chí chấm và giao cho lớp." actions={<Button variant="secondary" onClick={saveDraft}><Save /> Lưu nháp</Button>} />
+      <SectionHead icon={ClipboardCheck} title="Bài tập & Đánh giá" subtitle="Biến mục tiêu trong KHBD thành nhiệm vụ có câu hỏi, tiêu chí chấm rồi giao cho lớp." actions={<Button variant="secondary" onClick={saveDraft}><Save /> Lưu nháp</Button>} />
+      <AssessTabs />
       {myDrafts.length > 0 && !draftId && (
         <Notice tone="info" className="mb-4 flex flex-wrap items-center gap-2">
           <FileClock className="size-4 text-cyan-fg" aria-hidden /> Bạn có {myDrafts.length} bản nháp:

@@ -69,7 +69,7 @@ export default function TeacherCoursesPage() {
           })}
         </ul>
       )}
-      <div className="mt-10"><SharedResources items={["labs", "resources", "activity", "library"]} /></div>
+      <div className="mt-10"><SharedResources items={["labs", "library"]} /></div>
       <CreateCourseDialog key={open ?? 0} initialGrade={open ?? grade} open={open !== null} onOpenChange={(v) => setOpen(v ? grade : null)} onCreate={(input) => { const id = d.createCourse({ ...input, ownerId: user.id }); toast.success("Đã tạo khóa học"); router.push(`/teacher/courses/${id}`); }} />
     </>
   );

@@ -1,20 +1,21 @@
 "use client";
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { CalendarClock, ListChecks, Lock, LockOpen, Plus, Wand2 } from "lucide-react";
+import { CalendarClock, ClipboardCheck, ListChecks, Lock, LockOpen, Pencil, Plus, Search, Wand2 } from "lucide-react";
 import { toast } from "sonner";
 import { teacherAssignments, teacherClasses } from "@/lib/store/scoped";
 import { useSessionData } from "@/lib/store/use-role";
-import { formatDate, isFutureBy, localDateTimeFromNow, relativeDays } from "@/lib/utils";
+import { cn, formatDate, isFutureBy, localDateTimeFromNow, matchesQuery, relativeDays } from "@/lib/utils";
+import { LAB_TEMPLATES } from "@/lib/data/labs";
+import { LabArt } from "@/components/labs/lab-art";
 import { HINT_LABEL, MODE_LABEL } from "@/lib/labels";
 import type { HintMode } from "@/lib/domain/types";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { EmptyState, Progress } from "@/components/ui/feedback";
 import { Field, Input, Select } from "@/components/ui/form";
-import { PageHeader } from "@/components/ui/misc";
-import { SharedResources } from "@/components/teacher/shared-resources";
+import { SectionHead } from "@/components/layout/section-head";
+import { AssessTabs } from "@/components/teacher/assess-tabs";
 
 const HINT: Record<HintMode, string> = HINT_LABEL;
 const toLocal = (iso: string) => { const d = new Date(iso); return new Date(d.getTime() - d.getTimezoneOffset() * 60_000).toISOString().slice(0, 16); };
@@ -24,6 +25,7 @@ export default function AssignmentsPage() {
   const classes = teacherClasses(d, user.id);
   const [classId, setClassId] = useState("");
   const [status, setStatus] = useState("");
+  const [q, setQ] = useState("");
   const [editing, setEditing] = useState<{ id: string; dueAt: string; hintMode: HintMode } | null>(null);
   const [creating, setCreating] = useState(false);
   const activities = d.activities.filter((a) => a.ownerId === user.id && a.status === "published");
@@ -44,60 +46,84 @@ export default function AssignmentsPage() {
     toast.success("Đã giao nhiệm vụ");
   }
 
+  const counts = useMemo(() => {
+    const m = new Map<string, { total: number; subs: number; graded: number; working: number }>();
+    for (const a of list) {
+      const subs = d.submissions.filter((s) => s.assignmentId === a.id);
+      m.set(a.id, {
+        total: d.enrollments.filter((e) => e.classId === a.classId).length,
+        subs: subs.length,
+        graded: subs.filter((s) => s.status === "graded").length,
+        working: d.attempts.filter((x) => x.assignmentId === a.id && x.status !== "submitted").length,
+      });
+    }
+    return m;
+  }, [d, list]);
+  const shown = list.filter((a) => matchesQuery(q, a.title));
+
   return (
     <>
-      <PageHeader
+      <SectionHead
+        icon={ClipboardCheck}
         title="Bài tập & Đánh giá"
-        description="Giao bài cho lớp, theo dõi tiến độ nộp, chỉnh hạn nộp và mức hỗ trợ của AI Gia sư; chấm và nhận xét ở mục Chấm bài."
-        actions={<>
-          <Button variant="secondary" onClick={() => setCreating(true)} disabled={!activities.length}><Plus /> Giao hoạt động có sẵn</Button>
-          <Button asChild><Link href="/teacher/activity-builder"><Wand2 /> Hoạt động mới</Link></Button>
-        </>}
+        subtitle="Giao nhiệm vụ cho lớp, theo dõi bài nộp và chấm theo tiêu chí."
+        actions={activities.length ? <Button onClick={() => setCreating(true)}><Plus /> Giao bài</Button> : <Button asChild><Link href="/teacher/activity-builder"><Wand2 /> Tạo hoạt động đầu tiên</Link></Button>}
       />
-      <SharedResources title="Trong mục này" items={["assign", "grade", "activity", "labs", "resources"]} />
-      <div className="mb-4 flex flex-wrap gap-3">
-        <Select aria-label="Lọc lớp" className="w-44" value={classId} onChange={(e) => setClassId(e.target.value)}>
-          <option value="">Mọi lớp</option>
-          {classes.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-        </Select>
-        <Select aria-label="Lọc trạng thái" className="w-44" value={status} onChange={(e) => setStatus(e.target.value)}>
-          <option value="">Mọi trạng thái</option>
-          <option value="open">Đang mở</option>
-          <option value="closed">Đã đóng</option>
-        </Select>
+      <AssessTabs />
+      <div className="mb-5 rounded-2xl border border-line bg-surface p-4 shadow-sm">
+        <div className="flex flex-col gap-3 md:flex-row md:items-center">
+          <label className="relative min-w-0 flex-1">
+            <span className="sr-only">Tìm nhiệm vụ</span>
+            <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted" aria-hidden />
+            <Input className="pl-9" placeholder="Tìm nhiệm vụ…" value={q} onChange={(e) => setQ(e.target.value)} />
+          </label>
+          <div className="flex gap-2">
+            <Select aria-label="Lọc lớp" className="w-36" value={classId} onChange={(e) => setClassId(e.target.value)}>
+              <option value="">Mọi lớp</option>
+              {classes.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+            </Select>
+            <Select aria-label="Lọc trạng thái" className="w-40" value={status} onChange={(e) => setStatus(e.target.value)}>
+              <option value="">Mọi trạng thái</option>
+              <option value="open">Đang mở</option>
+              <option value="closed">Đã đóng</option>
+            </Select>
+          </div>
+        </div>
+        <p className="mt-3 text-sm text-muted" aria-live="polite">Tìm thấy {shown.length} nhiệm vụ</p>
       </div>
-      {list.length === 0 ? <EmptyState icon={ListChecks} title="Không có nhiệm vụ phù hợp" action={<Button asChild size="sm"><Link href="/teacher/activity-builder">Tạo hoạt động</Link></Button>} /> : (
-        <ul className="space-y-3">
-          {list.map((a) => {
-            const total = d.enrollments.filter((e) => e.classId === a.classId).length;
-            const subs = d.submissions.filter((s) => s.assignmentId === a.id);
-            const graded = subs.filter((s) => s.status === "graded").length;
-            const inProgress = d.attempts.filter((x) => x.assignmentId === a.id && x.status !== "submitted").length;
+      {shown.length === 0 ? <EmptyState icon={ListChecks} title="Không có nhiệm vụ phù hợp" action={<Button asChild size="sm"><Link href="/teacher/activity-builder">Tạo hoạt động</Link></Button>} /> : (
+        <ul className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+          {shown.map((a) => {
+            const c = counts.get(a.id)!;
+            const pendingGrade = c.subs - c.graded;
             const act = d.activities.find((x) => x.id === a.activityId);
-            const cfg = act?.labConfigId ? d.labConfigs.find((c) => c.id === act.labConfigId) : undefined;
-            const rubric = act && d.rubrics.find((r) => r.id === act.rubricId);
+            const cfg = act?.labConfigId ? d.labConfigs.find((x) => x.id === act.labConfigId) : undefined;
+            const lab = cfg && LAB_TEMPLATES.find((l) => l.id === cfg.labTemplateId);
+            const klass = d.classes.find((x) => x.id === a.classId);
+            const open = a.status === "open";
             return (
-              <li key={a.id} className="rounded-2xl border border-line bg-surface p-5">
-                <div className="flex flex-col gap-4 lg:flex-row lg:items-center">
-                  <div className="min-w-0 flex-1">
-                    <div className="flex flex-wrap gap-1.5">
-                      <Badge tone="blue">{d.classes.find((c) => c.id === a.classId)?.name}</Badge>
-                      <Badge tone={a.status === "open" ? "success" : "neutral"}>{a.status === "open" ? "Đang mở" : "Đã đóng"}</Badge>
-                      {cfg && <Badge tone="cyan">{MODE_LABEL[cfg.mode]}</Badge>}
-                      <Badge>{HINT[a.hintMode]}</Badge>
-                      {rubric && <Badge tone="violet">{rubric.criteria.length} tiêu chí chấm</Badge>}
-                    </div>
-                    <p className="mt-2 font-semibold text-fg">{a.title}</p>
-                    <p className="flex items-center gap-1 text-sm text-muted"><CalendarClock className="size-4" aria-hidden /> Hạn {formatDate(a.dueAt, true)} · {relativeDays(a.dueAt)}</p>
+              <li key={a.id} className="flex flex-col overflow-hidden rounded-2xl border border-line bg-surface shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-[0_10px_40px_-18px_var(--cyan)]">
+                <div className="relative aspect-[16/8] overflow-hidden bg-surface-2">
+                  {lab ? <LabArt slug={lab.slug} className={cn("size-full", !open && "opacity-60 grayscale")} /> : <div className="grid size-full place-items-center bg-gradient-to-br from-cyan/20 to-violet/20"><ListChecks className="size-10 text-cyan-fg" aria-hidden /></div>}
+                  <span className="absolute left-3 top-3 rounded-full bg-surface/90 px-2.5 py-0.5 text-xs font-bold text-fg shadow-sm">{klass?.name}</span>
+                  <span className={cn("absolute right-3 top-3 rounded-full px-2.5 py-0.5 text-xs font-semibold shadow-sm", open ? "bg-success text-white" : "bg-surface/90 text-muted")}>{open ? "Đang mở" : "Đã đóng"}</span>
+                </div>
+                <div className="flex flex-1 flex-col p-4">
+                  <p className="font-semibold leading-snug text-fg">{a.title}</p>
+                  <p className="mt-1 text-xs text-muted">{[cfg && MODE_LABEL[cfg.mode], HINT[a.hintMode]].filter(Boolean).join(" · ")}</p>
+                  <p className={cn("mt-2 inline-flex w-fit items-center gap-1 rounded-lg px-2 py-0.5 text-xs font-medium", open && isFutureBy(a.dueAt, 0) ? "bg-warning/15 text-warning-fg" : "bg-surface-2 text-muted")}>
+                    <CalendarClock className="size-3.5" aria-hidden /> Hạn {formatDate(a.dueAt, true)} · {relativeDays(a.dueAt)}
+                  </p>
+                  <div className="mt-3">
+                    <div className="mb-1 flex justify-between text-xs"><span className="text-fg"><b>{c.subs}</b>/{c.total} đã nộp</span><span className="text-muted">{c.working} đang làm</span></div>
+                    <Progress value={(c.subs / Math.max(1, c.total)) * 100} label={`Tiến độ ${a.title}`} />
                   </div>
-                  <div className="w-full lg:w-72">
-                    <div className="mb-1 flex justify-between text-xs text-muted"><span>{subs.length}/{total} đã nộp · {inProgress} đang làm</span><span>{graded} đã chấm</span></div>
-                    <Progress value={(subs.length / Math.max(1, total)) * 100} label={`Tiến độ ${a.title}`} />
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    <Button size="sm" variant="secondary" asChild><Link href={`/teacher/assessment?assignment=${a.id}`}>Chấm bài</Link></Button>
-                    <Button size="sm" variant="ghost" onClick={() => setEditing({ id: a.id, dueAt: toLocal(a.dueAt), hintMode: a.hintMode })}>Sửa</Button>
-                    <Button size="sm" variant="ghost" onClick={() => { d.updateAssignment(a.id, { status: a.status === "open" ? "closed" : "open" }); toast.success(a.status === "open" ? "Đã đóng nhận bài" : "Đã mở lại"); }}>{a.status === "open" ? <><Lock /> Đóng</> : <><LockOpen /> Mở lại</>}</Button>
+                  <div className="mt-auto flex items-center gap-1 pt-4">
+                    <Button size="sm" className="flex-1" variant={pendingGrade ? "primary" : "secondary"} asChild>
+                      <Link href={`/teacher/assessment?assignment=${a.id}`}>{pendingGrade ? `Chấm ${pendingGrade} bài` : "Xem bài đã chấm"}</Link>
+                    </Button>
+                    <Button size="icon" variant="ghost" aria-label={`Sửa ${a.title}`} title="Sửa hạn nộp, gợi ý" onClick={() => setEditing({ id: a.id, dueAt: toLocal(a.dueAt), hintMode: a.hintMode })}><Pencil /></Button>
+                    <Button size="icon" variant="ghost" aria-label={open ? `Đóng nhận bài ${a.title}` : `Mở lại ${a.title}`} title={open ? "Đóng nhận bài" : "Mở lại"} onClick={() => { d.updateAssignment(a.id, { status: open ? "closed" : "open" }); toast.success(open ? "Đã đóng nhận bài" : "Đã mở lại"); }}>{open ? <Lock /> : <LockOpen />}</Button>
                   </div>
                 </div>
               </li>
@@ -118,13 +144,14 @@ export default function AssignmentsPage() {
         )}
       </Dialog>
       <Dialog open={creating} onOpenChange={setCreating}>
-        <DialogContent title="Giao hoạt động có sẵn" description="Dùng lại hoạt động và tiêu chí chấm đã tạo.">
+        <DialogContent title="Giao bài" description="Chọn hoạt động đã có (kèm tiêu chí chấm), lớp và hạn nộp.">
           <div className="space-y-3">
             <Field label="Hoạt động" htmlFor="cr-act"><Select id="cr-act" value={form.activityId} onChange={(e) => setForm({ ...form, activityId: e.target.value })}>{activities.map((a) => <option key={a.id} value={a.id}>{a.title}</option>)}</Select></Field>
             <Field label="Lớp" htmlFor="cr-class"><Select id="cr-class" value={form.classId} onChange={(e) => setForm({ ...form, classId: e.target.value })}>{classes.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</Select></Field>
             <Field label="Hạn nộp" htmlFor="cr-due"><Input id="cr-due" type="datetime-local" value={form.dueAt} onChange={(e) => setForm({ ...form, dueAt: e.target.value })} /></Field>
             <Field label="Gợi ý" htmlFor="cr-hint"><Select id="cr-hint" value={form.hintMode} onChange={(e) => setForm({ ...form, hintMode: e.target.value as HintMode })}>{Object.entries(HINT).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</Select></Field>
             <Button className="w-full" onClick={create}>Giao</Button>
+            <p className="text-center text-sm text-muted">Chưa có hoạt động phù hợp? <Link href="/teacher/activity-builder" className="font-medium text-cyan-fg hover:underline">Thiết kế hoạt động mới</Link></p>
           </div>
         </DialogContent>
       </Dialog>

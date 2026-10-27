@@ -1,6 +1,6 @@
 "use client";
 import { useMemo, useState } from "react";
-import { Check, Pencil, Plus, Sparkles, Trash2, X } from "lucide-react";
+import { Check, ClipboardCheck, Pencil, Plus, Sparkles, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import { LESSONS, getLesson } from "@/lib/data/curriculum";
 import type { Resource, ResourceKind } from "@/lib/domain/types";
@@ -12,7 +12,8 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { EmptyState } from "@/components/ui/feedback";
 import { Field, Input, Select, Textarea } from "@/components/ui/form";
-import { PageHeader } from "@/components/ui/misc";
+import { SectionHead } from "@/components/layout/section-head";
+import { AssessTabs } from "@/components/teacher/assess-tabs";
 
 const REVIEW: Record<Resource["reviewStatus"], { label: string; tone: "warning" | "success" | "danger" }> = {
   pending: { label: "Chờ duyệt", tone: "warning" },
@@ -41,11 +42,8 @@ export default function ResourcesPage() {
 
   return (
     <>
-      <PageHeader
-        title="Học liệu & ngân hàng câu hỏi"
-        description="Ngân hàng câu hỏi, thẻ ghi nhớ, sơ đồ, phiếu học tập. Nội dung tạo tự động cần được duyệt trước khi dùng."
-        actions={<Button onClick={() => setOpen(true)}><Sparkles /> Tạo tự động</Button>}
-      />
+      <SectionHead icon={ClipboardCheck} title="Bài tập & Đánh giá" subtitle="Câu hỏi, thẻ ghi nhớ, sơ đồ, phiếu học tập; nội dung tạo tự động cần duyệt trước khi dùng." actions={<Button onClick={() => setOpen(true)}><Sparkles /> Tạo tự động</Button>} />
+      <AssessTabs />
       <div className="mb-4 grid gap-3 sm:grid-cols-[1fr_200px_180px]">
         <Input type="search" aria-label="Tìm học liệu" placeholder="Tìm học liệu…" value={q} onChange={(e) => setQ(e.target.value)} />
         <Select aria-label="Loại" value={kind} onChange={(e) => setKind(e.target.value)}>
