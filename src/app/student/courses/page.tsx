@@ -1,4 +1,6 @@
 "use client";
+import { LessonPeek } from "@/components/landing/hero-visuals";
+import { PageHero } from "@/components/layout/page-hero";
 import Link from "next/link";
 import { useMemo } from "react";
 import { ArrowRight, BookMarked, BookOpen, CalendarClock, GraduationCap, Target } from "lucide-react";
@@ -12,7 +14,6 @@ import { formatDate, relativeDays } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { EmptyState, Progress } from "@/components/ui/feedback";
-import { PageHeader } from "@/components/ui/misc";
 
 /** Khóa học của tôi: một nơi để học — nhiệm vụ thầy cô giao, khóa học được phát hành và bài học theo SGK. */
 export default function StudentCoursesPage() {
@@ -31,7 +32,7 @@ export default function StudentCoursesPage() {
 
   return (
     <>
-      <PageHeader title="Khóa học của tôi" description="Học các bài và làm nhiệm vụ thầy cô giao. Mô phỏng, bài lập trình và luyện tập nằm ngay trong từng bài." />
+      <PageHero variant="app" eyebrow={`Tin học ${grade} · ${TEXTBOOKS.find((t) => t.id === book)?.name ?? ""}`} icon={GraduationCap} title="Khóa học" accent="của tôi" description="Học các bài và làm nhiệm vụ thầy cô giao. Mô phỏng, bài lập trình và luyện tập nằm ngay trong từng bài." stats={[{ value: data.todo.length, label: "nhiệm vụ đang chờ" }, { value: data.courses.length, label: "khóa học được giao" }, { value: data.sgkLessons, label: "bài theo SGK" }, { value: data.done, label: "nhiệm vụ đã xong" }]} visual={<LessonPeek href="/student/learning/L-10-if-kntt" />} />
 
       <section aria-labelledby="todo-h" className="mb-8">
         <div className="mb-3 flex items-end justify-between gap-3">

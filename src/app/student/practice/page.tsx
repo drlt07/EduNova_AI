@@ -1,13 +1,14 @@
 "use client";
+import { PracticePeek } from "@/components/landing/hero-visuals";
+import { PageHero } from "@/components/layout/page-hero";
 import Link from "next/link";
-import { ArrowRight, ClipboardCheck, Code2, Database, Gauge, Globe, Hourglass, ListChecks, Network, Shuffle, Timer } from "lucide-react";
+import { ArrowRight, ClipboardCheck, Code2, Dumbbell, Database, Gauge, Globe, Hourglass, ListChecks, Network, Shuffle, Timer } from "lucide-react";
 import { CODING_EXERCISES } from "@/lib/data/coding-exercises";
 import { PRACTICE_SETS, KIND_LABEL, getQuestion } from "@/lib/data/practice";
 import { useSessionData } from "@/lib/store/use-role";
 import { formatDate } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { PageHeader } from "@/components/ui/misc";
 import { Stagger, StaggerItem } from "@/components/motion";
 
 const MODES = [
@@ -34,7 +35,7 @@ export default function PracticePage() {
   };
   return (
     <>
-      <PageHeader title="Luyện tập" description="Tự làm để thành thạo: lập trình, trắc nghiệm, SQL, HTML/CSS và thực hành mạng ảo. Gặp khó, mở AI Gia sư ngay trong bài." />
+      <PageHero variant="app" eyebrow="Luyện tập" icon={Dumbbell} title="Tự làm để" accent="thành thạo" description="Lập trình, trắc nghiệm, HTML/CSS — SQL và mạng ảo sắp có. Chương trình được chấm bằng cách chạy thật; gặp khó, mở AI Gia sư ngay trong bài." stats={[{ value: `${codeDone}/${CODING_EXERCISES.length}`, label: "bài lập trình đạt" }, { value: PRACTICE_SETS.length, label: "bộ trắc nghiệm" }, { value: d.practiceAttempts.filter((a) => a.studentId === user.id).length, label: "lượt em đã làm" }, { value: 5, label: "dạng luyện tập" }]} visual={<PracticePeek href="/student/code" />} />
       <ul className="mb-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {TYPES.map((t) => (
           <li key={t.id}>

@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
-import { CheckCircle2, FlaskConical, Hourglass } from "lucide-react";
+import { FlowChips } from "@/components/landing/hero-visuals";
+import { PageHero } from "@/components/layout/page-hero";
+import { CheckCircle2, FlaskConical, Hourglass, Info } from "lucide-react";
 
 export const metadata: Metadata = { title: "Giới thiệu" };
 
@@ -35,12 +37,19 @@ const GROUPS = [
 
 export default function AboutPage() {
   return (
+    <>
+    <PageHero
+      eyebrow="Giới thiệu"
+      icon={Info}
+      title="Về EduNova AI"
+      accent="— học qua trải nghiệm"
+      description="Nối kế hoạch bài dạy với mô phỏng, bài tập, đánh giá và báo cáo, để mỗi mục tiêu đều có hoạt động và mỗi điểm số đều có minh chứng."
+      stats={[{ value: 6, label: "chức năng cho giáo viên" }, { value: 5, label: "chức năng cho học sinh" }, { value: 3, label: "mức hỗ trợ của AI Gia sư" }, { value: "10–12", label: "Tin học THPT" }]}
+      visual={<FlowChips steps={["KHBD", "Khóa học", "Mô phỏng", "Bài nộp", "Đánh giá", "Báo cáo", "Cải tiến KHBD"]} />}
+    />
     <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6">
-      <h1 className="text-3xl font-bold tracking-tight text-fg">Về EduNova AI</h1>
-      <p className="mt-4 text-lg leading-relaxed text-muted">
-        EduNova AI giúp giáo viên Tin học THPT nối kế hoạch bài dạy với phòng thí nghiệm ảo, chấm bài và thống kê, để mỗi mục tiêu đều có hoạt động và mỗi điểm số đều có minh chứng.
-      </p>
-      <div className="mt-10 space-y-6">
+      <h2 className="text-xl font-bold text-fg">Tình trạng chức năng</h2>
+      <div className="mt-6 space-y-6">
         {GROUPS.map((g) => (
           <section key={g.title} className="rounded-2xl border border-line bg-surface p-6">
             <h2 className="flex items-center gap-2 text-lg font-semibold text-fg"><g.icon className={`size-5 ${g.tone}`} aria-hidden /> {g.title}</h2>
@@ -50,5 +59,6 @@ export default function AboutPage() {
       </div>
       <p className="mt-8 text-sm text-muted">Nội dung bài học và yêu cầu cần đạt hiện mang tính minh họa, cần giáo viên đối chiếu với sách giáo khoa và chương trình chính thức.</p>
     </div>
+    </>
   );
 }

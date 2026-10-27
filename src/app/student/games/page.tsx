@@ -1,14 +1,15 @@
 "use client";
+import { MiniSimPreview } from "@/components/landing/hero-visuals";
+import { PageHero } from "@/components/layout/page-hero";
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { Clock, Compass, Lock, Swords, Trophy } from "lucide-react";
+import { Clock, Compass, Gamepad2, Lock, Swords, Trophy } from "lucide-react";
 import { FARM_LEVELS, GAMES, WORLDS } from "@/lib/data/games";
 import { DIFFICULTY_LABEL } from "@/lib/data/curriculum";
 import { useSessionData } from "@/lib/store/use-role";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Select } from "@/components/ui/form";
-import { PageHeader } from "@/components/ui/misc";
 import { LabIcon } from "@/components/labs/lab-card";
 import { AnimatedBar, Stagger, StaggerItem } from "@/components/motion";
 
@@ -25,7 +26,7 @@ export default function GamesPage() {
 
   return (
     <>
-      <PageHeader title="Tình huống mô phỏng" description="Khám phá thuật toán, máy tính, mạng và những tình huống tương tác. Gặp khó, em mở AI Gia sư ngay trong mô phỏng." />
+      <PageHero variant="app" eyebrow="Tình huống mô phỏng" icon={Gamepad2} title="Khám phá Tin học" accent="bằng cách thử" description="Thuật toán, máy tính, mạng và những tình huống tương tác. Gặp khó, mở AI Gia sư ngay bên cạnh mô phỏng." stats={[{ value: GAMES.filter((g) => g.status === "available").length, label: "chơi được ngay" }, { value: GAMES.length, label: "tình huống" }, { value: WORLDS.length, label: "thế giới" }, { value: "3D", label: "giao lộ thông minh" }]} visual={<MiniSimPreview href="/student/games/traffic-city" cta="Chơi ngay" />} />
       <Stagger className="mb-6 grid gap-4 md:grid-cols-3">
         {WORLDS.map((w) => (
           <StaggerItem key={w.id}>

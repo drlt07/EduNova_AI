@@ -1,4 +1,7 @@
 import type { Metadata } from "next";
+import { Button } from "@/components/ui/button";
+import { StepTiles } from "@/components/landing/hero-visuals";
+import { PageHero } from "@/components/layout/page-hero";
 import Link from "next/link";
 import { GraduationCap, LifeBuoy, NotebookPen } from "lucide-react";
 
@@ -39,11 +42,18 @@ const FAQ = [
 
 export default function GuidePage() {
   return (
+    <>
+    <PageHero
+      eyebrow="Hướng dẫn"
+      icon={LifeBuoy}
+      title="Bắt đầu với EduNova"
+      accent="trong 3 bước"
+      description="Chọn tài khoản dùng thử theo vai trò, vào không gian của mình và làm theo luồng học hoặc luồng soạn bài bên dưới."
+      actions={<Button asChild size="lg"><Link href="/login">Đăng nhập dùng thử</Link></Button>}
+      visual={<StepTiles steps={[{ title: "Đăng nhập", text: "Chọn tài khoản Giáo viên hoặc Học sinh, không cần mật khẩu." }, { title: "Vào không gian của em", text: "Giáo viên vào Tổng quan, học sinh vào Khóa học của tôi." }, { title: "Học hoặc soạn bài", text: "Học sinh học bài, làm mô phỏng; giáo viên soạn KHBD, giao bài." }]} />}
+    />
     <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6">
-      <h1 className="text-3xl font-bold tracking-tight text-fg">Hướng dẫn sử dụng</h1>
-      <p className="mt-2 max-w-2xl text-muted">Các bước cơ bản để bắt đầu với EduNova AI.</p>
-
-      <div className="mt-8 grid gap-5 md:grid-cols-2">
+      <div className="grid gap-5 md:grid-cols-2">
         {GUIDES.map((g) => (
           <section key={g.title} className="rounded-2xl border border-line bg-surface p-6" aria-labelledby={`g-${g.title}`}>
             <h2 id={`g-${g.title}`} className="flex items-center gap-2 text-lg font-semibold text-fg"><g.icon className="size-5 text-cyan-fg" aria-hidden /> {g.title}</h2>
@@ -79,5 +89,6 @@ export default function GuidePage() {
         <Link href="/login?role=student" className="mt-3 inline-block text-sm font-medium text-cyan-fg hover:underline">Đăng nhập để gửi góp ý</Link>
       </section>
     </div>
+    </>
   );
 }

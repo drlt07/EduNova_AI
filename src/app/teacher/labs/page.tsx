@@ -1,9 +1,11 @@
 "use client";
+import { MiniSimPreview } from "@/components/landing/hero-visuals";
+import { PageHero } from "@/components/layout/page-hero";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { History, Save, Wand2 } from "lucide-react";
+import { FlaskConical, History, Save, Wand2 } from "lucide-react";
 import { toast } from "sonner";
 import { LAB_TEMPLATES } from "@/lib/data/labs";
 import type { LabConfiguration } from "@/lib/domain/types";
@@ -17,7 +19,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/feedback";
 import { Checkbox, Field, Input, Select } from "@/components/ui/form";
-import { PageHeader } from "@/components/ui/misc";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { LabIcon } from "@/components/labs/lab-card";
 import { LabPreview } from "@/components/labs/lab-preview";
@@ -35,7 +36,7 @@ export default function LabStudioPage() {
 
   return (
     <>
-      <PageHeader title="Kho mô phỏng" description="Thiết lập sẵn ngưỡng, mức độ và các trường hợp kiểm tra để dùng lại khi giao bài." />
+      <PageHero variant="app" eyebrow="Tài nguyên dùng chung" icon={FlaskConical} title="Kho mô phỏng" accent="cho tiết dạy" description="Chơi thử dưới vai trò học sinh, chọn màn chơi, thiết lập ngưỡng, mức độ và trường hợp kiểm tra để chèn vào khóa học hoặc giao cho lớp." stats={[{ value: LAB_TEMPLATES.length, label: "mô phỏng" }, { value: LAB_TEMPLATES.filter((l) => l.status !== "planned").length, label: "dùng được" }, { value: d.labConfigs.filter((c) => c.ownerId === user.id).length, label: "thiết lập của tôi" }, { value: "3D", label: "giao lộ thông minh" }]} visual={<MiniSimPreview href="/labs/smart-coding-city" cta="Chơi thử như học sinh" />} />
       <div className="grid gap-6 xl:grid-cols-[300px_minmax(0,1fr)]">
         <nav aria-label="Danh sách phòng thí nghiệm" className="space-y-2">
           {LAB_TEMPLATES.map((l) => (
