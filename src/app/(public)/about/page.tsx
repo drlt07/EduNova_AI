@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { FlowChips } from "@/components/landing/hero-visuals";
+import { LabCollage } from "@/components/landing/hero-visuals";
 import { PageHero } from "@/components/layout/page-hero";
 import { CheckCircle2, FlaskConical, Hourglass, Info } from "lucide-react";
 
@@ -45,7 +45,7 @@ export default function AboutPage() {
       accent="— học qua trải nghiệm"
       description="Nối kế hoạch bài dạy với mô phỏng, bài tập, đánh giá và báo cáo, để mỗi mục tiêu đều có hoạt động và mỗi điểm số đều có minh chứng."
       stats={[{ value: 6, label: "chức năng cho giáo viên" }, { value: 5, label: "chức năng cho học sinh" }, { value: 3, label: "mức hỗ trợ của AI Gia sư" }, { value: "10–12", label: "Tin học THPT" }]}
-      visual={<FlowChips steps={["KHBD", "Khóa học", "Mô phỏng", "Bài nộp", "Đánh giá", "Báo cáo", "Cải tiến KHBD"]} />}
+      visual={<LabCollage slugs={["inside-computer-3d", "network-journey", "os-explorer", "smart-coding-city"]} hrefFor={(s) => `/labs/${s}`} />}
     />
     <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6">
       <h2 className="text-xl font-bold text-fg">Tình trạng chức năng</h2>

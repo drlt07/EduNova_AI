@@ -5,6 +5,7 @@ import { LAB_TEMPLATES } from "@/lib/data/labs";
 import { getLessonContent } from "@/lib/data/lesson-content";
 import { cn } from "@/lib/utils";
 import { HeroTraffic } from "./hero-traffic";
+import { LabArt } from "@/components/labs/lab-art";
 
 /** Mô phỏng nhỏ chạy thật (cảnh giao lộ 3D) trong khung, kèm chú thích và nút mở. */
 export function MiniSimPreview({ href, title = "Thành phố giao thông · Tin 10", task = "Điều khiển đèn để 12 lượt xe qua giao lộ an toàn.", cta = "Trải nghiệm ngay" }: { href: string; title?: string; task?: string; cta?: string }) {
@@ -83,17 +84,23 @@ export function LessonPeek({ href }: { href: string }) {
   );
 }
 
-/** Chuỗi liên thông của EduNova dưới dạng các nút nối nhau. */
-export function FlowChips({ steps }: { steps: string[] }) {
+/** Ô ghép 4 mô phỏng thật (ảnh minh họa + tên + lớp), bấm để mở. */
+export function LabCollage({ slugs, hrefFor }: { slugs: string[]; hrefFor: (slug: string) => string }) {
+  const labs = slugs.map((s) => LAB_TEMPLATES.find((l) => l.slug === s)).filter((l): l is (typeof LAB_TEMPLATES)[number] => !!l);
   return (
-    <ol className="flex flex-wrap items-center gap-2 rounded-[22px] border border-line bg-surface/80 p-5 backdrop-blur">
-      {steps.map((s, i) => (
-        <li key={s} className="flex items-center gap-2">
-          <span className="rounded-xl bg-gradient-to-br from-cyan/20 to-violet/20 px-3 py-2 text-sm font-semibold text-fg">{s}</span>
-          {i < steps.length - 1 && <ArrowRight className="size-4 text-cyan-fg" aria-hidden />}
+    <ul className="grid grid-cols-2 gap-3">
+      {labs.map((l) => (
+        <li key={l.slug}>
+          <Link href={hrefFor(l.slug)} className="group block overflow-hidden rounded-2xl border border-line bg-surface shadow-[0_20px_50px_-30px_rgba(79,127,255,0.5)] transition-all hover:-translate-y-0.5 hover:border-cyan/40">
+            <span className="block aspect-[16/9] overflow-hidden"><LabArt slug={l.slug} className="size-full transition-transform duration-500 group-hover:scale-105" /></span>
+            <span className="block px-3 py-2">
+              <span className="block truncate text-sm font-semibold text-fg">{l.title}</span>
+              <span className="block text-xs text-muted">Tin {l.grades.join(", ")}</span>
+            </span>
+          </Link>
         </li>
       ))}
-    </ol>
+    </ul>
   );
 }
 

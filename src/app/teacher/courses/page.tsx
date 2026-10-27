@@ -1,5 +1,5 @@
 "use client";
-import { FlowChips } from "@/components/landing/hero-visuals";
+import { LabCollage } from "@/components/landing/hero-visuals";
 import { PageHero } from "@/components/layout/page-hero";
 import Link from "next/link";
 import { useState } from "react";
@@ -30,7 +30,7 @@ export default function TeacherCoursesPage() {
 
   return (
     <>
-      <PageHero variant="app" eyebrow="Khóa học" icon={BookMarked} title="Xây bài học," accent="giao hoạt động" description="Khóa học theo khối lớp, bộ sách, chủ đề và bài học; mỗi bài gồm kiến thức, video, mô phỏng, thực hành Python và luyện tập, phát hành cho lớp." actions={<Button onClick={() => setOpen(grade)}><Plus /> Tạo khóa học</Button>} stats={[{ value: courses.length, label: "khóa học của tôi" }, { value: courses.filter((c) => c.status === "published").length, label: "đã phát hành" }, { value: courses.reduce((n, c) => n + allLessons(c).length, 0), label: "bài học" }, { value: 6, label: "loại nội dung" }]} visual={<FlowChips steps={["Khóa học", "Chủ đề", "Bài học", "Nội dung", "Mức AI", "Phát hành"]} />} />
+      <PageHero variant="app" eyebrow="Khóa học" icon={BookMarked} title="Xây bài học," accent="giao hoạt động" description="Khóa học theo khối lớp, bộ sách, chủ đề và bài học; mỗi bài gồm kiến thức, video, mô phỏng, thực hành Python và luyện tập, phát hành cho lớp." actions={<Button onClick={() => setOpen(grade)}><Plus /> Tạo khóa học</Button>} stats={[{ value: courses.length, label: "khóa học của tôi" }, { value: courses.filter((c) => c.status === "published").length, label: "đã phát hành" }, { value: courses.reduce((n, c) => n + allLessons(c).length, 0), label: "bài học" }, { value: 6, label: "loại nội dung" }]} visual={<LabCollage slugs={["inside-computer-3d", "network-journey", "os-explorer", "smart-coding-city"]} hrefFor={(s) => `/labs/${s}`} />} />
       <SgkBrowser grade={grade} onGrade={(g) => router.replace(`${pathname}?grade=${g}`, { scroll: false })} onCreate={setOpen} />
       <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
         <div>

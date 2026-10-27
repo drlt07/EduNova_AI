@@ -136,7 +136,8 @@ export const AGENTS = {
     output: designerOutput,
     run(i: z.infer<typeof designerInput>) {
       const lab = getLab(i.labTemplateId);
-      if (!lab || lab.featureStatus !== "REAL") {
+      // chỉ mô phỏng có tham số cấu hình được (vd ngưỡng của Vườn tưới) mới sinh được hoạt động có chấm
+      if (!lab || lab.featureStatus !== "REAL" || lab.parameterSchema.length === 0) {
         return { ...meta("activity-designer", ["template-unavailable"]), title: "", instructions: "Lab template chưa sẵn sàng — không sinh cấu hình.", questions: [], criteria: [] };
       }
       const t = i.threshold;
