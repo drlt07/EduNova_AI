@@ -9,6 +9,8 @@ js = head[start + len('<script type="module" crossorigin>'):end]
 # Bản một file không có chunk rời: bỏ phép tính URL chunk của import động
 # (trong khung Artifact `document.baseURI` là about:blank → "Invalid URL").
 js = re.sub(r'new URL\("[\w.-]+\.js",\s*document\.baseURI\)\.href', '""', js)
+# Thư viện (string_decoder, xmlbuilder) có ký tự U+FFFD thô trong chuỗi JS: đổi sang escape \uFFFD (cùng giá trị khi chạy).
+js = js.replace("\ufffd", "\\uFFFD")
 css = "".join(re.findall(r"<style[^>]*>.*?</style>", head[:start] + head[end:], re.S))
 loader = (root / "boot.html").read_text()
 html = loader.replace("{{CSS}}", css).replace("{{JS}}", js)
