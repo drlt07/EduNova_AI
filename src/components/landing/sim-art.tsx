@@ -6,7 +6,7 @@ type ArtProps = { className?: string };
 
 export function TrafficArt({ className }: ArtProps) {
   return (
-    <svg viewBox="0 0 320 180" className={className} role="img" aria-label="Giao lộ có đèn tín hiệu và ô tô">
+    <svg viewBox="0 0 320 180" preserveAspectRatio="xMidYMid slice" className={className} role="img" aria-label="Giao lộ có đèn tín hiệu và ô tô">
       <rect width="320" height="180" fill="#cfe9ff" />
       <rect y="120" width="320" height="60" fill="#9cc98a" />
       <path d="M0 120 L320 120 L320 180 L0 180Z" fill="#8fbf7c" />
@@ -43,7 +43,7 @@ export function TrafficArt({ className }: ArtProps) {
 
 export function FarmArt({ className }: ArtProps) {
   return (
-    <svg viewBox="0 0 320 180" className={className} role="img" aria-label="Luống cây, cảm biến độ ẩm và máy bơm">
+    <svg viewBox="0 0 320 180" preserveAspectRatio="xMidYMid slice" className={className} role="img" aria-label="Luống cây, cảm biến độ ẩm và máy bơm">
       <rect width="320" height="180" fill="#e0f2fe" />
       <circle cx="270" cy="34" r="16" fill="#fcd34d" />
       <rect y="112" width="320" height="68" fill="#a16207" />
@@ -71,7 +71,7 @@ export function FarmArt({ className }: ArtProps) {
 
 export function ComputerArt({ className }: ArtProps) {
   return (
-    <svg viewBox="0 0 320 180" className={className} role="img" aria-label="Linh kiện bên trong máy tính">
+    <svg viewBox="0 0 320 180" preserveAspectRatio="xMidYMid slice" className={className} role="img" aria-label="Linh kiện bên trong máy tính">
       <rect width="320" height="180" fill="#ede9fe" />
       <rect x="70" y="20" width="180" height="140" rx="10" fill="#1e1b4b" />
       <rect x="82" y="32" width="156" height="116" rx="6" fill="#312e81" />
@@ -93,7 +93,7 @@ export function NetworkArt({ className }: ArtProps) {
     [60, 50], [60, 130], [160, 90], [260, 50], [260, 130],
   ] as const;
   return (
-    <svg viewBox="0 0 320 180" className={className} role="img" aria-label="Các thiết bị mạng nối với nhau">
+    <svg viewBox="0 0 320 180" preserveAspectRatio="xMidYMid slice" className={className} role="img" aria-label="Các thiết bị mạng nối với nhau">
       <rect width="320" height="180" fill="#ecfeff" />
       {[[0, 2], [1, 2], [2, 3], [2, 4]].map(([a, b]) => (
         <line key={`${a}-${b}`} x1={nodes[a][0]} y1={nodes[a][1]} x2={nodes[b][0]} y2={nodes[b][1]} stroke="#0891b2" strokeWidth="3" strokeDasharray={b === 4 ? "4 6" : undefined} />

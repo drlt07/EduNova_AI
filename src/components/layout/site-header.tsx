@@ -34,14 +34,14 @@ export function SiteHeader() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-line/70 bg-bg/80 backdrop-blur-xl">
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6">
+      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">
         <Logo />
         <nav aria-label="Điều hướng chính" className="hidden items-center gap-1 lg:flex">
           {NAV.map((n) => {
             const active = isActive(pathname, n);
             return n.featured ? (
-              <Link key={n.href} href={n.href} aria-current={active ? "page" : undefined} className={cn("mx-1 inline-flex items-center gap-1.5 rounded-full border border-cyan/40 bg-cyan/10 px-3.5 py-1.5 text-sm font-semibold text-cyan-fg transition-colors hover:bg-cyan/20", active && "bg-cyan/20 ring-1 ring-cyan/40")}>
-                <Gamepad2 className="size-4" aria-hidden /> {n.label}
+              <Link key={n.href} href={n.href} aria-current={active ? "page" : undefined} className={cn("mx-1 inline-flex items-center gap-1.5 rounded-full border border-line px-3.5 py-1.5 text-sm font-semibold text-fg transition-colors hover:border-cyan/50 hover:text-cyan-fg", active && "border-cyan/50 text-cyan-fg")}>
+                <Gamepad2 className="size-4 text-cyan-fg" aria-hidden /> {n.label}
               </Link>
             ) : (
               <Link key={n.href} href={n.href} aria-current={active ? "page" : undefined} className={cn("rounded-lg px-3 py-2 text-sm font-medium text-muted hover:text-fg", active && "text-fg")}>
@@ -52,7 +52,7 @@ export function SiteHeader() {
         </nav>
         <div className="flex items-center gap-1">
           <ThemeToggle />
-          <Button asChild className="hidden sm:inline-flex">
+          <Button asChild variant="ink" className="hidden sm:inline-flex">
             <Link href={account.href}>{account.label}</Link>
           </Button>
           <Button variant="ghost" size="icon" className="lg:hidden" aria-expanded={open} aria-controls="mobile-nav" aria-label={open ? "Đóng menu" : "Mở menu"} onClick={() => setOpen((v) => !v)}>
@@ -67,7 +67,7 @@ export function SiteHeader() {
               {n.featured && <Gamepad2 className="size-4" aria-hidden />} {n.label}
             </Link>
           ))}
-          <Button asChild className="mt-2 w-full">
+          <Button asChild variant="ink" className="mt-2 w-full">
             <Link href={account.href} onClick={() => setOpen(false)}>{account.label}</Link>
           </Button>
         </nav>

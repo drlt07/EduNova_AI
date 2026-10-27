@@ -32,7 +32,7 @@ const COLUMNS = [
 export function SiteFooter() {
   return (
     <footer className="border-t border-line bg-surface/40">
-      <div className="mx-auto grid max-w-7xl gap-10 px-4 py-12 sm:px-6 md:grid-cols-[1.4fr_repeat(3,1fr)]">
+      <div className="mx-auto grid max-w-6xl gap-10 px-4 py-12 sm:px-6 md:grid-cols-[1.4fr_repeat(3,1fr)]">
         <div>
           <Logo />
           <p className="mt-3 max-w-sm text-sm text-muted">

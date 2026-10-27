@@ -1,332 +1,293 @@
 import Link from "next/link";
-import {
-  ArrowRight,
-  BarChart3,
-  BookOpen,
-  Bot,
-  ClipboardCheck,
-  Code2,
-  Compass,
-  FlaskConical,
-  Gamepad2,
-  GraduationCap,
-  Hourglass,
-  Lightbulb,
-  Lock,
-  NotebookPen,
-  Play,
-  Sparkles,
-  Trophy,
-  Users,
-} from "lucide-react";
+import { ArrowRight, BarChart3, BookOpen, Bot, Check, ClipboardCheck, Code2, Compass, FlaskConical, Gamepad2, NotebookPen, Play, Sparkles, Trophy, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { HeroTraffic } from "@/components/landing/hero-traffic";
 import { RoleLink } from "@/components/landing/role-link";
 import { ComputerArt, FarmArt, NetworkArt, TrafficArt } from "@/components/landing/sim-art";
-import { getLabBySlug } from "@/lib/data/labs";
+import { LESSONS } from "@/lib/data/curriculum";
+import { LAB_TEMPLATES, getLabBySlug } from "@/lib/data/labs";
 import { cn } from "@/lib/utils";
 
-const GRADES = [
-  { g: 10, title: "Dữ liệu và lập trình", text: "Thông tin và dữ liệu, hệ nhị phân, an toàn số, lập trình Python: biến, rẽ nhánh, vòng lặp, hàm.", tone: "from-cyan/25 via-cyan/5" },
-  { g: 11, title: "Máy tính và cơ sở dữ liệu", text: "Bên trong máy tính, hệ điều hành, cơ sở dữ liệu quan hệ và truy vấn SQL.", tone: "from-blue/25 via-blue/5" },
-  { g: 12, title: "Mạng, AI và sáng tạo số", text: "Mạng máy tính, trí tuệ nhân tạo, thiết kế web với HTML/CSS, công dân số.", tone: "from-violet/25 via-violet/5" },
-];
+/* Bố cục: một cột đọc rộng 6xl; các khu xen kẽ nền trang / dải nền bề mặt có đường kẻ mảnh; một màu nhấn (cyan-fg). */
 
-/** Mô tả bám đúng những gì mô phỏng làm được hôm nay; phần chưa có ghi rõ "sắp có". */
+const GRADES = [
+  { g: 10, title: "Dữ liệu và lập trình" },
+  { g: 11, title: "Máy tính và cơ sở dữ liệu" },
+  { g: 12, title: "Mạng, AI và sáng tạo số" },
+] as const;
+
+/** Mô tả bám đúng những gì mô phỏng làm được hôm nay; phần chưa có ghi rõ. */
 const SIMS = [
-  { slug: "smart-coding-city", art: TrafficArt, title: "Điều khiển giao thông thông minh", meta: "Tin học 10 • Câu lệnh rẽ nhánh", text: "Điều khiển đèn tín hiệu, quan sát xe dừng trước vạch và đi qua giao lộ trong thành phố 3D.", note: "Trình soạn Python điều khiển xe và đèn: sắp có" },
-  { slug: "smart-garden", art: FarmArt, title: "Nông trại thông minh", meta: "Tin học 10 • Điều kiện và vòng lặp", text: "Thiết lập quy tắc tưới nước dựa trên cảm biến và quan sát cây trồng." },
-  { slug: "inside-computer-3d", art: ComputerArt, title: "Khám phá bên trong máy tính", meta: "Tin học 11 • Hệ thống máy tính", text: "Xoay, quan sát và tương tác với các thành phần phần cứng." },
-  { slug: "network-journey", art: NetworkArt, title: "Giải cứu mạng máy tính", meta: "Tin học 12 • Mạng máy tính", text: "Kết nối các thiết bị, truyền dữ liệu và xử lý sự cố mạng." },
+  { slug: "smart-coding-city", art: TrafficArt, title: "Điều khiển giao thông thông minh", meta: "Tin 10 · Câu lệnh rẽ nhánh", text: "Điều khiển đèn tín hiệu, quan sát xe dừng trước vạch và đi qua giao lộ trong thành phố 3D." },
+  { slug: "smart-garden", art: FarmArt, title: "Nông trại thông minh", meta: "Tin 10 · Điều kiện, vòng lặp", text: "Đặt quy tắc tưới theo cảm biến độ ẩm và quan sát cây trồng." },
+  { slug: "inside-computer-3d", art: ComputerArt, title: "Khám phá bên trong máy tính", meta: "Tin 11 · Hệ thống máy tính", text: "Xoay, quan sát và lắp các linh kiện phần cứng." },
+  { slug: "network-journey", art: NetworkArt, title: "Giải cứu mạng máy tính", meta: "Tin 12 · Mạng máy tính", text: "Kết nối thiết bị, truyền dữ liệu và xử lý sự cố mạng." },
 ];
 
 const STEPS = [
-  { icon: BookOpen, title: "Tìm hiểu kiến thức", text: "Tiếp cận bài học bằng hình ảnh, ví dụ và hoạt động tương tác." },
-  { icon: Compass, title: "Khám phá mô phỏng", text: "Bước vào tình huống 3D, nhận nhiệm vụ và quan sát vấn đề." },
-  { icon: FlaskConical, title: "Thực hành và thử nghiệm", text: "Viết chương trình, thay đổi tham số và quan sát kết quả." },
-  { icon: Bot, title: "Nhận hướng dẫn từ AI", text: "Được giải thích và gợi ý từng bước khi gặp khó khăn." },
-  { icon: Trophy, title: "Đánh giá và tiến bộ", text: "Xem kết quả, rút kinh nghiệm và hoàn thiện kỹ năng." },
+  { icon: BookOpen, title: "Tìm hiểu", text: "Bài học có hình ảnh, ví dụ, câu hỏi tương tác." },
+  { icon: Compass, title: "Khám phá", text: "Bước vào tình huống mô phỏng, nhận nhiệm vụ." },
+  { icon: FlaskConical, title: "Thực hành", text: "Viết chương trình, đổi tham số, quan sát kết quả." },
+  { icon: Bot, title: "Được hướng dẫn", text: "AI Gia sư gợi mở khi em gặp khó." },
+  { icon: Trophy, title: "Tiến bộ", text: "Xem kết quả, nhận xét và hoàn thiện kỹ năng." },
 ];
 
 const SPACES = [
   {
     role: "student" as const,
-    title: "Dành cho học sinh",
-    text: "Học theo chương trình Tin học 10–12, khám phá mô phỏng, thực hành lập trình và theo dõi kết quả.",
-    items: [
-      [BookOpen, "Khóa học của tôi"],
-      [Gamepad2, "Tình huống mô phỏng"],
-      [Code2, "Luyện tập: lập trình, trắc nghiệm, HTML/CSS"],
-      [Bot, "AI Gia sư ngay trong bài"],
-      [Trophy, "Kết quả học tập trong trang cá nhân"],
-    ] as const,
-    cta: "Khám phá không gian học sinh",
-    card: "border-cyan/30 from-cyan/15",
-    icon: "text-cyan-fg",
+    title: "Học sinh",
+    text: "Học theo chương trình, khám phá mô phỏng, tự luyện và theo dõi kết quả.",
+    items: ["Khóa học và nhiệm vụ thầy cô giao", "Tình huống mô phỏng theo khối lớp", "Luyện tập: lập trình, trắc nghiệm, HTML/CSS", "AI Gia sư ngay trong bài", "Kết quả học tập trong trang cá nhân"],
+    cta: "Vào không gian học sinh",
+    icon: Gamepad2,
   },
   {
     role: "teacher" as const,
-    title: "Dành cho giáo viên",
-    text: "Thiết kế kế hoạch bài dạy, tạo học liệu, sử dụng mô phỏng để tổ chức hoạt động và đánh giá học sinh.",
-    items: [
-      [Users, "Lớp học của tôi"],
-      [BookOpen, "Khóa học: bài học, mô phỏng, hoạt động"],
-      [ClipboardCheck, "Bài tập & Đánh giá"],
-      [BarChart3, "Kết quả học tập"],
-      [NotebookPen, "Trợ lý KHBD AI"],
-    ] as const,
-    cta: "Khám phá không gian giáo viên",
-    card: "border-violet/30 from-violet/15",
-    icon: "text-violet-fg",
+    title: "Giáo viên",
+    text: "Chuẩn bị bài dạy, tổ chức hoạt động với mô phỏng và đánh giá theo minh chứng.",
+    items: ["Trợ lý KHBD AI: soạn, cải tiến, xuất Word", "Khóa học: bài học, mô phỏng, hoạt động", "Lớp học của tôi", "Bài tập & Đánh giá theo tiêu chí", "Kết quả học tập và điều học sinh hay hỏi"],
+    cta: "Vào không gian giáo viên",
+    icon: NotebookPen,
   },
 ];
 
-function SectionHead({ id, eyebrow, title, text, center }: { id: string; eyebrow: string; title: string; text?: string; center?: boolean }) {
+function SectionHead({ id, eyebrow, title, text, action }: { id: string; eyebrow: string; title: string; text?: string; action?: React.ReactNode }) {
   return (
-    <div className={cn("max-w-2xl", center && "mx-auto text-center")}>
-      <p className="text-sm font-semibold uppercase tracking-wider text-cyan-fg">{eyebrow}</p>
-      <h2 id={id} className="mt-2 text-3xl font-bold tracking-tight text-fg sm:text-4xl">{title}</h2>
-      {text && <p className="mt-3 text-muted sm:text-lg">{text}</p>}
+    <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+      <div className="max-w-2xl">
+        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-cyan-fg">{eyebrow}</p>
+        <h2 id={id} className="mt-2 text-balance text-3xl font-bold tracking-tight text-fg sm:text-[34px]">{title}</h2>
+        {text && <p className="mt-3 text-muted">{text}</p>}
+      </div>
+      {action}
     </div>
   );
 }
 
+function Status({ ready }: { ready: boolean }) {
+  return ready ? (
+    <span className="inline-flex items-center gap-1.5 text-xs font-medium text-success-fg"><span className="size-1.5 rounded-full bg-success" aria-hidden /> Chơi được</span>
+  ) : (
+    <span className="inline-flex items-center gap-1.5 text-xs font-medium text-muted"><span className="size-1.5 rounded-full bg-muted/60" aria-hidden /> Đang phát triển</span>
+  );
+}
+
 export default function HomePage() {
+  const lessonsOf = (g: number) => LESSONS.filter((l) => l.grade === g && l.textbookId === "kntt").sort((a, b) => a.order - b.order);
+  const playable = LAB_TEMPLATES.filter((l) => l.status !== "planned").length;
+  const facts = [
+    { value: "10 · 11 · 12", label: "Ba khối lớp, GDPT 2018" },
+    { value: `${LAB_TEMPLATES.length}`, label: `Mô phỏng, ${playable} chơi được` },
+    { value: "5 bước", label: "Từ kiến thức đến thực hành" },
+    { value: "AI", label: "Gia sư và trợ lý KHBD" },
+  ];
+  const [lead, ...rest] = SIMS;
+  const leadReady = getLabBySlug(lead.slug)?.status === "available";
+
   return (
     <>
-      {/* 02 · HERO */}
-      <section className="relative overflow-hidden bg-grid" aria-labelledby="hero-h">
-        <div aria-hidden className="pointer-events-none absolute -top-40 left-1/2 h-[520px] w-[900px] -translate-x-1/2 rounded-full bg-[radial-gradient(closest-side,rgba(79,127,255,0.28),transparent)]" />
-        <div className="relative mx-auto grid max-w-7xl items-center gap-12 px-4 pb-20 pt-14 sm:px-6 lg:grid-cols-[1fr_1.05fr] lg:pt-20">
+      {/* HERO */}
+      <section aria-labelledby="hero-h" className="border-b border-line">
+        <div className="mx-auto grid max-w-6xl items-center gap-12 px-4 py-14 sm:px-6 lg:grid-cols-[1fr_1.1fr] lg:py-20">
           <div>
-            <Badge tone="cyan" className="mb-5">
-              <GraduationCap className="size-3.5" /> Nền tảng học tập Tin học THPT
-            </Badge>
-            <h1 id="hero-h" className="text-4xl font-extrabold leading-[1.1] tracking-tight text-fg sm:text-5xl lg:text-[56px]">
-              Học Tin học qua trải nghiệm. <span className="text-gradient">Sáng tạo cùng AI.</span>
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-cyan-fg">Nền tảng học tập Tin học THPT</p>
+            <h1 id="hero-h" className="mt-4 text-balance text-4xl font-extrabold leading-[1.08] tracking-tight text-fg sm:text-5xl lg:text-[54px]">
+              Học Tin học qua trải nghiệm. <span className="text-cyan-fg">Sáng tạo cùng AI.</span>
             </h1>
-            <p className="mt-5 max-w-xl text-lg text-muted">
-              Khám phá kiến thức Tin học lớp 10, 11, 12 qua các bài học tương tác, trò chơi mô phỏng 3D và hoạt động thực hành lập trình. Kết nối giáo viên và học sinh trong một môi trường học tập thông minh.
+            <p className="mt-5 max-w-[34rem] text-lg leading-relaxed text-muted">
+              Bài học tương tác, mô phỏng 3D và thực hành lập trình cho Tin học 10, 11, 12 — kết nối giáo viên và học sinh trong một không gian học tập.
             </p>
-            <div className="mt-8 flex flex-wrap gap-3">
-              <Button asChild size="lg">
-                <Link href="/labs">
-                  Khám phá mô phỏng <ArrowRight />
-                </Link>
+            <div className="mt-8 flex flex-wrap items-center gap-3">
+              <Button asChild size="lg" variant="ink">
+                <Link href="/labs">Khám phá mô phỏng <ArrowRight /></Link>
               </Button>
-              <Button asChild size="lg" variant="secondary">
+              <Button asChild size="lg" variant="outline">
                 <RoleLink role="student">Bắt đầu học tập</RoleLink>
               </Button>
             </div>
-            <p className="mt-4 flex items-center gap-2 text-sm text-muted">
-              <Lock className="size-4 shrink-0 text-cyan-fg" aria-hidden />
-              Đăng nhập để sử dụng các chức năng — bản dùng thử có sẵn tài khoản, không cần mật khẩu.
-            </p>
+            <p className="mt-4 text-sm text-muted">Bản dùng thử có sẵn tài khoản, không cần mật khẩu.</p>
           </div>
-          <div className="relative">
-            <div className="rounded-[22px] border border-line bg-surface/80 p-3 shadow-[0_30px_80px_-30px_rgba(34,211,238,0.35)] backdrop-blur">
-              <div className="mb-3 flex items-center justify-between gap-3 px-1">
-                <div className="flex gap-1.5" aria-hidden>
-                  <span className="size-2.5 rounded-full bg-danger/70" />
-                  <span className="size-2.5 rounded-full bg-warning/70" />
-                  <span className="size-2.5 rounded-full bg-success/70" />
-                </div>
-                <span className="truncate text-xs text-muted">Smart Traffic City · Tin 10 · câu lệnh rẽ nhánh</span>
-                <span />
-              </div>
+
+          <figure className="min-w-0">
+            <div className="overflow-hidden rounded-2xl border border-line bg-surface">
               <HeroTraffic />
-              <div className="mt-3 flex flex-wrap items-center justify-between gap-3 px-1">
-                <p className="text-sm text-muted">Nhiệm vụ thử: điều khiển đèn để 12 lượt xe qua giao lộ an toàn.</p>
-                <Button asChild size="sm">
-                  <Link href="/labs/smart-coding-city">
-                    <Play className="size-3.5" /> Trải nghiệm ngay
-                  </Link>
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 03 · CHƯƠNG TRÌNH 10–11–12 */}
-      <section className="border-y border-line bg-surface/40" aria-labelledby="grades-h">
-        <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
-          <SectionHead id="grades-h" eyebrow="Chương trình học" title="Khám phá chương trình Tin học" text="Đầy đủ ba khối lớp theo Chương trình GDPT 2018 — mỗi khối có chủ đề, bài học và mô phỏng đi kèm." />
-          <div className="mt-10 grid gap-5 md:grid-cols-3">
-            {GRADES.map((x) => (
-              <Link key={x.g} href={`/curriculum?grade=${x.g}`} className={cn("group relative overflow-hidden rounded-3xl border border-line bg-gradient-to-br to-transparent p-7 transition-all hover:-translate-y-0.5 hover:border-cyan/40", x.tone)}>
-                <p className="text-6xl font-extrabold text-gradient">{x.g}</p>
-                <h3 className="mt-2 text-xl font-bold text-fg">Tin học {x.g}</h3>
-                <p className="font-medium text-fg">{x.title}</p>
-                <p className="mt-2 text-sm text-muted">{x.text}</p>
-                <span className="mt-5 inline-flex items-center gap-1 text-sm font-semibold text-cyan-fg">
-                  Xem bài học <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
-                </span>
-              </Link>
-            ))}
-          </div>
-          <p className="mt-4 text-xs text-muted">Danh sách bài học hiện mang tính minh họa, cần đối chiếu với sách giáo khoa.</p>
-        </div>
-      </section>
-
-      {/* 04 · KHO MÔ PHỎNG */}
-      <section className="relative overflow-hidden" aria-labelledby="sims-h">
-        <div aria-hidden className="pointer-events-none absolute -right-40 top-10 h-[420px] w-[620px] rounded-full bg-[radial-gradient(closest-side,rgba(139,92,246,0.18),transparent)]" />
-        <div className="relative mx-auto max-w-7xl px-4 py-20 sm:px-6">
-          <SectionHead id="sims-h" eyebrow="Kho mô phỏng" title="Kiến thức trở nên sống động qua từng mô phỏng" text="Không chỉ đọc và ghi nhớ, học sinh được trực tiếp thao tác, thử nghiệm và giải quyết những tình huống gắn với kiến thức Tin học." />
-          <div className="mt-10 grid gap-6 sm:grid-cols-2">
-            {SIMS.map((s) => {
-              const ready = getLabBySlug(s.slug)?.status === "available";
-              return (
-                <Link key={s.slug} href={`/labs/${s.slug}`} className="group flex flex-col overflow-hidden rounded-3xl border border-line bg-surface transition-all hover:-translate-y-1 hover:border-cyan/40 hover:shadow-[0_18px_50px_-24px_var(--cyan)]">
-                  <div className={cn("relative aspect-[16/9] overflow-hidden", !ready && "grayscale-[35%]")}>
-                    <s.art className="h-full w-full transition-transform duration-500 group-hover:scale-[1.03]" />
-                    <span className="absolute left-3 top-3">
-                      {ready ? (
-                        <Badge tone="success" className="bg-surface/90 backdrop-blur"><Play className="size-3" aria-hidden /> Chơi được</Badge>
-                      ) : (
-                        <Badge tone="violet" className="bg-surface/90 backdrop-blur"><Hourglass className="size-3" aria-hidden /> Đang phát triển</Badge>
-                      )}
-                    </span>
-                  </div>
-                  <div className="flex flex-1 flex-col p-6">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-cyan-fg">{s.meta}</p>
-                    <h3 className="mt-1 text-xl font-bold text-fg">{s.title}</h3>
-                    <p className="mt-2 text-sm text-muted">{s.text}</p>
-                    {s.note && <p className="mt-2 text-xs text-muted">{s.note}</p>}
-                    <span className="mt-auto inline-flex items-center gap-1 pt-4 text-sm font-semibold text-cyan-fg">
-                      {ready ? "Bắt đầu" : "Xem giới thiệu"} <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
-                    </span>
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
-          <div className="mt-10 text-center">
-            <Button asChild size="lg" variant="outline">
-              <Link href="/labs">
-                Xem toàn bộ kho mô phỏng <ArrowRight />
-              </Link>
-            </Button>
-          </div>
-        </div>
-      </section>
-
-      {/* 05 · PHƯƠNG PHÁP */}
-      <section className="border-y border-line bg-surface/40" aria-labelledby="steps-h">
-        <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
-          <SectionHead id="steps-h" eyebrow="Phương pháp" title="Học Tin học theo cách mới" text="Mỗi mô phỏng là một bước trong quá trình học, không chỉ để giải trí." center />
-          <ol className="relative mt-12 grid gap-8 lg:grid-cols-5 lg:gap-4">
-            <span aria-hidden className="absolute left-6 top-6 h-[calc(100%-3rem)] w-0.5 bg-gradient-to-b from-cyan via-blue to-violet lg:left-[10%] lg:right-[10%] lg:top-6 lg:h-0.5 lg:w-auto lg:bg-gradient-to-r" />
-            {STEPS.map((s, i) => (
-              <li key={s.title} className="relative flex gap-4 lg:flex-col lg:items-center lg:text-center">
-                <span className="relative z-10 grid size-12 shrink-0 place-items-center rounded-2xl border border-line bg-surface text-cyan-fg shadow-sm">
-                  <s.icon className="size-5" aria-hidden />
-                </span>
-                <div>
-                  <p className="font-mono text-xs text-muted">0{i + 1}</p>
-                  <p className="font-semibold text-fg">{s.title}</p>
-                  <p className="mt-1 text-sm text-muted">{s.text}</p>
+              <figcaption className="flex flex-wrap items-center justify-between gap-3 border-t border-line px-4 py-3">
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-fg">Thành phố giao thông · Tin 10</p>
+                  <p className="text-xs text-muted">Nhiệm vụ thử: điều khiển đèn để 12 lượt xe qua giao lộ an toàn.</p>
                 </div>
-              </li>
-            ))}
-          </ol>
+                <Link href="/labs/smart-coding-city" className="inline-flex items-center gap-1.5 text-sm font-semibold text-cyan-fg hover:underline">
+                  <Play className="size-3.5" aria-hidden /> Trải nghiệm ngay
+                </Link>
+              </figcaption>
+            </div>
+          </figure>
         </div>
+        <dl className="mx-auto grid max-w-6xl grid-cols-2 border-t border-line px-4 sm:px-6 lg:grid-cols-4">
+          {facts.map((f, i) => (
+            <div key={f.label} className={cn("py-5", i % 2 === 1 && "pl-5 border-l border-line", i >= 2 && "border-t border-line lg:border-t-0", i > 0 && "lg:border-l lg:pl-6")}>
+              <dt className="text-xs text-muted">{f.label}</dt>
+              <dd className="mt-1 text-xl font-bold tracking-tight text-fg tabular-nums">{f.value}</dd>
+            </div>
+          ))}
+        </dl>
       </section>
 
-      {/* 06 · HAI KHÔNG GIAN */}
-      <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6" aria-labelledby="spaces-h">
-        <SectionHead id="spaces-h" eyebrow="Hai không gian" title="Dành cho học sinh và giáo viên" center />
-        <div className="mt-10 grid gap-6 md:grid-cols-2">
-          {SPACES.map((s) => (
-            <div key={s.role} className={cn("flex flex-col rounded-3xl border bg-gradient-to-br via-blue/5 to-transparent p-8", s.card)}>
-              <h3 className="text-2xl font-bold text-fg">{s.title}</h3>
-              <p className="mt-2 text-muted">{s.text}</p>
-              <ul className="mt-6 grid gap-3 sm:grid-cols-2">
-                {s.items.map(([Icon, label]) => (
-                  <li key={label} className="flex items-center gap-3 rounded-xl bg-surface/70 px-3 py-2.5 text-sm font-medium text-fg">
-                    <Icon className={cn("size-4 shrink-0", s.icon)} aria-hidden /> {label}
-                  </li>
+      {/* CHƯƠNG TRÌNH */}
+      <section aria-labelledby="grades-h" className="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:py-20">
+        <SectionHead id="grades-h" eyebrow="Chương trình học" title="Tin học 10, 11 và 12 trong một lộ trình" text="Mỗi khối có chủ đề, bài học và mô phỏng đi kèm theo bộ sách Kết nối tri thức." />
+        <div className="mt-10 grid overflow-hidden rounded-2xl border border-line bg-surface md:grid-cols-3">
+          {GRADES.map((x, i) => (
+            <Link key={x.g} href={`/curriculum?grade=${x.g}`} className={cn("group flex flex-col p-6 transition-colors hover:bg-surface-2", i > 0 && "border-t border-line md:border-l md:border-t-0")}>
+              <span className="font-mono text-sm text-muted">Lớp {x.g}</span>
+              <h3 className="mt-1 text-lg font-bold text-fg">{x.title}</h3>
+              <ul className="mt-4 space-y-2 text-sm text-muted">
+                {lessonsOf(x.g).slice(0, 3).map((l) => (
+                  <li key={l.id} className="flex gap-2"><span className="mt-2 size-1 shrink-0 rounded-full bg-muted/60" aria-hidden /><span className="line-clamp-1">{l.title}</span></li>
                 ))}
               </ul>
-              <div className="mt-auto pt-7">
-                <Button asChild variant={s.role === "teacher" ? "violet" : "primary"}>
-                  <RoleLink role={s.role}>
-                    {s.cta} <ArrowRight />
-                  </RoleLink>
-                </Button>
-              </div>
-            </div>
+              <span className="mt-auto inline-flex items-center gap-1 pt-6 text-sm font-semibold text-cyan-fg">
+                {lessonsOf(x.g).length} bài học <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" aria-hidden />
+              </span>
+            </Link>
           ))}
         </div>
       </section>
 
-      {/* 07 · TRỢ LÝ AI */}
-      <section className="border-y border-line bg-surface/40" aria-labelledby="ai-h">
-        <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
-          <SectionHead id="ai-h" eyebrow="Trợ lý AI" title="AI đồng hành trong dạy và học" text="Trợ lý xuất hiện đúng lúc cần, trong chính hoạt động học sinh và giáo viên đang làm." />
-          <div className="mt-10 grid gap-6 lg:grid-cols-2">
-            <figure className="min-w-0 rounded-3xl border border-line bg-surface p-6">
-              <figcaption className="flex items-center gap-2 text-sm font-semibold text-fg">
-                <GraduationCap className="size-4 text-cyan-fg" aria-hidden /> Với học sinh · đang điều khiển giao thông
-              </figcaption>
-              <pre className="mt-4 overflow-x-auto rounded-xl bg-[#0B1220] p-4 font-mono text-[13px] leading-6 text-slate-200">{`if den == "do":
-    di_tiep()        `}<span className="text-rose-300"># ← xe vượt đèn đỏ</span>{`
-else:
-    dung_truoc_vach()`}</pre>
-              <div className="mt-4 flex gap-3">
-                <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-cyan/15 text-cyan-fg"><Bot className="size-4" aria-hidden /></span>
-                <p className="rounded-2xl rounded-tl-sm bg-surface-2 px-4 py-3 text-sm text-fg">
-                  Em hãy kiểm tra điều kiện của đèn đỏ. Khi trạng thái này xảy ra, xe nên nhận lệnh gì?
-                </p>
+      {/* KHO MÔ PHỎNG */}
+      <section aria-labelledby="sims-h" className="border-y border-line bg-surface/60">
+        <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:py-20">
+          <SectionHead
+            id="sims-h"
+            eyebrow="Kho mô phỏng"
+            title="Kiến thức trở nên sống động qua từng mô phỏng"
+            text="Không chỉ đọc và ghi nhớ — học sinh trực tiếp thao tác, thử nghiệm và giải quyết tình huống gắn với bài học."
+            action={<Button asChild variant="outline"><Link href="/labs">Xem toàn bộ kho <ArrowRight /></Link></Button>}
+          />
+          <div className="mt-10 grid gap-4 lg:grid-cols-[1.25fr_1fr]">
+            <Link href={`/labs/${lead.slug}`} className="group flex flex-col overflow-hidden rounded-2xl border border-line bg-surface transition-colors hover:border-fg/25">
+              <lead.art className="aspect-[16/9] w-full" />
+              <div className="flex flex-1 flex-col gap-2 border-t border-line p-6">
+                <div className="flex items-center justify-between gap-3"><span className="text-xs text-muted">{lead.meta}</span><Status ready={leadReady} /></div>
+                <h3 className="text-xl font-bold text-fg">{lead.title}</h3>
+                <p className="text-sm text-muted">{lead.text}</p>
+                <span className="mt-auto inline-flex items-center gap-1 pt-3 text-sm font-semibold text-cyan-fg">Bắt đầu <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" aria-hidden /></span>
               </div>
-              <p className="mt-3 text-xs text-muted">Trợ lý đặt câu hỏi gợi mở, không đưa sẵn lời giải.</p>
-            </figure>
-            <figure className="min-w-0 rounded-3xl border border-line bg-surface p-6">
-              <figcaption className="flex items-center gap-2 text-sm font-semibold text-fg">
-                <NotebookPen className="size-4 text-violet-fg" aria-hidden /> Với giáo viên · đang xây dựng KHBD
-              </figcaption>
-              <div className="mt-4 rounded-xl border border-line bg-surface-2 p-4 text-sm">
-                <p className="text-xs text-muted">Mục tiêu bài học</p>
-                <p className="font-medium text-fg">Sử dụng được câu lệnh rẽ nhánh if…else để giải quyết bài toán.</p>
-              </div>
-              <div className="mt-4 flex gap-3">
-                <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-violet/15 text-violet-fg"><Sparkles className="size-4" aria-hidden /></span>
-                <div className="flex-1 rounded-2xl rounded-tl-sm bg-surface-2 px-4 py-3 text-sm text-fg">
-                  <p>Đề xuất hoạt động thực hành:</p>
-                  <ul className="mt-2 space-y-1.5">
-                    <li className="flex gap-2"><FlaskConical className="mt-0.5 size-4 shrink-0 text-cyan-fg" aria-hidden /> Nông trại thông minh — viết điều kiện tưới, thử giá trị biên 39/40/41</li>
-                    <li className="flex gap-2"><ClipboardCheck className="mt-0.5 size-4 shrink-0 text-cyan-fg" aria-hidden /> Tiêu chí đánh giá: điều kiện đúng, đã kiểm thử trường hợp biên</li>
-                  </ul>
-                  <p className="mt-2 text-xs text-muted">Chờ giáo viên duyệt</p>
-                </div>
-              </div>
-            </figure>
+            </Link>
+            <ul className="grid gap-4">
+              {rest.map((s) => {
+                const ready = getLabBySlug(s.slug)?.status === "available";
+                return (
+                  <li key={s.slug}>
+                    <Link href={`/labs/${s.slug}`} className="group grid h-full grid-cols-[112px_minmax(0,1fr)] overflow-hidden rounded-2xl border border-line bg-surface transition-colors hover:border-fg/25 sm:grid-cols-[148px_minmax(0,1fr)]">
+                      <s.art className={cn("h-full w-full object-cover", !ready && "opacity-70 grayscale")} />
+                      <div className="flex min-w-0 flex-col gap-1 border-l border-line p-4">
+                        <div className="flex flex-wrap items-center justify-between gap-2"><span className="text-xs text-muted">{s.meta}</span><Status ready={ready} /></div>
+                        <h3 className="font-semibold text-fg">{s.title}</h3>
+                        <p className="line-clamp-2 text-sm text-muted">{s.text}</p>
+                      </div>
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
           </div>
-          <p className="mx-auto mt-10 flex max-w-3xl items-start justify-center gap-3 text-center text-lg font-semibold text-fg">
-            <Lightbulb className="mt-1 size-5 shrink-0 text-warning-fg" aria-hidden />
-            AI hỗ trợ suy nghĩ và sáng tạo – không thay thế quá trình học tập của học sinh hay quyết định chuyên môn của giáo viên.
-          </p>
-          <p className="mt-2 text-center text-xs text-muted">Ở bản dùng thử, trợ lý trả lời theo mẫu gợi ý soạn sẵn, chưa dùng mô hình AI thật.</p>
         </div>
       </section>
 
-      {/* 08 · CTA */}
-      <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6" aria-labelledby="cta-h">
-        <div className="relative overflow-hidden rounded-[28px] border border-cyan/30 bg-gradient-to-br from-cyan/20 via-blue/15 to-violet/20 px-6 py-14 text-center sm:px-12">
-          <div aria-hidden className="blob-float pointer-events-none absolute -left-20 -top-20 size-64 rounded-full bg-cyan/20 blur-3xl" />
-          <h2 id="cta-h" className="relative text-3xl font-extrabold tracking-tight text-fg sm:text-4xl">Sẵn sàng khám phá Tin học theo cách mới?</h2>
-          <p className="relative mx-auto mt-3 max-w-xl text-muted sm:text-lg">Bắt đầu với một bài học, trải nghiệm mô phỏng và tự mình giải quyết những thử thách công nghệ.</p>
-          <div className="relative mt-8 flex flex-wrap justify-center gap-3">
-            <Button asChild size="lg">
-              <Link href="/labs">
-                Khám phá kho mô phỏng <ArrowRight />
-              </Link>
-            </Button>
-            <Button asChild size="lg" variant="secondary">
-              <Link href="/login">Đăng nhập hệ thống</Link>
-            </Button>
+      {/* PHƯƠNG PHÁP */}
+      <section aria-labelledby="steps-h" className="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:py-20">
+        <SectionHead id="steps-h" eyebrow="Phương pháp" title="Học Tin học theo cách mới" text="Mỗi mô phỏng là một bước trong quá trình học, không chỉ để giải trí." />
+        <ol className="mt-10 grid gap-px overflow-hidden rounded-2xl border border-line bg-line sm:grid-cols-2 lg:grid-cols-5">
+          {STEPS.map((s, i) => (
+            <li key={s.title} className="flex flex-col gap-3 bg-surface p-5">
+              <div className="flex items-center justify-between">
+                <s.icon className="size-5 text-cyan-fg" aria-hidden />
+                <span className="font-mono text-xs text-muted">{String(i + 1).padStart(2, "0")}</span>
+              </div>
+              <h3 className="font-semibold text-fg">{s.title}</h3>
+              <p className="text-sm text-muted">{s.text}</p>
+            </li>
+          ))}
+        </ol>
+      </section>
+
+      {/* HAI KHÔNG GIAN */}
+      <section aria-labelledby="spaces-h" className="border-y border-line bg-surface/60">
+        <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:py-20">
+          <SectionHead id="spaces-h" eyebrow="Hai không gian" title="Dành cho học sinh và giáo viên" />
+          <div className="mt-10 grid gap-4 md:grid-cols-2">
+            {SPACES.map((s) => (
+              <div key={s.role} className="flex flex-col rounded-2xl border border-line bg-surface p-7">
+                <div className="flex items-center gap-3">
+                  <span className="grid size-10 place-items-center rounded-xl bg-surface-2 text-cyan-fg"><s.icon className="size-5" aria-hidden /></span>
+                  <h3 className="text-xl font-bold text-fg">{s.title}</h3>
+                </div>
+                <p className="mt-3 text-muted">{s.text}</p>
+                <ul className="mt-5 space-y-2.5">
+                  {s.items.map((it) => (
+                    <li key={it} className="flex items-start gap-2.5 text-sm text-fg"><Check className="mt-0.5 size-4 shrink-0 text-cyan-fg" aria-hidden /> {it}</li>
+                  ))}
+                </ul>
+                <div className="mt-auto pt-7">
+                  <RoleLink role={s.role} className="inline-flex items-center gap-1.5 text-sm font-semibold text-fg hover:text-cyan-fg">{s.cta} <ArrowRight className="size-4" aria-hidden /></RoleLink>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* TRỢ LÝ AI */}
+      <section aria-labelledby="ai-h" className="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:py-20">
+        <div className="grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:gap-14">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-cyan-fg">Trợ lý AI</p>
+            <h2 id="ai-h" className="mt-2 text-balance text-3xl font-bold tracking-tight text-fg sm:text-[34px]">AI đồng hành, đúng lúc cần</h2>
+            <p className="mt-4 text-muted">AI hỗ trợ suy nghĩ và sáng tạo — không thay thế quá trình học tập của học sinh hay quyết định chuyên môn của giáo viên.</p>
+            <ul className="mt-6 space-y-3 text-sm">
+              {[
+                [Sparkles, "Gia sư đọc đúng bài làm của em: mã nguồn, kết quả kiểm thử, trạng thái mô phỏng."],
+                [ClipboardCheck, "Giáo viên đặt mức hỗ trợ: học tự do, có hướng dẫn, hoặc tắt khi kiểm tra."],
+                [BarChart3, "Giáo viên xem tổng hợp điều học sinh hay hỏi, không đọc nội dung trò chuyện."],
+              ].map(([Icon, t]) => {
+                const I = Icon as typeof Sparkles;
+                return <li key={t as string} className="flex gap-3"><I className="mt-0.5 size-4 shrink-0 text-cyan-fg" aria-hidden /><span className="text-fg">{t as string}</span></li>;
+              })}
+            </ul>
+          </div>
+
+          <div className="grid gap-4">
+            <figure className="min-w-0 rounded-2xl border border-line bg-surface p-5">
+              <figcaption className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted"><Users className="size-3.5" aria-hidden /> Học sinh · đang điều khiển giao thông</figcaption>
+              <pre className="mt-3 overflow-x-auto rounded-xl bg-[#0B1220] px-4 py-3 font-mono text-[13px] leading-6 text-slate-200">{`if den == "do":
+    di_tiep()        `}<span className="text-rose-300"># xe vượt đèn đỏ</span>{`
+else:
+    dung_truoc_vach()`}</pre>
+              <p className="mt-3 flex gap-2.5 text-sm text-fg"><Bot className="mt-0.5 size-4 shrink-0 text-cyan-fg" aria-hidden /> Em hãy kiểm tra điều kiện của đèn đỏ. Khi trạng thái này xảy ra, xe nên nhận lệnh gì?</p>
+            </figure>
+            <figure className="min-w-0 rounded-2xl border border-line bg-surface p-5">
+              <figcaption className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted"><NotebookPen className="size-3.5" aria-hidden /> Giáo viên · đang soạn KHBD</figcaption>
+              <p className="mt-3 text-sm text-muted">Mục tiêu: <span className="text-fg">Sử dụng được câu lệnh rẽ nhánh if…else để giải quyết bài toán.</span></p>
+              <div className="mt-3 flex gap-2.5 text-sm">
+                <Code2 className="mt-0.5 size-4 shrink-0 text-cyan-fg" aria-hidden />
+                <p className="text-fg">Đề xuất cho hoạt động vận dụng: mô phỏng <b>Thành phố giao thông</b>, tiêu chí “điều kiện đúng, đã thử đủ trạng thái đèn”. <span className="text-muted">Chờ giáo viên duyệt.</span></p>
+              </div>
+            </figure>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section aria-labelledby="cta-h" className="border-t border-line bg-surface/60">
+        <div className="mx-auto flex max-w-6xl flex-col items-start justify-between gap-6 px-4 py-14 sm:px-6 md:flex-row md:items-center">
+          <div>
+            <h2 id="cta-h" className="text-balance text-2xl font-bold tracking-tight text-fg sm:text-3xl">Sẵn sàng khám phá Tin học theo cách mới?</h2>
+            <p className="mt-2 text-muted">Bắt đầu với một bài học, trải nghiệm mô phỏng và tự giải quyết thử thách công nghệ.</p>
+          </div>
+          <div className="flex flex-wrap gap-3">
+            <Button asChild size="lg" variant="ink"><Link href="/labs">Khám phá kho mô phỏng <ArrowRight /></Link></Button>
+            <Button asChild size="lg" variant="outline"><Link href="/login">Đăng nhập</Link></Button>
           </div>
         </div>
       </section>

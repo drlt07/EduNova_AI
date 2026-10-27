@@ -54,7 +54,7 @@ export function HeroTraffic() {
   const live = desktop && !reduced;
 
   return (
-    <div ref={box} className="relative aspect-[16/10] overflow-hidden rounded-2xl bg-[#cfe9ff]">
+    <div ref={box} className="relative aspect-[16/10] overflow-hidden bg-[#cfe9ff]">
       {live ? (
         <div className="pointer-events-none absolute inset-0" aria-hidden>
           <Scene3D sim={sim} phase={phase} selectedCar={null} onSelectCar={noop} onLightClick={noop} onTick={onTick} preview />
