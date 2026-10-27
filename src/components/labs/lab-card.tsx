@@ -1,9 +1,10 @@
 import Link from "next/link";
-import { ArrowRight, Box, Binary, Code2, Database, Globe, Network, ShieldCheck, Sprout, Brain, Search, Cpu, Users } from "lucide-react";
+import { ArrowRight, Play, Box, Binary, Code2, Database, Globe, Network, ShieldCheck, Sprout, Brain, Search, Cpu, Users } from "lucide-react";
 import type { LabTemplate } from "@/lib/domain/types";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { StatusBadge } from "@/components/ui/status-badge";
+import { LabArt } from "./lab-art";
 
 const ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   "smart-garden": Sprout,
@@ -39,27 +40,38 @@ export function LabIcon({ slug, className }: { slug: string; className?: string 
 
 export function LabCard({ lab, href }: { lab: LabTemplate; href: string }) {
   return (
-    <Link href={href} className="group flex h-full flex-col rounded-2xl border border-line bg-surface p-5 transition-all hover:-translate-y-0.5 hover:border-cyan/40 hover:shadow-[0_8px_40px_-16px_var(--cyan)]">
-      <div className="flex items-start justify-between gap-3">
-        <span className={cn("grid size-12 place-items-center rounded-2xl bg-gradient-to-br", ACCENT[lab.accent])}>
-          <LabIcon slug={lab.slug} className="size-6" />
+    <Link href={href} className="group flex h-full flex-col overflow-hidden rounded-2xl border border-line bg-surface transition-all hover:-translate-y-0.5 hover:border-cyan/40 hover:shadow-[0_8px_40px_-16px_var(--cyan)]">
+      <div className="relative aspect-[16/9] overflow-hidden border-b border-line bg-surface-2">
+        <LabArt slug={lab.slug} className={cn("size-full transition-transform duration-500 group-hover:scale-105", lab.featureStatus === "PLANNED" && "opacity-75 saturate-[0.6]")} />
+        <span className="absolute right-3 top-3 rounded-full bg-surface/90 shadow-sm backdrop-blur">
+          {lab.featureStatus === "PLANNED" ? (
+            <StatusBadge status={lab.featureStatus} />
+          ) : (
+            <span className="flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold text-success-fg"><Play className="size-3" aria-hidden /> Chơi được</span>
+          )}
         </span>
-        <StatusBadge status={lab.featureStatus} />
       </div>
-      <h3 className="mt-4 font-semibold text-fg">{lab.title}</h3>
-      <p className="mt-1 text-sm text-muted">{lab.tagline}</p>
-      <div className="mt-3 flex flex-wrap gap-1.5">
-        {lab.grades.map((g) => (
-          <Badge key={g} tone="blue">Tin {g}</Badge>
-        ))}
-        {lab.tags.slice(0, 3).map((t) => (
-          <Badge key={t}>{t}</Badge>
-        ))}
-      </div>
-      <div className="mt-auto flex items-center justify-end pt-4 text-sm">
-        <span className="flex items-center gap-1 font-medium text-cyan-fg">
-          Chi tiết <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
-        </span>
+      <div className="flex flex-1 flex-col p-5 pt-4">
+        <h3 className="flex items-center gap-2 font-semibold text-fg">
+          <span className={cn("grid size-7 shrink-0 place-items-center rounded-lg bg-gradient-to-br", ACCENT[lab.accent])}>
+            <LabIcon slug={lab.slug} className="size-4" />
+          </span>
+          {lab.title}
+        </h3>
+        <p className="mt-1 text-sm text-muted">{lab.tagline}</p>
+        <div className="mt-3 flex flex-wrap gap-1.5">
+          {lab.grades.map((g) => (
+            <Badge key={g} tone="blue">Tin {g}</Badge>
+          ))}
+          {lab.tags.slice(0, 3).map((t) => (
+            <Badge key={t}>{t}</Badge>
+          ))}
+        </div>
+        <div className="mt-auto flex items-center justify-end pt-4 text-sm">
+          <span className="flex items-center gap-1 font-medium text-cyan-fg">
+            Chi tiết <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
+          </span>
+        </div>
       </div>
     </Link>
   );

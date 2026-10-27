@@ -96,7 +96,7 @@ export const LAB_TEMPLATES: LabTemplate[] = [
     featureStatus: "REAL",
     assets: [],
     provenance: PROV,
-    tags: ["3d", "if/else", "giao thông"],
+    tags: ["3D", "if/else", "giao thông"],
     modes: ["explore", "challenge"],
     accent: "blue",
     sampleTasks: ["Quan sát: khi đèn vàng, xe nào dừng và xe nào đi tiếp? Vì sao?", "Chế độ thủ công: chuyển đèn để xe hướng Đông–Tây đi mà không gây xung đột."],
