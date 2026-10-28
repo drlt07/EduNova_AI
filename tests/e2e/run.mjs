@@ -406,7 +406,7 @@ await step("Phòng lập trình: chạy, kiểm thử tự động, lỗi đư�
   await page.getByRole("button", { name: "Chạy", exact: true }).click();
   await page.getByText(/SyntaxError/).first().waitFor();
   await page.locator("#code-plain").fill("a = int(input())\nb = int(input())\nif a > b:\n    print(a)\nelse:\n    print(b)");
-  await page.getByRole("button", { name: /^Kiểm thử/ }).click();
+  await page.getByRole("button", { name: "Nộp bài", exact: true }).click();
   await page.getByText(/^Đạt (\d+)\/\1$/).waitFor();
   await shot("23-coding-lab");
 });

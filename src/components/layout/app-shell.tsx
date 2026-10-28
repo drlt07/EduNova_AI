@@ -117,7 +117,7 @@ export function AppShell({ role, children, bleed = false }: { role: Role; childr
             </Button>
             {isStudent ? <SearchPalette studentId={user!.id} /> : <span className="hidden text-sm text-muted sm:inline">Không gian {ROLE_LABEL[role].toLowerCase()}</span>}
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 sm:gap-2">
             {isStudent && <NotificationBell studentId={user!.id} />}
             {hydrated && user?.role === "teacher" && role === "teacher" && (
               <Link href="/teacher/settings" aria-label="Cài đặt" aria-current={pathname.startsWith("/teacher/settings") ? "page" : undefined} className="grid size-9 place-items-center rounded-xl text-muted hover:bg-surface-2 hover:text-fg">

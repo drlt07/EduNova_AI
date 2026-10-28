@@ -19,7 +19,7 @@ export function RoleSwitcher() {
   const router = useRouter();
   if (!user) return null;
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-1 sm:gap-2">
       <Avatar user={user} size={32} />
       <div className="hidden min-w-0 lg:block">
         <p className="truncate text-sm font-semibold leading-tight text-fg">{user.name}</p>

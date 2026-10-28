@@ -118,26 +118,3 @@ export function StepTiles({ steps }: { steps: { title: string; text: string }[] 
     </ol>
   );
 }
-
-/** Minh họa luyện tập lập trình: đoạn code và kết quả kiểm thử. */
-export function PracticePeek({ href }: { href: string }) {
-  const rows = [["a lớn hơn", true], ["b lớn hơn", true], ["hai số bằng nhau", true], ["số âm", false]] as const;
-  return (
-    <Link href={href} className="block rounded-[22px] border border-line bg-surface/80 p-4 shadow-[0_30px_80px_-30px_rgba(79,127,255,0.35)] backdrop-blur transition-colors hover:border-cyan/40">
-      <p className="text-xs font-semibold uppercase tracking-wide text-cyan-fg">Lập trình · Số lớn hơn</p>
-      <pre className="mt-2 overflow-x-auto rounded-xl bg-[#0B1220] p-3 font-mono text-[12.5px] leading-5 text-slate-200">{`a = int(input())
-b = int(input())
-if a > b:
-    print(a)
-else:
-    print(b)`}</pre>
-      <ul className="mt-3 grid grid-cols-2 gap-1.5 text-xs">
-        {rows.map(([n, ok]) => (
-          <li key={n} className={cn("flex items-center gap-1.5 rounded-lg px-2 py-1", ok ? "bg-success/10 text-success-fg" : "bg-warning/10 text-warning-fg")}>
-            <CheckCircle2 className="size-3.5" aria-hidden /> {n}
-          </li>
-        ))}
-      </ul>
-    </Link>
-  );
-}
