@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { CalendarClock, Code2, FolderKanban, Gamepad2, ListChecks, Target, UserRound } from "lucide-react";
+import { taskHref, taskOutcome } from "@/lib/teacher/assign";
 import { MISSION_STATUS_LABEL, studentMissions, type MissionStatus } from "@/lib/store/student";
 import { useSessionData } from "@/lib/store/use-role";
 import { formatDate, relativeDays } from "@/lib/utils";
@@ -17,6 +18,9 @@ import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/feedback";
 import { PageHeader } from "@/components/ui/misc";
 import { FilterGroup } from "@/components/ui/tabs";
+
+const TASK_LABEL = { lab: "Mô phỏng", quiz: "Bộ câu hỏi", code: "Bài code" } as const;
+const TASK_HINT = { lab: "Làm mô phỏng đến hết, điểm tự lưu khi em hoàn thành.", quiz: "Làm bộ câu hỏi, máy chấm ngay.", code: "Viết chương trình cho chạy đúng mọi test." } as const;
 
 const GROUPS: Record<string, MissionStatus[]> = {
   todo: ["not_started", "in_progress", "paused"],
@@ -102,15 +106,17 @@ export default function MissionsPage() {
                     <Badge tone="blue">{klass?.name}</Badge>
                     {labConfig && <Badge tone="cyan">{MODE_LABEL[labConfig.mode]}</Badge>}
                     {lab && <Badge>{lab.title}</Badge>}
+                    {a.task && <Badge tone="cyan">{TASK_LABEL[a.task.kind]}</Badge>}
                   </div>
                   <p className="mt-3 font-semibold text-fg">{a.title}</p>
-                  <p className="mt-1 line-clamp-2 text-sm text-muted">{activity?.instructions}</p>
+                  {a.note ? <p className="mt-1 line-clamp-3 text-sm text-fg">“{a.note}”</p> : <p className="mt-1 line-clamp-2 text-sm text-muted">{activity?.instructions ?? (a.task ? TASK_HINT[a.task.kind] : "")}</p>}
+                  {a.task && taskOutcome(d, user.id, a).text && <p className="mt-1 text-sm font-semibold text-success-fg">Kết quả: {taskOutcome(d, user.id, a).text}</p>}
                   <p className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted"><span className="flex items-center gap-1"><UserRound className="size-3.5" aria-hidden /> {teacher?.name ?? "Giáo viên"}</span>{lesson && <span>Độ khó: {DIFFICULTY_LABEL[lesson.difficulty]}</span>}</p>
                   <p className="mt-1 flex items-center gap-1 text-xs text-muted"><CalendarClock className="size-3.5" aria-hidden /> Hạn {formatDate(a.dueAt, true)} ({relativeDays(a.dueAt)})</p>
                   <div className="mt-auto pt-4">
                     <Button asChild size="sm" variant={status === "not_started" || status === "in_progress" || status === "paused" ? "primary" : "secondary"}>
-                      <Link href={`/student/missions/${a.id}`} data-testid={`mission-${a.id}`}>
-                        {status === "not_started" ? "Bắt đầu" : status === "in_progress" ? "Tiếp tục làm" : status === "paused" ? "Tiếp tục" : "Xem kết quả"}
+                      <Link href={a.task && a.task.kind !== "lab" ? taskHref(a.task) : `/student/missions/${a.id}`} data-testid={`mission-${a.id}`}>
+                        {status === "not_started" || status === "overdue" ? "Bắt đầu" : status === "in_progress" ? "Tiếp tục làm" : status === "paused" ? "Tiếp tục" : a.task ? "Làm lại" : "Xem kết quả"}
                       </Link>
                     </Button>
                   </div>

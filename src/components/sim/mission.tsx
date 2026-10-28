@@ -1,4 +1,5 @@
 "use client";
+import { LabScore } from "./lab-result";
 import { CheckCircle2, RotateCcw, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -53,6 +54,7 @@ export function MissionDone({ mistakes, title, points, onRestart }: { mistakes: 
       </div>
       <h3 className="mt-2 font-semibold text-fg">{title}</h3>
       <p className="mt-1 text-sm text-muted">Số lần chọn sai: <b className="text-fg">{mistakes}</b></p>
+      <LabScore mistakes={mistakes} />
       <ul className="mt-3 space-y-1 text-left text-xs text-fg">{points.map((p, i) => <li key={i}>• {p}</li>)}</ul>
       <Button size="sm" variant="secondary" className="mt-3" onClick={onRestart}><RotateCcw /> Làm lại</Button>
     </div>

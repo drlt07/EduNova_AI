@@ -68,7 +68,7 @@ function CodingLab() {
   if (params.get("che-do") === "web") {
     return (
       <>
-        <Button asChild variant="ghost" size="sm" className="mb-2"><Link href="/student/practice?muc=other"><ArrowLeft /> Luyện tập</Link></Button>
+        <Button asChild variant="ghost" size="sm" className="mb-2"><Link href="/student/practice"><ArrowLeft /> Luyện tập</Link></Button>
         <PageHeader title="HTML/CSS" description="Dựng trang web và xem kết quả ngay." />
         <WebCreator onSave={(content) => d.savePortfolioVersion({ studentId: user.id, kind: "web", title: "Trang web của em", content, itemId: d.portfolio.find((p) => p.studentId === user.id && p.kind === "web")?.id })} />
       </>

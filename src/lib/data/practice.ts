@@ -58,7 +58,7 @@ export interface PracticeSet {
 }
 
 export const PRACTICE_SETS: PracticeSet[] = [
-  { id: "if-basic", title: "Câu lệnh rẽ nhánh if", grade: 10, lessonKey: "10-if", description: "Cú pháp if/else, dự đoán kết quả, tìm lỗi.", questionIds: ["p-if-1", "p-if-2", "p-if-3", "p-if-4", "p-if-5", "p-if-6", "p-if-7", "p-if-8"] },
+  { id: "if-basic", title: "Câu lệnh rẽ nhánh if", grade: 10, lessonKey: "10-if", description: "Cú pháp if/else, dự đoán kết quả, tìm lỗi.", questionIds: ["p-if-1", "p-if-2", "p-if-3", "p-if-4", "p-if-5", "p-if-6", "p-if-7"] },
   { id: "logic", title: "Biểu thức logic và kiểm thử", grade: 10, lessonKey: "10-if", description: "and, or, not và giá trị biên.", questionIds: ["p-lg-1", "p-lg-2", "p-lg-3", "p-lg-4", "p-lg-5", "p-ts-1", "p-ts-2"] },
   { id: "loop", title: "Vòng lặp", grade: 10, lessonKey: "10-loop", description: "for, range, while.", questionIds: ["p-lp-1", "p-lp-2", "p-lp-3", "p-lp-4"] },
   { id: "binary", title: "Hệ nhị phân và cổng logic", grade: 10, lessonKey: "10-binary", description: "Bit, byte, chuyển đổi, cổng logic.", questionIds: ["p-bn-1", "p-bn-2", "p-bn-3"] },

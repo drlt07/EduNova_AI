@@ -46,7 +46,8 @@ export function objectiveMastery(d: D, teacherId: string, f: AnalyticsFilter = {
 }
 
 export function completion(d: D, teacherId: string, f: AnalyticsFilter = {}) {
-  const assignments = scopedAssignments(d, teacherId, f);
+  // Nhiệm vụ máy chấm (mô phỏng, câu hỏi, code) không có bài nộp; kết quả xem ở taskOutcome.
+  const assignments = scopedAssignments(d, teacherId, f).filter((a) => !a.task);
   let expected = 0;
   let submitted = 0;
   let graded = 0;

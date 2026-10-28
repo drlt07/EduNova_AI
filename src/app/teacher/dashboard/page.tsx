@@ -1,10 +1,11 @@
 "use client";
+import { classNotes } from "@/lib/analytics/class-notes";
 import Link from "next/link";
 import { useMemo } from "react";
 import { BarChart3, ClipboardCheck, ListChecks, NotebookPen, Plus, Users, Wand2 } from "lucide-react";
 import { useSessionData } from "@/lib/store/use-role";
 import { teacherAssignments, teacherClasses, teacherSubmissions } from "@/lib/store/scoped";
-import { completion, objectiveMastery, refinementSuggestions } from "@/lib/analytics/compute";
+import { completion } from "@/lib/analytics/compute";
 import { formatDate, relativeDays } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -25,7 +26,7 @@ export default function TeacherDashboard() {
     const studentIds = new Set(d.enrollments.filter((e) => classIds.has(e.classId)).map((e) => e.studentId));
     const recent = d.auditLog.filter((a) => a.actorId === user.id || studentIds.has(a.actorId)).slice(0, 7);
     const deadlines = assignments.filter((a) => isThisWeek(a.dueAt)).map((a) => ({ id: a.id, dueAt: a.dueAt, className: d.classes.find((c) => c.id === a.classId)?.name ?? "", title: a.title }));
-    return { classes, assignments, subs, plans, pending, recent, deadlines, comp: completion(d, user.id), mastery: objectiveMastery(d, user.id), suggestions: refinementSuggestions(d, user.id).slice(0, 3) };
+    return { classes, assignments, subs, plans, pending, recent, deadlines, comp: completion(d, user.id), notes: classNotes(d, user.id) };
   }, [d, user.id]);
   const name = (id: string) => d.users.find((u) => u.id === id)?.name ?? id;
 
@@ -50,7 +51,7 @@ export default function TeacherDashboard() {
 
       <div className="mt-6 grid items-start gap-6 xl:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
         <WeekTimetable classes={data.classes} deadlines={data.deadlines} />
-        <ClassInsights mastery={data.mastery} suggestions={data.suggestions} />
+        <ClassInsights notes={data.notes} />
       </div>
 
       <div className="mt-6 grid gap-6 xl:grid-cols-3 [&>*]:min-w-0">

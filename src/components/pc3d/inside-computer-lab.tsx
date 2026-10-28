@@ -1,4 +1,5 @@
 "use client";
+import { LabScore } from "@/components/sim/lab-result";
 import { useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import { CheckCircle2, Cpu, MonitorPlay, Power, RotateCcw, Star, Stethoscope, Wrench, XCircle } from "lucide-react";
@@ -209,6 +210,7 @@ export function InsideComputerLab() {
               </div>
               <h3 className="mt-2 font-semibold text-fg">Hoàn thành ba nhiệm vụ!</h3>
               <p className="mt-1 text-sm text-muted">Số lần chọn sai: <b className="text-fg">{totalMistakes}</b></p>
+              <LabScore mistakes={totalMistakes} />
               <ul className="mt-3 space-y-1 text-left text-xs text-fg">
                 <li>• <b>RAM</b> giữ dữ liệu đang dùng, mất khi tắt điện; <b>SSD</b> lưu lâu dài.</li>
                 <li>• CPU chỉ làm việc trực tiếp với dữ liệu trong RAM.</li>

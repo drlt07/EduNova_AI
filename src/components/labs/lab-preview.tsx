@@ -1,4 +1,5 @@
 "use client";
+import { LabResultScope } from "@/components/sim/lab-result";
 import { getLabBySlug } from "@/lib/data/labs";
 import { InsideComputerLab } from "@/components/pc3d/inside-computer-lab";
 import { NetworkLab } from "@/components/network/network-lab";
@@ -20,7 +21,12 @@ import { Skeleton } from "@/components/ui/feedback";
 const SmartTrafficCity = dynamic(() => import("@/components/traffic3d/smart-traffic-city").then((m) => m.SmartTrafficCity), { ssr: false, loading: () => <Skeleton className="h-[560px] w-full rounded-2xl" /> });
 
 /** Bản chạy thử công khai: không ghi sự kiện (không có attempt). */
+/** Mô phỏng chạy được; các mô phỏng có nhiệm vụ tự chấm điểm khi học sinh làm xong. */
 export function LabPreview({ slug, onSaveWeb }: { slug: string; onSaveWeb?: (content: string) => void }) {
+  return <LabResultScope slug={slug}><LabBody slug={slug} onSaveWeb={onSaveWeb} /></LabResultScope>;
+}
+
+function LabBody({ slug, onSaveWeb }: { slug: string; onSaveWeb?: (content: string) => void }) {
   const lab = getLabBySlug(slug);
   if (!lab) return null;
   if (slug === "smart-garden") return <SmartGardenLab params={DEFAULT_GARDEN_PARAMS} testCases={gardenTestCases(DEFAULT_GARDEN_PARAMS.threshold)} mode="explore" />;

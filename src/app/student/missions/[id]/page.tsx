@@ -22,6 +22,8 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { ErrorState, Notice } from "@/components/ui/feedback";
 import { Field, Input, Textarea } from "@/components/ui/form";
 import { PageHeader } from "@/components/ui/misc";
+import { LabPreview } from "@/components/labs/lab-preview";
+import { taskHref, taskOutcome } from "@/lib/teacher/assign";
 import { DEFAULT_RULE_TEXT, SmartGardenLab } from "@/components/labs/smart-garden/smart-garden-lab";
 
 const MODE = MODE_LABEL;
@@ -31,7 +33,28 @@ export default function MissionPage() {
   const { d, user } = useSessionData();
   if (!canStudentViewAssignment(d, user.id, id))
     return <ErrorState page title="Không truy cập được nhiệm vụ" description="Nhiệm vụ không tồn tại hoặc không thuộc lớp của em." action={<Button asChild><Link href="/student/missions">Về danh sách nhiệm vụ</Link></Button>} />;
+  const a = d.assignments.find((x) => x.id === id);
+  if (a?.task) return <TaskMission key={id} assignmentId={id} />;
   return <Mission key={id} assignmentId={id} />;
+}
+
+/** Nhiệm vụ máy chấm: mô phỏng làm ngay trong trang; bộ câu hỏi và bài code mở ở trang làm bài. Kết quả tự về thầy cô. */
+function TaskMission({ assignmentId }: { assignmentId: string }) {
+  const { d, user } = useSessionData();
+  const a = d.assignments.find((x) => x.id === assignmentId)!;
+  const teacher = d.users.find((u) => u.id === a.ownerId);
+  const o = taskOutcome(d, user.id, a);
+  return (
+    <TutorScope title={a.title} topic="general" level={LEVEL_FROM_HINT[a.hintMode]}>
+      <Button asChild variant="ghost" size="sm" className="mb-2"><Link href="/student/missions"><ArrowLeft /> Nhiệm vụ</Link></Button>
+      <PageHeader title={a.title} description={`${teacher?.name ?? "Thầy cô"} giao · hạn ${formatDate(a.dueAt, true)} (${relativeDays(a.dueAt)})`} />
+      {a.note && <Notice tone="info">Lời dặn: {a.note}</Notice>}
+      {o.text && <p className="mb-3 text-sm font-semibold text-success-fg">Kết quả tốt nhất của em: {o.text}. Làm lại vẫn được, thầy cô xem kết quả cao nhất.</p>}
+      {a.task!.kind === "lab" ? <div className="mt-3"><LabPreview slug={a.task!.ref} /></div> : (
+        <Button asChild className="mt-3"><Link href={taskHref(a.task!)}><Play /> {o.text ? "Làm lại" : "Làm bài"}</Link></Button>
+      )}
+    </TutorScope>
+  );
 }
 
 function Mission({ assignmentId }: { assignmentId: string }) {

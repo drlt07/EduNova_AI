@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { Suspense, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { ArrowRight, CheckCircle2, CircleDashed, ClipboardCheck, Code2, Database, Dumbbell, Gauge, Globe, ListChecks, Network, Search, Shuffle, Terminal, Timer } from "lucide-react";
+import { ArrowRight, CheckCircle2, CircleDashed, ClipboardCheck, Code2, Dumbbell, Globe, ListChecks, Search, Shuffle, Terminal, Timer } from "lucide-react";
 import { CODING_EXERCISES } from "@/lib/data/coding-exercises";
 import { DIFFICULTY_LABEL } from "@/lib/data/curriculum";
 import { PRACTICE_SETS, KIND_LABEL, getQuestion } from "@/lib/data/practice";
@@ -24,13 +24,7 @@ const MODES = [
   { id: "adaptive", label: "Thích ứng", icon: Shuffle, desc: "câu sau theo phần còn yếu" },
   { id: "exam", label: "Kiểm tra", icon: Timer, desc: "tính giờ, khóa gia sư" },
 ] as const;
-const OTHER = [
-  { href: "/student/games/web-builder", icon: Globe, title: "HTML/CSS", desc: "Dựng trang web, xem kết quả ngay.", grade: 12 },
-  { href: "/student/games/sql-detective", icon: Database, title: "Truy vấn SQL", desc: "Thám tử SQL: truy vấn chạy thật trên CSDL thư viện.", grade: 11 },
-  { href: "/student/games/network-journey", icon: Network, title: "Thực hành mạng", desc: "Đấu nối LAN, theo gói tin, sửa lỗi bằng ping.", grade: 12 },
-  { href: "/student/games/debug-detective", icon: Terminal, title: "Kiểm thử & gỡ lỗi", desc: "Thiết kế test bắt lỗi giá trị biên.", grade: 10 },
-];
-type Tab = "code" | "quiz" | "other";
+type Tab = "code" | "quiz";
 
 /** Luyện tập kiểu trang chấm code: bảng bài có trạng thái, độ khó, lần nộp gần nhất, bộ lọc; trắc nghiệm và thực hành khác ở tab riêng. */
 function PracticeHub() {
@@ -38,7 +32,7 @@ function PracticeHub() {
   const params = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
-  const tab = (["code", "quiz", "other"].includes(params.get("muc") ?? "") ? params.get("muc") : "code") as Tab;
+  const tab = (["code", "quiz"].includes(params.get("muc") ?? "") ? params.get("muc") : "code") as Tab;
   const [q, setQ] = useState("");
   const [topic, setTopic] = useState("");
   const [diff, setDiff] = useState("");
@@ -60,12 +54,11 @@ function PracticeHub() {
   const tabs: { id: Tab; label: string; icon: React.ComponentType<{ className?: string }>; count: string }[] = [
     { id: "code", label: "Lập trình Python", icon: Code2, count: `${solved}/${CODING_EXERCISES.length}` },
     { id: "quiz", label: "Trắc nghiệm", icon: ListChecks, count: String(PRACTICE_SETS.length + assigned.length) },
-    { id: "other", label: "Thực hành khác", icon: Gauge, count: String(OTHER.length) },
   ];
 
   return (
     <>
-      <SectionHead icon={Dumbbell} title="Luyện tập" subtitle="Viết code được chấm tự động bằng cách chạy thật, làm trắc nghiệm theo bài, thực hành SQL, mạng, web." actions={<Button asChild variant="secondary"><Link href="/student/code?bai=tu-do"><Terminal /> Sân chơi Python</Link></Button>} />
+      <SectionHead icon={Dumbbell} title="Luyện tập" subtitle="Viết code được chấm tự động và làm trắc nghiệm theo bài. Mô phỏng nằm trong từng bài học và mục Tình huống mô phỏng." actions={<><Button asChild variant="secondary"><Link href="/student/code?bai=tu-do"><Terminal /> Sân chơi Python</Link></Button><Button asChild variant="ghost"><Link href="/student/code?che-do=web"><Globe /> HTML/CSS</Link></Button></>} />
       <nav aria-label="Loại luyện tập" className="mb-5 overflow-x-auto">
         <ul className="flex w-max gap-1 rounded-2xl border border-line bg-surface p-1">
           {tabs.map((t) => (
@@ -201,22 +194,6 @@ function PracticeHub() {
         </>
       )}
 
-      {tab === "other" && (
-        <ul className="grid gap-4 sm:grid-cols-2">
-          {OTHER.map((o) => (
-            <li key={o.href}>
-              <Link href={o.href} className="group flex h-full gap-4 rounded-2xl border border-line bg-surface p-5 transition-all hover:-translate-y-0.5 hover:border-cyan/40">
-                <span className="grid size-12 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-cyan/25 to-violet/20 text-cyan-fg"><o.icon className="size-6" aria-hidden /></span>
-                <span className="min-w-0 flex-1">
-                  <span className="block font-semibold text-fg">{o.title} <Badge tone="blue" className="ml-1">Tin {o.grade}</Badge></span>
-                  <span className="block text-sm text-muted">{o.desc}</span>
-                </span>
-                <ArrowRight className="size-4 shrink-0 self-center text-cyan-fg transition-transform group-hover:translate-x-0.5" aria-hidden />
-              </Link>
-            </li>
-          ))}
-        </ul>
-      )}
     </>
   );
 }

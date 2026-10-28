@@ -266,6 +266,10 @@ export interface Assignment {
   hintMode: HintMode;
   publishedAt: string;
   status: "open" | "closed";
+  /** Giao thẳng một mô phỏng / bộ câu hỏi / bài code (activityId để trống); máy tự chấm. */
+  task?: { kind: "lab" | "quiz" | "code"; ref: string };
+  /** Lời dặn của thầy cô, học sinh thấy trên thẻ nhiệm vụ. */
+  note?: string;
 }
 
 export interface ClassRoom {

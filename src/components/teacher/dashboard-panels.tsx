@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowRight, CalendarClock, ClipboardList, NotebookPen } from "lucide-react";
 import type { ClassRoom, Grade } from "@/lib/domain/types";
-import type { ObjectiveMastery, RefinementSuggestion } from "@/lib/analytics/compute";
+import type { ClassNote, NoteKind } from "@/lib/analytics/class-notes";
 import { LESSONS } from "@/lib/data/curriculum";
 import { sgkRefForKey } from "@/lib/data/sgk-kntt";
 import { vnWeekday } from "@/components/layout/week-calendar";
@@ -95,57 +95,51 @@ function suggestionLinks(objectiveId?: string) {
   };
 }
 
-/** Tên bài học gắn với yêu cầu cần đạt, để giáo viên đọc "Câu lệnh rẽ nhánh if" thay vì mã O10-F-02. */
-function lessonFor(objectiveId: string) {
-  return LESSONS.find((l) => l.textbookId === "kntt" && l.objectiveIds.includes(objectiveId))?.title;
+/** Gom ghi chú theo lớp + bài, giữ thứ tự ưu tiên của ghi chú đầu tiên mỗi nhóm. */
+function groupNotes(notes: ClassNote[]): [string, ClassNote[]][] {
+  const m = new Map<string, ClassNote[]>();
+  for (const n of notes) { const k = `${n.className}|${n.task}`; m.set(k, [...(m.get(k) ?? []), n]); }
+  return [...m.entries()];
 }
 
-/** Mức đạt theo yêu cầu cần đạt + việc nên làm ở tiết sau, rút ra từ bài đã chấm. */
-export function ClassInsights({ mastery, suggestions }: { mastery: ObjectiveMastery[]; suggestions: RefinementSuggestion[] }) {
+const NOTE_DOT: Record<NoteKind, string> = { fix: "bg-warning", chase: "bg-danger", lab: "bg-cyan", praise: "bg-success" };
+
+/** Sổ tay lớp học: em nào vướng chỗ nào, ai chưa nộp, ai làm tốt, và tiết sau nên làm gì. */
+export function ClassInsights({ notes }: { notes: ClassNote[] }) {
   return (
     <section aria-labelledby="ins-h" className="min-w-0 rounded-2xl border border-line bg-surface p-5">
-      <h2 id="ins-h" className="text-lg font-bold text-fg">Học sinh đang vướng ở đâu</h2>
-      <p className="text-xs text-muted">Từ các bài đã chấm gần đây</p>
-      {mastery.length === 0 ? (
-        <p className="mt-4 text-sm text-muted">Chưa có bài chấm chính thức nào để phân tích.</p>
+      <h2 id="ins-h" className="text-lg font-bold text-fg">Sổ tay lớp học</h2>
+      <p className="text-xs text-muted">Ghi lại từ bài nộp và bài làm gần đây của các lớp</p>
+      {notes.length === 0 ? (
+        <p className="mt-4 text-sm text-muted">Chưa có bài nộp nào để ghi chú. Khi các em nộp bài hay làm mô phỏng được giao, sổ tay sẽ ghi lại ở đây.</p>
       ) : (
-        <ul className="mt-4 space-y-3">
-          {mastery.map((m) => {
-            const low = m.mastery < 70;
-            return (
-              <li key={m.objectiveId} className="flex items-center gap-3">
-                <span className={cn("grid size-11 shrink-0 place-items-center rounded-xl text-sm font-bold tabular-nums", low ? "bg-warning/15 text-warning-fg" : "bg-success/15 text-success-fg")}>{m.mastery}%</span>
-                <span className="min-w-0 flex-1">
-                  <span className="block line-clamp-2 text-sm font-medium text-fg" title={m.description}>{m.description}</span>
-                  <span className="block text-xs text-muted">{lessonFor(m.objectiveId) ?? "Yêu cầu cần đạt"} · {m.samples} lượt chấm</span>
-                </span>
-              </li>
-            );
-          })}
-        </ul>
-      )}
-      {suggestions.length > 0 && (
-        <>
-          <h3 className="mt-6 text-xs font-semibold uppercase tracking-wide text-muted">Nên làm ở tiết sau</h3>
-          <ol className="mt-2 space-y-3">
-            {suggestions.map((s) => {
-              const links = suggestionLinks(s.objectiveId);
-              const m = /^(\d+)% (.*)$/.exec(s.trigger);
-              return (
-                <li key={s.id} className="rounded-xl border-l-4 border-warning bg-warning/5 p-3">
-                  <p className="text-sm text-fg">
-                    {m ? <><span className="text-lg font-bold text-warning-fg">{m[1]}%</span> {m[2]}</> : <span className="font-semibold">{s.trigger}</span>}
-                  </p>
-                  <p className="mt-1 text-sm text-muted">{s.suggestion}</p>
-                  <span className="mt-2 flex flex-wrap gap-3 text-xs font-semibold">
-                    <Link href={links.plan} className="inline-flex items-center gap-1 text-cyan-fg hover:underline"><NotebookPen className="size-3.5" aria-hidden /> Thêm vào KHBD</Link>
-                    <Link href={links.quiz} className="inline-flex items-center gap-1 text-cyan-fg hover:underline"><ClipboardList className="size-3.5" aria-hidden /> Giao bài luyện tập</Link>
-                  </span>
-                </li>
-              );
-            })}
-          </ol>
-        </>
+        <div className="mt-4 space-y-5">
+          {groupNotes(notes.slice(0, 7)).map(([key, list]) => (
+            <div key={key}>
+              <p className="mb-2 text-xs text-muted"><span className="rounded bg-surface-2 px-1.5 py-0.5 font-semibold text-fg">{list[0].className}</span> {list[0].task}</p>
+              <ul className="space-y-3">
+                {list.map((n) => {
+                  const links = n.objectiveId ? suggestionLinks(n.objectiveId) : undefined;
+                  return (
+                    <li key={n.id} className="flex gap-3">
+                      <span className={cn("mt-2 size-2 shrink-0 rounded-full", NOTE_DOT[n.kind])} aria-hidden />
+                      <div className="min-w-0 text-sm">
+                        <p className="text-fg"><b>{n.who}</b> {n.text}</p>
+                        {n.next && <p className="mt-0.5 text-muted"><span className="font-medium text-fg">Tiết sau:</span> {n.next}</p>}
+                        {links && (
+                          <span className="mt-1 flex flex-wrap gap-3 text-xs font-semibold">
+                            <Link href={links.plan} className="inline-flex items-center gap-1 text-cyan-fg hover:underline"><NotebookPen className="size-3.5" aria-hidden /> Thêm vào KHBD</Link>
+                            <Link href={links.quiz} className="inline-flex items-center gap-1 text-cyan-fg hover:underline"><ClipboardList className="size-3.5" aria-hidden /> Soạn vài câu luyện thêm</Link>
+                          </span>
+                        )}
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          ))}
+        </div>
       )}
       <Link href="/teacher/analytics" className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-cyan-fg hover:underline">Xem kết quả học tập chi tiết <ArrowRight className="size-4" aria-hidden /></Link>
     </section>

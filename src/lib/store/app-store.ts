@@ -4,6 +4,7 @@
  * Mock repository (DEMO): toàn bộ dữ liệu ghi vào localStorage của trình duyệt.
  * Chữ ký hành động được thiết kế để thay bằng Supabase ở giai đoạn tích hợp.
  */
+import type { LabResult } from "@/lib/sim/lab-score";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import { AUTH_MODE } from "@/lib/supabase/config";
@@ -130,6 +131,7 @@ interface Actions {
   savePracticeAttempt: (a: Omit<PracticeAttempt, "id">) => string;
   /** Lưu (tạo mới nếu chưa có id) bộ câu hỏi của giáo viên cho một bài SGK. */
   saveTeacherQuiz: (q: Omit<TeacherQuiz, "id" | "updatedAt"> & { id?: string }) => string;
+  recordLabResult: (r: Omit<LabResult, "id" | "finishedAt">) => void;
   deleteTeacherQuiz: (id: string, ownerId: string) => void;
   toggleLessonLab: (ownerId: string, sgkRef: string, slug: string) => void;
   saveCode: (studentId: string, exerciseId: string, code: string, versionNote?: string) => void;
@@ -474,6 +476,7 @@ export const useApp = create<AppState>()(
           set((s) => ({ teacherQuizzes: [{ ...q, id, updatedAt: now() }, ...s.teacherQuizzes.filter((x) => x.id !== id)] }));
           return id;
         },
+        recordLabResult: (r) => set((s) => ({ labResults: [{ ...r, id: uid("lr"), finishedAt: now() }, ...s.labResults].slice(0, 5000) })),
         deleteTeacherQuiz: (id, ownerId) => set((s) => ({ teacherQuizzes: s.teacherQuizzes.filter((x) => !(x.id === id && x.ownerId === ownerId)) })),
         toggleLessonLab: (ownerId, sgkRef, slug) =>
           set((s) => {

@@ -1,4 +1,5 @@
 "use client";
+import { LabScore } from "@/components/sim/lab-result";
 import { useState } from "react";
 import {
   ArrowRightLeft, CheckCircle2, ChevronRight, Circle, Cpu, FileCode2, FileImage, FileText, Folder, FolderPlus, Gauge, HardDrive, ListTree, Pencil, RotateCcw, Rocket, Star, Trash2, Undo2, X,
@@ -304,6 +305,7 @@ export function OsExplorerLab() {
             <div>
               <h3 className="font-semibold text-fg">Hoàn thành · {stars(mistakes)}/3 sao</h3>
               <p className="mt-1 text-sm text-muted">Số lần chọn sai: <b className="text-fg">{mistakes}</b></p>
+              <LabScore mistakes={mistakes} />
               <ul className="mt-2 space-y-1 text-xs text-fg">
                 <li>• Hệ điều hành tổ chức tệp thành cây thư mục; mỗi tệp có một đường dẫn duy nhất.</li>
                 <li>• Hệ điều hành cấp RAM, chia CPU cho các tiến trình; thiếu RAM thì dùng bộ nhớ ảo nên chậm.</li>

@@ -12,6 +12,8 @@ import { teacherClasses } from "@/lib/store/scoped";
 import { useSessionData } from "@/lib/store/use-role";
 import { cn, uid } from "@/lib/utils";
 import { LabArt } from "@/components/labs/lab-art";
+import { LabClassResults } from "@/components/teacher/lab-results";
+import { AssignDialog, type AssignPreset } from "@/components/teacher/assign-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
@@ -135,6 +137,7 @@ export function LessonPanel({ refId, tab, onTab, onClose }: { refId: string; tab
   const { d, user } = useSessionData();
   const found = findSgk(refId);
   const [draft, setDraft] = useState<Draft | null>(null);
+  const [assign, setAssign] = useState<AssignPreset | undefined>();
   const lesson = found?.lesson;
   const id = lesson ? sgkLessonId(lesson) : undefined;
   const linked = lesson ? sgkLabs(lesson) : [];
@@ -181,9 +184,11 @@ export function LessonPanel({ refId, tab, onTab, onClose }: { refId: string; tab
                       <div className="aspect-[16/7] overflow-hidden"><LabArt slug={l.slug} className="size-full" /></div>
                       <div className="flex items-center gap-2 p-3">
                         <span className="min-w-0 flex-1"><span className="block truncate text-sm font-semibold text-fg">{l.title}</span><span className="block text-xs text-muted">{mine ? "Thầy cô gắn thêm" : "Gắn theo chương trình"}</span></span>
-                        <Button asChild size="sm"><Link href={`/labs/${l.slug}`}><Play /> Chơi thử</Link></Button>
+                        <Button asChild size="sm" variant="ghost"><Link href={`/labs/${l.slug}`}><Play /> Chơi thử</Link></Button>
+                        <Button size="sm" onClick={() => setAssign({ kind: "lab", ref: l.slug })}><Send /> Giao</Button>
                         {mine && <Button size="icon" variant="ghost" aria-label={`Bỏ gắn ${l.title}`} onClick={() => d.toggleLessonLab(user.id, refId, l.slug)}><Trash2 /></Button>}
                       </div>
+                      <LabClassResults slug={l.slug} grades={[found.grade]} />
                     </li>
                   );
                 })}
@@ -234,7 +239,7 @@ export function LessonPanel({ refId, tab, onTab, onClose }: { refId: string; tab
               <li key={e.id} className="rounded-xl border border-line p-3">
                 <p className="font-semibold text-fg">{e.title} <Badge className="ml-1">{e.topic}</Badge></p>
                 <p className="mt-1 text-sm text-muted">{e.task}</p>
-                <p className="mt-1 text-xs text-muted">{e.tests.length} bộ test chấm tự động · học sinh làm ở Luyện tập → Lập trình Python</p>
+                <p className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted">{e.tests.length} bộ test chấm tự động · học sinh làm ở Luyện tập → Lập trình Python <Button size="sm" variant="secondary" className="ml-auto" onClick={() => setAssign({ kind: "code", ref: e.id })}><Send /> Giao cho lớp</Button></p>
               </li>
             ))}
           </ul>
@@ -256,6 +261,7 @@ export function LessonPanel({ refId, tab, onTab, onClose }: { refId: string; tab
           </div>
         )}
       </DialogContent>
+      <AssignDialog open={!!assign} onOpenChange={(o) => !o && setAssign(undefined)} preset={assign} />
     </Dialog>
   );
 }

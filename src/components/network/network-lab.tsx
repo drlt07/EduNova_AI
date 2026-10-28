@@ -1,4 +1,5 @@
 "use client";
+import { LabScore } from "@/components/sim/lab-result";
 import { useState } from "react";
 import { Cable, CheckCircle2, Mail, Route, RotateCcw, Star, Terminal } from "lucide-react";
 import {
@@ -282,6 +283,7 @@ export function NetworkLab() {
               </div>
               <h3 className="mt-2 font-semibold text-fg">Mạng phòng Tin đã chạy tốt!</h3>
               <p className="mt-1 text-sm text-muted">Số lần chọn sai: <b className="text-fg">{mistakes}</b></p>
+              <LabScore mistakes={mistakes} />
               <ul className="mt-3 space-y-1 text-left text-xs text-fg">
                 <li>• <b>Switch</b> nối thiết bị trong một mạng LAN, chuyển đúng cổng nhờ bảng MAC.</li>
                 <li>• <b>Router</b> nối các mạng với nhau, chọn đường theo địa chỉ IP; đích khác mạng → gửi cho cổng mặc định.</li>

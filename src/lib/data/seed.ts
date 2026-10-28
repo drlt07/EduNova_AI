@@ -3,6 +3,7 @@
  * engine Smart Garden để số liệu analytics phản ánh đúng logic — nhưng đây vẫn là
  * dữ liệu demo, không phải chứng cứ triển khai thật.
  */
+import type { LabResult } from "@/lib/sim/lab-score";
 import type { LessonLabLink, TeacherQuiz } from "./practice";
 import type {
   ActivityDraft,
@@ -90,6 +91,7 @@ export interface DemoData {
   courseProgress: CourseProgress[];
   tutorEvents: TutorEvent[];
   teacherQuizzes: TeacherQuiz[];
+  labResults: LabResult[];
   lessonLabs: LessonLabLink[];
 }
 
@@ -386,6 +388,12 @@ export function buildSeed(now: Date = new Date()): DemoData {
     courseProgress: [],
     tutorEvents: seedTutorEvents(at),
     teacherQuizzes: [],
+    labResults: [
+      { id: "lr-seed-1", studentId: "s9", labSlug: "os-explorer", score: 9.5, mistakes: 1, seconds: 540, finishedAt: at(-1, 3) },
+      { id: "lr-seed-2", studentId: "s10", labSlug: "os-explorer", score: 6, mistakes: 8, seconds: 900, finishedAt: at(-1, 4) },
+      { id: "lr-seed-3", studentId: "s11", labSlug: "os-explorer", score: 8, mistakes: 4, seconds: 660, finishedAt: at(-1, 5) },
+      { id: "lr-seed-4", studentId: "s9", labSlug: "inside-computer-3d", score: 8.5, mistakes: 3, seconds: 720, finishedAt: at(-3) },
+    ],
     lessonLabs: [],
     classes: SEED_CLASSES,
     enrollments: SEED_ENROLLMENTS,
@@ -395,7 +403,7 @@ export function buildSeed(now: Date = new Date()): DemoData {
     rubrics: [rubric],
     activities: [activity],
     activityDrafts: [],
-    assignments: [assignment],
+    assignments: [assignment, { id: "as-seed-os", ownerId: "t1", activityId: "", classId: "c-11a2", title: "Khám phá hệ điều hành", dueAt: at(2), hintMode: "guided", publishedAt: at(-2), status: "open", task: { kind: "lab", ref: "os-explorer" }, note: "Làm hết ba nhiệm vụ, chú ý phần cấp RAM cho tiến trình." }],
     attempts,
     events,
     submissions,

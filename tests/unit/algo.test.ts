@@ -180,3 +180,20 @@ describe("danh mục HSG", () => {
     for (const [a, t] of listed) expect(ALGOS[a].topic).toBe(t);
   });
 });
+
+describe("chấm điểm mô phỏng", () => {
+  it("10 điểm, mỗi lần sai trừ 0,5, thấp nhất 5", async () => {
+    const { labScore, fmtScore, labSummary } = await import("@/lib/sim/lab-score");
+    expect(labScore(0)).toBe(10);
+    expect(labScore(3)).toBe(8.5);
+    expect(labScore(40)).toBe(5);
+    expect(fmtScore(8.5)).toBe("8,5");
+    const r = (studentId: string, score: number, at: string) => ({ id: at, studentId, labSlug: "os-explorer", score, mistakes: 0, seconds: 60, finishedAt: at });
+    const s = labSummary([r("a", 7, "1"), r("a", 9, "2"), r("b", 8, "3"), r("c", 10, "4")], ["a", "b", "d"], "os-explorer");
+    expect(s.done).toBe(2);
+    expect(s.missing).toEqual(["d"]);
+    expect(s.rows[0]).toMatchObject({ studentId: "a", attempts: 2 });
+    expect(s.rows[0].best.score).toBe(9);
+    expect(s.avg).toBe(8.5);
+  });
+});

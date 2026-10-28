@@ -9,6 +9,9 @@ import { DIFFICULTY_LABEL, getObjective, getTextbook, getTopic } from "@/lib/dat
 import { getLessonContent, type Block } from "@/lib/data/lesson-content";
 import { CODING_EXERCISES } from "@/lib/data/coding-exercises";
 import { PRACTICE_SETS } from "@/lib/data/practice";
+import { LAB_TEMPLATES } from "@/lib/data/labs";
+import { sgkRefsForKey } from "@/lib/data/sgk-kntt";
+import type { DemoData } from "@/lib/data/seed";
 import { lessonSections } from "@/lib/store/student-insights";
 import { useApp } from "@/lib/store/app-store";
 import { cn, formatDate } from "@/lib/utils";
@@ -16,11 +19,20 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Notice, Progress } from "@/components/ui/feedback";
 import { Label, Textarea } from "@/components/ui/form";
-import { LabPreview } from "@/components/labs/lab-preview";
 import { useTutor, useTutorActivity } from "@/components/tutor/tutor-provider";
 import { lessonLabs } from "./lesson-card";
+import { LessonSims } from "./lesson-sims";
 import { IfVisualizer } from "./if-visualizer";
 import { Quiz } from "./quiz";
+
+/** Mô phỏng thầy cô của lớp em đã gắn thêm vào bài SGK tương ứng. */
+function attachedLabSlugs(d: Pick<DemoData, "lessonLabs" | "enrollments" | "classes">, key: string, studentId?: string): string[] {
+  if (!studentId) return [];
+  const refs = new Set(sgkRefsForKey(key));
+  const classIds = new Set(d.enrollments.filter((e) => e.studentId === studentId).map((e) => e.classId));
+  const teachers = new Set(d.classes.filter((c) => classIds.has(c.id)).map((c) => c.teacherId));
+  return [...new Set(d.lessonLabs.filter((l) => refs.has(l.sgkRef) && teachers.has(l.ownerId)).map((l) => l.slug))];
+}
 
 const DIFF_TONE = { "co-ban": "success", "trung-binh": "warning", "nang-cao": "danger" } as const;
 
@@ -188,7 +200,11 @@ function useTrackReading(studentId: string | undefined, lessonId: string, ids: s
 
 export function LessonView({ lesson, backHref, backLabel, studentId }: { lesson: Lesson; backHref: string; backLabel: string; studentId?: string }) {
   const content = getLessonContent(lesson.key);
-  const labs = lessonLabs(lesson);
+  const lessonLabLinks = useApp((s) => s.lessonLabs);
+  const enrollments = useApp((s) => s.enrollments);
+  const classes = useApp((s) => s.classes);
+  const attached = attachedLabSlugs({ lessonLabs: lessonLabLinks, enrollments, classes }, lesson.key, studentId);
+  const labs = [...lessonLabs(lesson), ...LAB_TEMPLATES.filter((l) => attached.includes(l.slug) && !lessonLabs(lesson).some((x) => x.slug === l.slug))];
   const tracked = lessonSections(lesson.id);
   const progress = useApp((s) => (studentId ? s.lessonProgress.find((x) => x.studentId === studentId && x.lessonId === lesson.id) : undefined));
   const bookmarked = useApp((s) => !!studentId && s.bookmarks.some((b) => b.studentId === studentId && b.kind === "lesson" && b.refId === lesson.id));
@@ -197,7 +213,7 @@ export function LessonView({ lesson, backHref, backLabel, studentId }: { lesson:
   const exercises = CODING_EXERCISES.filter((e) => e.lessonKey === lesson.key);
   const sets = PRACTICE_SETS.filter((s) => s.lessonKey === lesson.key);
   const toc: [string, string][] = content
-    ? [["muc-tieu", "Mục tiêu"], ["khoi-dong", "1. Tình huống mở đầu"], ["kien-thuc", "2. Khám phá kiến thức"], ["quan-sat", "3. Quan sát trực quan"], ["kiem-tra", "4. Kiểm tra nhanh"], ["van-dung", "5. Vận dụng"], ["ghi-nho", "Ghi nhớ"]]
+    ? [["muc-tieu", "Mục tiêu"], ["khoi-dong", "1. Tình huống mở đầu"], ["kien-thuc", "2. Khám phá kiến thức"], ["quan-sat", "3. Quan sát trực quan"], ...(labs.length ? [["mo-phong", "4. Mô phỏng"], ["kiem-tra", "5. Kiểm tra nhanh"], ["van-dung", "6. Vận dụng"]] as [string, string][] : [["kiem-tra", "4. Kiểm tra nhanh"], ["van-dung", "5. Vận dụng"]] as [string, string][]), ["ghi-nho", "Ghi nhớ"]]
     : [["muc-tieu", "Mục tiêu"], ["kien-thuc", "Nội dung"], ...(labs.length ? [["mo-phong", "Mô phỏng"] as [string, string]] : []), ...(lesson.quiz?.length ? [["kiem-tra", "Kiểm tra nhanh"] as [string, string]] : [])];
   useTrackReading(studentId, lesson.id, toc.map(([id]) => id));
   const doneCount = tracked.filter((s) => progress?.sectionsDone.includes(s)).length;
@@ -298,16 +314,14 @@ export function LessonView({ lesson, backHref, backLabel, studentId }: { lesson:
               <Section id="quan-sat" icon={Eye} step={3} title="Quan sát trực quan" track>
                 <p className="text-fg">Kéo thanh độ ẩm và bật/tắt bình nước. Dòng lệnh sáng lên là dòng thực sự được chạy — kết quả lấy từ việc chạy chương trình, không phải hình vẽ sẵn.</p>
                 <IfVisualizer />
-                {labs.length > 0 && (
-                  <details className="rounded-xl border border-line p-4">
-                    <summary className="cursor-pointer font-medium text-cyan-fg">Mở phòng thí nghiệm đầy đủ</summary>
-                    {content.labTask && <p className="mt-3 rounded-xl bg-success/10 p-3 text-sm text-fg">Nhiệm vụ: {content.labTask}</p>}
-                    <div className="mt-3 space-y-3">{labs.map((lab) => <LabPreview key={lab.id} slug={lab.slug} />)}</div>
-                  </details>
-                )}
               </Section>
-              {quiz && <Section id="kiem-tra" icon={ListChecks} step={4} title="Kiểm tra nhanh" track>{quiz}</Section>}
-              <Section id="van-dung" icon={Target} step={5} title="Vận dụng" track>
+              {labs.length > 0 && (
+                <Section id="mo-phong" icon={FlaskConical} step={4} title="Mô phỏng" track>
+                  <LessonSims labs={labs} studentId={studentId} task={content.labTask} />
+                </Section>
+              )}
+              {quiz && <Section id="kiem-tra" icon={ListChecks} step={labs.length ? 5 : 4} title="Kiểm tra nhanh" track>{quiz}</Section>}
+              <Section id="van-dung" icon={Target} step={labs.length ? 6 : 5} title="Vận dụng" track>
                 {studentId && (
                   <div className="grid gap-3 sm:grid-cols-3">
                     <Link href="/student/games/smart-farm" className="group rounded-xl border border-success/30 bg-gradient-to-br from-success/10 to-transparent p-4 transition-all hover:-translate-y-0.5">
@@ -357,13 +371,8 @@ export function LessonView({ lesson, backHref, backLabel, studentId }: { lesson:
                 <Notice tone="info">Bài giảng chi tiết của bài này đang được biên soạn. Xem bài mẫu đầy đủ: “Câu lệnh rẽ nhánh if” (Tin 10).</Notice>
               </Section>
               {labs.length > 0 && (
-                <Section id="mo-phong" icon={FlaskConical} title="Mô phỏng">
-                  {labs.map((lab) => (
-                    <div key={lab.id} className="space-y-2">
-                      {labs.length > 1 && <h3 className="font-semibold text-fg">{lab.title}</h3>}
-                      <LabPreview slug={lab.slug} />
-                    </div>
-                  ))}
+                <Section id="mo-phong" icon={FlaskConical} title="Mô phỏng" track>
+                  <LessonSims labs={labs} studentId={studentId} />
                 </Section>
               )}
               {quiz && <Section id="kiem-tra" icon={ListChecks} title="Kiểm tra nhanh" track>{quiz}</Section>}

@@ -1,3 +1,4 @@
+import { taskOutcome } from "@/lib/teacher/assign";
 import type { DemoData } from "@/lib/data/seed";
 import type { Assignment } from "@/lib/domain/types";
 import { getObjective } from "@/lib/data/curriculum";
@@ -16,6 +17,13 @@ export const MISSION_STATUS_LABEL: Record<MissionStatus, { label: string; tone: 
 };
 
 export function missionStatus(d: DemoData, studentId: string, a: Assignment, now = Date.now()): MissionStatus {
+  if (a.task) {
+    const o = taskOutcome(d, studentId, a);
+    if (o.done) return "graded";
+    if (a.status === "closed") return "closed";
+    if (o.text) return "in_progress";
+    return new Date(a.dueAt).getTime() < now ? "overdue" : "not_started";
+  }
   const sub = d.submissions.find((s) => s.assignmentId === a.id && s.studentId === studentId);
   if (sub) return d.assessments.some((x) => x.submissionId === sub.id && x.status === "final") ? "graded" : "submitted";
   if (a.status === "closed") return "closed";

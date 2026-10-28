@@ -102,3 +102,8 @@ export function sgkRefForKey(key: string): string | undefined {
   }
   return undefined;
 }
+
+/** Mọi bài SGK gắn với một bài tương tác (key), vd "10-loop" → ["10-20", "10-21", "10-26"]. */
+export function sgkRefsForKey(key: string): string[] {
+  return ([10, 11, 12] as Grade[]).flatMap((g) => SGK_KNTT[g].flatMap((t) => t.lessons.filter((l) => l.key === key).map((l) => sgkRef(g, l))));
+}
