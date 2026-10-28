@@ -3,15 +3,12 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { AlertTriangle, ArrowRight, Plus, Users } from "lucide-react";
-import { TEXTBOOKS } from "@/lib/data/curriculum";
-import { bookOf } from "@/lib/sgk/book";
 import { classStudents, teacherClasses } from "@/lib/store/scoped";
 import { useSessionData } from "@/lib/store/use-role";
 import { teachingProgress } from "@/lib/teacher/class-view";
 import { classHealth, nextLesson } from "@/lib/teacher/today";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/feedback";
-import { BookCover } from "@/components/sgk/book-cover";
 import { ClassFormDialog } from "@/components/teacher/class-form-dialog";
 
 /** Các lớp của giáo viên: mỗi lớp gắn với sách của khối, tiến độ dạy, bài dạy tiếp và cảnh báo. */
@@ -26,11 +23,11 @@ export default function ClassesPage() {
       <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-fg">Lớp học của tôi</h1>
-          <p className="mt-1 text-muted">Mỗi lớp theo một cuốn SGK số: dạy đến đâu, nhiệm vụ của lớp, từng em đang thế nào.</p>
+          <p className="mt-1 text-muted">Mỗi lớp: dạy đến bài nào, nhiệm vụ của lớp, từng em đang thế nào.</p>
         </div>
         <Button onClick={() => setCreating(true)}><Plus /> Lớp mới</Button>
       </div>
-      {classes.length === 0 ? <EmptyState icon={Users} title="Chưa có lớp nào" description="Tạo lớp, chọn khối và bộ sách để có lộ trình SGK số." action={<Button onClick={() => setCreating(true)}><Plus /> Tạo lớp</Button>} /> : (
+      {classes.length === 0 ? <EmptyState icon={Users} title="Chưa có lớp nào" description="Tạo lớp và chọn khối để có lộ trình bài học." action={<Button onClick={() => setCreating(true)}><Plus /> Tạo lớp</Button>} /> : (
         <ul className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
           {classes.map((c) => {
             const p = teachingProgress(d, user.id, c);
@@ -40,10 +37,10 @@ export default function ClassesPage() {
               <li key={c.id}>
                 <Link href={`/teacher/classes/${c.id}`} className="group flex h-full flex-col rounded-2xl border border-line bg-surface p-5 transition-colors hover:border-cyan/50">
                   <div className="flex items-start gap-4">
-                    <BookCover grade={c.grade} className="h-20 w-auto shrink-0" />
+                    <span className="grid size-14 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-[#2563eb] to-[#06b6d4] text-xl font-extrabold text-white">{c.grade}</span>
                     <div className="min-w-0 flex-1">
                       <p className="text-2xl font-bold text-fg group-hover:text-cyan-fg">{c.name}</p>
-                      <p className="text-sm text-muted">{bookOf(c.grade).title} · {TEXTBOOKS.find((t) => t.id === c.textbookId)?.short} · {classStudents(d, c.id).length} em</p>
+                      <p className="text-sm text-muted">Tin học {c.grade} · {classStudents(d, c.id).length} em</p>
                       <p className="text-xs text-muted">{c.schedule.map((s) => `${["", "T2", "T3", "T4", "T5", "T6", "T7"][s.weekday]} ${s.period.toLowerCase()}`).join(" · ") || "chưa có lịch"}</p>
                     </div>
                   </div>

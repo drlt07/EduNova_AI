@@ -185,7 +185,7 @@ export function LessonQuizTab({ refId }: { refId: string }) {
   if (!found || !lesson) return null;
   const quizzes = d.teacherQuizzes.filter((q) => q.ownerId === user.id && q.sgkRef === refId);
   const sets = lesson.key ? PRACTICE_SETS.filter((s) => s.lessonKey === lesson.key) : [];
-  const bank = [...new Set(sets.flatMap((s) => s.questionIds))].map(getQuestion).filter((q): q is PracticeQuestion => !!q && (q.kind === "mcq" || q.kind === "truefalse" || q.kind === "predict"));
+  const bank = [...new Set(sets.flatMap((s) => s.questionIds))].map(getQuestion).filter((q): q is PracticeQuestion => !!q && q.kind !== "sim");
   const objectiveId = (id && getLesson(id)?.objectiveIds[0]) || `SGK-${refId}`;
   const className = (cid: string) => d.classes.find((c) => c.id === cid)?.name ?? cid;
   const save = (publish: boolean) => {

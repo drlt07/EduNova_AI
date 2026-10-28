@@ -1,5 +1,6 @@
 /** Ngân hàng câu hỏi luyện tập. Đáp án "dự đoán đầu ra" và "điền code" được tính bằng cách chạy chương trình thật. */
 import type { Grade } from "@/lib/domain/types";
+import { MORE_QUESTIONS, MORE_SETS } from "./practice-more";
 
 type Base = { id: string; objectiveId: string; prompt: string; explanation: string };
 export type PracticeQuestion =
@@ -10,7 +11,19 @@ export type PracticeQuestion =
   | (Base & { kind: "predict"; code: string; stdin?: string[] })
   | (Base & { kind: "finderror"; code: string; errorLine: number })
   | (Base & { kind: "short"; sample: string })
-  | (Base & { kind: "sim"; gameSlug: string; level: number });
+  | (Base & { kind: "sim"; gameSlug: string; level: number })
+  | (Base & { kind: "multi"; options: string[]; correct: number[] })
+  | (Base & { kind: "match"; pairs: [string, string][] })
+  | (Base & { kind: "blank"; text: string; answers: string[][] })
+  | (Base & { kind: "interactive"; widget: Widget });
+
+/** Câu thao tác trực tiếp: học sinh điều khiển một mô hình nhỏ ngay trong câu hỏi. */
+export type Widget =
+  | { type: "bits"; target: number; width: number }
+  | { type: "gate"; gate: "AND" | "OR" | "XOR" | "NAND" | "NOR" }
+  | { type: "pump"; threshold: number; needWater: boolean; readings: { humidity: number; water: boolean }[] }
+  | { type: "sqlrows"; query: string; columns: string[]; rows: string[][]; correct: number[] }
+  | { type: "flag"; parts: { text: string; suspicious: boolean }[] };
 
 export const KIND_LABEL: Record<PracticeQuestion["kind"], string> = {
   mcq: "Trắc nghiệm",
@@ -21,18 +34,22 @@ export const KIND_LABEL: Record<PracticeQuestion["kind"], string> = {
   finderror: "Tìm lỗi",
   short: "Tự luận ngắn",
   sim: "Thực hành mô phỏng",
+  multi: "Chọn nhiều đáp án",
+  match: "Ghép nối",
+  blank: "Điền khuyết",
+  interactive: "Thao tác mô phỏng",
 };
 
 /** Mức độ nhận thức theo dạng câu hỏi: nhận biết – thông hiểu – vận dụng. */
 export type CognitiveLevel = "biet" | "hieu" | "vandung";
 export const LEVEL_LABEL: Record<CognitiveLevel, string> = { biet: "Nhận biết", hieu: "Thông hiểu", vandung: "Vận dụng" };
 export function levelOf(q: Pick<PracticeQuestion, "kind">): CognitiveLevel {
-  if (q.kind === "mcq" || q.kind === "truefalse") return "biet";
-  if (q.kind === "predict" || q.kind === "order" || q.kind === "fillcode") return "hieu";
+  if (q.kind === "mcq" || q.kind === "truefalse" || q.kind === "blank") return "biet";
+  if (q.kind === "predict" || q.kind === "order" || q.kind === "fillcode" || q.kind === "multi" || q.kind === "match") return "hieu";
   return "vandung";
 }
 
-export const QUESTIONS: PracticeQuestion[] = [
+const BASE_QUESTIONS: PracticeQuestion[] = [
   { id: "p-if-1", kind: "mcq", objectiveId: "O10-F-02", prompt: "Dòng nào là câu lệnh if đúng cú pháp Python?", options: ["if (x = 5)", "if x == 5:", "if x == 5 then", "if x == 5 {"], correctIndex: 1, explanation: "Python dùng == để so sánh và kết thúc dòng if bằng dấu hai chấm." },
   { id: "p-if-2", kind: "predict", objectiveId: "O10-F-02", prompt: "Chương trình in ra gì?", code: "a = 8\nb = 12\nif a > b:\n    print(a)\nelse:\n    print(b)", explanation: "8 > 12 là False nên nhánh else được thực hiện." },
   { id: "p-if-3", kind: "predict", objectiveId: "O10-F-02", prompt: "Với x = 7, chương trình in ra gì?", code: "x = 7\nif x > 10:\n    print('A')\nelif x > 5:\n    print('B')\nelse:\n    print('C')", explanation: "x > 10 sai, x > 5 đúng nên in B và bỏ qua else." },
@@ -66,12 +83,30 @@ export interface PracticeSet {
   questionIds: string[];
 }
 
-export const PRACTICE_SETS: PracticeSet[] = [
+export const QUESTIONS: PracticeQuestion[] = [...BASE_QUESTIONS, ...MORE_QUESTIONS];
+
+const BASE_SETS: PracticeSet[] = [
   { id: "if-basic", title: "Câu lệnh rẽ nhánh if", grade: 10, lessonKey: "10-if", description: "Cú pháp if/else, dự đoán kết quả, tìm lỗi.", questionIds: ["p-if-1", "p-if-2", "p-if-3", "p-if-4", "p-if-5", "p-if-6", "p-if-7"] },
   { id: "logic", title: "Biểu thức logic và kiểm thử", grade: 10, lessonKey: "10-if", description: "and, or, not và giá trị biên.", questionIds: ["p-lg-1", "p-lg-2", "p-lg-3", "p-lg-4", "p-lg-5", "p-ts-1", "p-ts-2"] },
   { id: "loop", title: "Vòng lặp", grade: 10, lessonKey: "10-loop", description: "for, range, while.", questionIds: ["p-lp-1", "p-lp-2", "p-lp-3", "p-lp-4"] },
   { id: "binary", title: "Hệ nhị phân và cổng logic", grade: 10, lessonKey: "10-binary", description: "Bit, byte, chuyển đổi, cổng logic.", questionIds: ["p-bn-1", "p-bn-2", "p-bn-3"] },
 ];
+
+export const PRACTICE_SETS: PracticeSet[] = [...BASE_SETS, ...MORE_SETS];
+
+/** Đáp án đúng của câu thao tác, viết thành chuỗi để so với thao tác của học sinh. */
+export function widgetExpected(w: Widget): string {
+  switch (w.type) {
+    case "bits": return w.target.toString(2).padStart(w.width, "0");
+    case "gate": return [[0, 0], [0, 1], [1, 0], [1, 1]].map(([a, b]) => {
+      const v = { AND: a & b, OR: a | b, XOR: a ^ b, NAND: 1 - (a & b), NOR: 1 - (a | b) }[w.gate];
+      return String(v);
+    }).join("");
+    case "pump": return w.readings.map((r) => (r.humidity < w.threshold && (!w.needWater || r.water) ? "1" : "0")).join("");
+    case "sqlrows": return [...w.correct].sort((a, b) => a - b).join(",");
+    case "flag": return w.parts.flatMap((p, i) => (p.suspicious ? [i] : [])).join(",");
+  }
+}
 
 export const getQuestion = (id: string) => QUESTIONS.find((q) => q.id === id);
 

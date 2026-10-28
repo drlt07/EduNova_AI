@@ -47,7 +47,7 @@ export function PlannerHome() {
                   </span>
                   {s.planId ? <Button asChild size="sm" variant="secondary"><Link href={`/teacher/lesson-planner/${s.planId}`}><NotebookPen /> Mở KHBD</Link></Button>
                     : <Button asChild size="sm"><Link href={lesson ? `/teacher/lesson-planner/assistant?lesson=${lesson.id}` : "/teacher/lesson-planner/assistant"}><Wand2 /> Soạn với trợ lý</Link></Button>}
-                  <Button asChild size="sm" variant="ghost"><Link href={`/teacher/sgk/${s.lesson!.ref}`}>Xem bài SGK</Link></Button>
+                  <Button asChild size="sm" variant="ghost"><Link href={`/teacher/sgk/${s.lesson!.ref}`}>Xem bài</Link></Button>
                 </li>
               );
             })}

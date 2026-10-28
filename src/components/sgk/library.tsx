@@ -17,7 +17,6 @@ import { Button } from "@/components/ui/button";
 import { AlgoThumb } from "@/components/algo/hsg-catalog";
 import { LabArt } from "@/components/labs/lab-art";
 import { AssignDialog, type AssignPreset } from "@/components/teacher/assign-dialog";
-import { BookCover } from "./book-cover";
 import { lessonAssignables, lessonAssignments } from "./reader";
 
 type Role = "teacher" | "student";
@@ -37,64 +36,74 @@ export function SgkLibrary({ role }: { role: Role }) {
   return <Shelf role={role} />;
 }
 
+const GRADE_BG: Record<Grade, string> = { 10: "from-[#2563eb] to-[#06b6d4]", 11: "from-[#4f46e5] to-[#7c3aed]", 12: "from-[#7c3aed] to-[#db2777]" };
+
+/** Danh sách khóa học theo khối: mỗi khóa là các bài theo chương trình, trong bài có mô phỏng và câu hỏi luyện tập. */
 function Shelf({ role }: { role: Role }) {
   const { d, user } = useSessionData();
   const last = useLastRead();
   const teacher = role === "teacher";
   const myGrades = teacher ? [...new Set(teacherClasses(d, user.id).map((c) => c.grade))] : [...new Set(d.classes.filter((c) => d.enrollments.some((e) => e.classId === c.id && e.studentId === user.id)).map((c) => c.grade))];
-  const lastSection = last?.e?.content?.sections.find((s) => s.id === last.p.last);
   return (
     <div>
       <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-fg">Sách giáo khoa số</h1>
-          <p className="mt-1 text-muted">{teacher ? "Đọc, trình chiếu, chọn học liệu và giao nhiệm vụ ngay trong từng bài." : "Đọc bài, làm mô phỏng và câu hỏi củng cố ngay trong sách."}</p>
+          <h1 className="text-3xl font-bold tracking-tight text-fg">Khóa học</h1>
+          <p className="mt-1 text-muted">{teacher ? "Mỗi bài có mô phỏng, câu hỏi luyện tập nhiều dạng và nhiệm vụ giao cho lớp." : "Học từng bài, làm mô phỏng và câu hỏi luyện tập ngay trong bài."}</p>
         </div>
-        {teacher && <span className="flex flex-wrap gap-2"><Button asChild variant="secondary"><Link href="/teacher/library"><Library /> Thư viện học liệu</Link></Button><Button asChild variant="ghost"><Link href="/teacher/courses"><BookMarked /> Khóa học đã soạn</Link></Button></span>}
+        {teacher && <span className="flex flex-wrap gap-2"><Button asChild variant="secondary"><Link href="/teacher/library"><Library /> Thư viện học liệu</Link></Button><Button asChild variant="ghost"><Link href="/teacher/courses"><BookMarked /> Khóa học tự soạn</Link></Button></span>}
       </div>
 
       {last?.e && (
-        <Link href={`${base(role)}/${last.e.ref}${last.p.last ? `#muc-${last.p.last}` : ""}`} className="group mb-8 flex items-center gap-4 rounded-2xl border border-line bg-surface p-4 transition-colors hover:border-cyan/50">
-          <BookCover grade={last.e.grade} className="h-24 w-auto shrink-0" />
+        <Link href={`${base(role)}/${last.e.ref}`} className="group mb-8 flex items-center gap-4 rounded-2xl border border-line bg-surface p-4 transition-colors hover:border-brand/40">
+          <span className={cn("grid size-14 shrink-0 place-items-center rounded-2xl bg-gradient-to-br text-xl font-extrabold text-white", GRADE_BG[last.e.grade])}>{last.e.grade}</span>
           <div className="min-w-0 flex-1">
-            <p className="text-xs font-semibold uppercase tracking-wide text-cyan-fg">{teacher ? "Tiếp tục bài dạy" : "Đọc tiếp"}</p>
+            <p className="text-xs font-semibold uppercase tracking-wide text-blue-fg">{teacher ? "Tiếp tục bài dạy" : "Học tiếp"}</p>
             <p className="mt-0.5 text-lg font-bold text-fg">Bài {last.e.lesson.no}. {last.e.lesson.title}</p>
-            <p className="text-sm text-muted">{bookOf(last.e.grade).title}{lastSection ? ` · đang ở mục “${lastSection.title}”` : ""} · {formatDate(last.p.at)}</p>
+            <p className="text-sm text-muted">{bookOf(last.e.grade).title} · {formatDate(last.p.at)}</p>
           </div>
-          <ArrowRight className="size-5 shrink-0 text-muted transition-transform group-hover:translate-x-0.5 group-hover:text-cyan-fg" aria-hidden />
+          <ArrowRight className="size-5 shrink-0 text-muted transition-transform group-hover:translate-x-0.5 group-hover:text-blue-fg" aria-hidden />
         </Link>
       )}
 
-      <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted">Kệ sách</h2>
-      <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+      <ul className="grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
         {BOOKS.map((b) => {
-          const total = bookLessons(b.grade).length;
-          const taught = teacher ? new Set(d.taughtLessons.filter((t) => t.teacherId === user.id && t.ref.startsWith(`${b.grade}-`)).map((t) => t.ref)).size : 0;
-          const read = !teacher ? d.bookProgress.filter((p) => p.userId === user.id && p.ref.startsWith(`${b.grade}-`)).length : 0;
+          const lessons = bookLessons(b.grade);
+          const sims = new Set(lessons.flatMap((l) => lessonSimSlugs(l))).size;
+          const sets = PRACTICE_SETS.filter((x) => x.grade === b.grade).length;
+          const done = teacher ? new Set(d.taughtLessons.filter((t) => t.teacherId === user.id && t.ref.startsWith(`${b.grade}-`)).map((t) => t.ref)).size : d.bookProgress.filter((p) => p.userId === user.id && p.ref.startsWith(`${b.grade}-`)).length;
           const mine = myGrades.includes(b.grade);
           return (
             <li key={b.grade}>
-              <Link href={`${base(role)}?lop=${b.grade}`} className="group block">
-                <div className="relative mx-auto w-fit transition-transform duration-300 group-hover:-translate-y-1 group-hover:rotate-[-1deg]">
-                  <BookCover grade={b.grade} className="h-64 w-auto" />
-                  {mine && <span className="absolute -right-2 -top-2 rounded-full bg-fg px-2 py-0.5 text-[11px] font-semibold text-bg">{teacher ? "Lớp của tôi" : "Lớp em"}</span>}
+              <Link href={`${base(role)}?lop=${b.grade}`} className="group flex h-full flex-col overflow-hidden rounded-2xl border border-line bg-surface shadow-sm transition-all hover:-translate-y-1 hover:shadow-xl hover:shadow-slate-900/10">
+                <div className={cn("relative h-36 bg-gradient-to-br p-4 text-white", GRADE_BG[b.grade])}>
+                  <span aria-hidden className="absolute -bottom-6 right-3 text-[110px] font-extrabold leading-none text-white/15">{b.grade}</span>
+                  <span className="flex items-start gap-1.5">
+                    <span className="rounded-lg bg-white/20 px-2.5 py-1 text-xs font-bold uppercase tracking-wide">Lớp {b.grade}</span>
+                    {mine && <span className="ml-auto rounded-lg bg-slate-950/40 px-2.5 py-1 text-xs font-medium">{teacher ? "Lớp của tôi" : "Lớp em"}</span>}
+                  </span>
+                  <p className="absolute bottom-4 left-4 flex items-center gap-3 text-sm font-medium"><span>{lessons.length} bài</span><span aria-hidden>•</span><span>{sims} mô phỏng</span></p>
                 </div>
-                <p className="mt-3 text-center font-semibold text-fg group-hover:text-cyan-fg">{b.title}</p>
-                <p className="text-center text-xs text-muted">{b.subtitle}</p>
-                <p className="mt-1 text-center text-xs text-muted">{total} bài · {contentCount(b.grade)} bài có nội dung số{teacher ? ` · đã dạy ${taught}` : read ? ` · em đã mở ${read}` : ""}</p>
+                <div className="flex flex-1 flex-col p-5">
+                  <h2 className="text-lg font-bold text-fg">{b.title}</h2>
+                  <p className="mt-1 text-sm text-muted">{b.subtitle}</p>
+                  <p className="mt-3 text-xs text-muted">{sets} bộ câu hỏi luyện tập · {contentCount(b.grade)} bài có nội dung</p>
+                  <div className="mt-2 h-1.5 rounded-full bg-surface-2"><div className="h-full rounded-full bg-brand" style={{ width: `${(done / lessons.length) * 100}%` }} /></div>
+                  <p className="mt-1 text-xs text-muted">{teacher ? `Đã dạy ${done}/${lessons.length} bài` : `Em đã học ${done}/${lessons.length} bài`}</p>
+                  <span className="mt-4 inline-flex items-center gap-1.5 self-start rounded-xl bg-brand/10 px-4 py-2 text-sm font-semibold text-blue-fg transition-colors group-hover:bg-brand group-hover:text-brand-ink">Vào khóa học <ArrowRight className="size-4" aria-hidden /></span>
+                </div>
               </Link>
             </li>
           );
         })}
         <li>
-          <Link href="/thuat-toan" className="group block">
-            <div className="mx-auto flex h-64 w-[192px] flex-col justify-between rounded-r-lg rounded-l-sm bg-[#3a2a0c] p-4 shadow-[0_18px_40px_-18px_rgba(0,0,0,0.55)] transition-transform duration-300 group-hover:-translate-y-1">
-              <div><p className="text-[10px] tracking-[2px] text-amber-100/70">CHUYÊN ĐỀ</p><p className="mt-1 text-lg font-extrabold text-amber-50">BỒI DƯỠNG HSG</p></div>
-              <div className="grid grid-cols-2 gap-2">{(["bubble", "bfs", "dijkstra", "knapsack"] as const).map((id) => <AlgoThumb key={id} id={id} className="h-auto w-full rounded-md bg-white/90" />)}</div>
-              <p className="text-[10px] font-bold text-amber-50">EduNova</p>
+          <Link href="/thuat-toan" className="group flex h-full flex-col overflow-hidden rounded-2xl border border-line bg-surface shadow-sm transition-all hover:-translate-y-1 hover:shadow-xl hover:shadow-slate-900/10">
+            <div className="grid h-36 grid-cols-4 content-center gap-2 bg-gradient-to-br from-[#b45309] to-[#f59e0b] p-4">{(["bubble", "bfs", "dijkstra", "knapsack"] as const).map((id) => <AlgoThumb key={id} id={id} className="h-auto w-full rounded-md bg-white/90" />)}</div>
+            <div className="flex flex-1 flex-col p-5">
+              <h2 className="text-lg font-bold text-fg">Chuyên đề HSG</h2>
+              <p className="mt-1 text-sm text-muted">{ALGO_IDS.length} thuật toán chạy từng bước, đoán bước tiếp theo.</p>
+              <span className="mt-4 inline-flex items-center gap-1.5 self-start rounded-xl bg-brand/10 px-4 py-2 text-sm font-semibold text-blue-fg transition-colors group-hover:bg-brand group-hover:text-brand-ink">Mở chuyên đề <ArrowRight className="size-4" aria-hidden /></span>
             </div>
-            <p className="mt-3 text-center font-semibold text-fg group-hover:text-cyan-fg">Chuyên đề HSG</p>
-            <p className="text-center text-xs text-muted">{ALGO_IDS.length} thuật toán chạy từng bước</p>
           </Link>
         </li>
       </ul>
@@ -118,11 +127,11 @@ function BookToc({ grade, role }: { grade: Grade; role: Role }) {
   return (
     <div>
       <div className="mb-6 flex flex-wrap items-end gap-4">
-        <BookCover grade={grade} className="hidden h-24 w-auto sm:block" />
+        <span className={cn("hidden size-20 shrink-0 place-items-center rounded-2xl bg-gradient-to-br text-3xl font-extrabold text-white sm:grid", GRADE_BG[grade])}>{grade}</span>
         <div className="min-w-0 flex-1 basis-64">
-          <Link href={base(role)} className="inline-flex items-center gap-1 text-sm font-medium text-muted hover:text-fg"><ArrowLeft className="size-4" aria-hidden /> Kệ sách</Link>
+          <Link href={base(role)} className="inline-flex items-center gap-1 text-sm font-medium text-muted hover:text-fg"><ArrowLeft className="size-4" aria-hidden /> Tất cả khóa học</Link>
           <h1 className="mt-1 text-3xl font-bold tracking-tight text-fg">{book.title}</h1>
-          <p className="text-sm text-muted">{book.subtitle} · {topics.length} chủ đề · {lessons.length} bài · {contentCount(grade)} bài có nội dung số</p>
+          <p className="text-sm text-muted">{book.subtitle} · {topics.length} chủ đề · {lessons.length} bài · {contentCount(grade)} bài có nội dung</p>
         </div>
         <nav aria-label="Chọn khối" className="flex gap-1 rounded-xl border border-line bg-surface p-1">
           {BOOKS.map((b) => <Link key={b.grade} href={`${base(role)}?lop=${b.grade}`} aria-current={b.grade === grade ? "page" : undefined} className={cn("rounded-lg px-3 py-1.5 text-sm font-medium", b.grade === grade ? "bg-brand text-brand-ink" : "text-muted hover:text-fg")}>Lớp {b.grade}</Link>)}
@@ -155,7 +164,7 @@ function BookToc({ grade, role }: { grade: Grade; role: Role }) {
                           <span className={cn("min-w-0 flex-1 text-sm font-medium", l.content ? "text-fg" : "text-fg/60")}>{l.lesson.title}</span>
                         </span>
                         <span className="ml-14 mt-0.5 flex flex-wrap gap-x-2 text-[11px] text-muted">
-                          {l.content ? <span className="text-success-fg">Nội dung số</span> : <span>Chưa có nội dung số</span>}
+                          {l.content ? <span className="text-success-fg">Có nội dung</span> : <span>Chưa có nội dung</span>}
                           {sims > 0 && <span className="inline-flex items-center gap-0.5 text-cyan-fg"><FlaskConical className="size-3" aria-hidden />{sims}</span>}
                           {taught && taught.map((c) => <span key={c.id} className="inline-flex items-center gap-0.5 font-semibold text-success-fg"><CheckCircle2 className="size-3" aria-hidden />{c.name}</span>)}
                           {read && l.content && <span className="font-semibold text-success-fg">đã đọc {read.read.length}/{l.content.sections.length}</span>}
@@ -206,7 +215,7 @@ function LessonPreview({ e, role }: { e: BookEntry; role: Role }) {
         <span className="flex flex-wrap gap-2">
           {teacher && lessonId && <Button asChild size="sm" variant="ghost"><Link href={`/teacher/lesson-planner/assistant?lesson=${lessonId}`}><NotebookPen /> Soạn KHBD</Link></Button>}
           {teacher && <Button size="sm" variant="secondary" onClick={() => setAssign(null)}><Send /> Giao</Button>}
-          <Button asChild size="sm"><Link href={href}><BookOpen /> {teacher ? "Mở bài" : progress ? "Đọc tiếp" : "Đọc bài"}</Link></Button>
+          <Button asChild size="sm"><Link href={href}><BookOpen /> {teacher ? "Mở bài" : progress ? "Học tiếp" : "Vào bài"}</Link></Button>
         </span>
       </div>
 
@@ -215,7 +224,7 @@ function LessonPreview({ e, role }: { e: BookEntry; role: Role }) {
           <h3 className="text-xs font-semibold uppercase tracking-wide text-muted">Yêu cầu cần đạt</h3>
           <ul className="mt-2 space-y-1.5 text-sm text-fg">{e.content.objectives.map((o) => <li key={o} className="flex gap-2"><CheckCircle2 className="mt-0.5 size-4 shrink-0 text-success-fg" aria-hidden />{o}</li>)}</ul>
         </section>
-      ) : <p className="mt-4 rounded-xl border border-dashed border-line p-4 text-sm text-muted">Bài này chưa có nội dung số. {teacher ? "Thầy cô vẫn gắn mô phỏng, soạn câu hỏi và giao nhiệm vụ trong trang bài." : "Mô phỏng và nhiệm vụ của bài vẫn mở được trong trang bài."}</p>}
+      ) : <p className="mt-4 rounded-xl border border-dashed border-line p-4 text-sm text-muted">Bài này chưa có nội dung. {teacher ? "Thầy cô vẫn gắn mô phỏng, soạn câu hỏi và giao nhiệm vụ trong trang bài." : "Mô phỏng và nhiệm vụ của bài vẫn mở được trong trang bài."}</p>}
 
       {sim && (
         <section className="mt-5 flex flex-wrap items-center gap-4 rounded-2xl border border-cyan/30 bg-cyan/5 p-4">

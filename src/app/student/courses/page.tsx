@@ -1,7 +1,6 @@
 "use client";
 import { LessonPeek } from "@/components/landing/hero-visuals";
 import { PageHero } from "@/components/layout/page-hero";
-import { BookCover } from "@/components/sgk/book-cover";
 import Link from "next/link";
 import { useMemo } from "react";
 import { ArrowRight, BookMarked, BookOpen, CalendarClock, GraduationCap, Target } from "lucide-react";
@@ -33,17 +32,17 @@ export default function StudentCoursesPage() {
 
   return (
     <>
-      <PageHero variant="app" eyebrow={`Tin học ${grade} · ${TEXTBOOKS.find((t) => t.id === book)?.name ?? ""}`} icon={GraduationCap} title="Khóa học" accent="của tôi" description="Học các bài và làm nhiệm vụ thầy cô giao. Mô phỏng, bài lập trình và luyện tập nằm ngay trong từng bài." stats={[{ value: data.todo.length, label: "nhiệm vụ đang chờ" }, { value: data.courses.length, label: "khóa học được giao" }, { value: data.sgkLessons, label: "bài theo SGK" }, { value: data.done, label: "nhiệm vụ đã xong" }]} visual={<LessonPeek href="/student/learning/L-10-if-kntt" />} />
+      <PageHero variant="app" eyebrow={`Tin học ${grade} · ${TEXTBOOKS.find((t) => t.id === book)?.name ?? ""}`} icon={GraduationCap} title="Khóa học" accent="của tôi" description="Học các bài và làm nhiệm vụ thầy cô giao. Mô phỏng, bài lập trình và luyện tập nằm ngay trong từng bài." stats={[{ value: data.todo.length, label: "nhiệm vụ đang chờ" }, { value: data.courses.length, label: "khóa học được giao" }, { value: data.sgkLessons, label: "bài học" }, { value: data.done, label: "nhiệm vụ đã xong" }]} visual={<LessonPeek href="/student/learning/L-10-if-kntt" />} />
 
       <section aria-labelledby="sgk-book-h" className="mb-8">
-        <h2 id="sgk-book-h" className="mb-3 flex items-center gap-2 text-lg font-semibold text-fg"><BookOpen className="size-5 text-cyan-fg" aria-hidden /> Sách giáo khoa số</h2>
+        <h2 id="sgk-book-h" className="mb-3 flex items-center gap-2 text-lg font-semibold text-fg"><BookOpen className="size-5 text-cyan-fg" aria-hidden /> Khóa học Tin học {grade}</h2>
         <Link href={`/student/sgk?lop=${grade}`} className="group flex items-center gap-4 rounded-2xl border border-line bg-surface p-4 transition-colors hover:border-cyan/40">
-          <BookCover grade={grade} className="h-24 w-auto shrink-0" />
+          <span className="grid size-16 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-[#2563eb] to-[#06b6d4] text-2xl font-extrabold text-white">{grade}</span>
           <div className="min-w-0 flex-1">
             <p className="font-semibold text-fg">Tin học {grade}</p>
-            <p className="text-sm text-muted">Đọc bài, làm mô phỏng ngay tại phần kiến thức, trả lời câu hỏi củng cố và ghi chú.</p>
+            <p className="text-sm text-muted">Học từng bài, làm mô phỏng và câu hỏi luyện tập nhiều dạng ngay trong bài.</p>
           </div>
-          <span className="inline-flex items-center gap-1 text-sm font-semibold text-cyan-fg">Mở sách <ArrowRight className="size-4" /></span>
+          <span className="inline-flex items-center gap-1 text-sm font-semibold text-cyan-fg">Vào khóa học <ArrowRight className="size-4" /></span>
         </Link>
       </section>
 
@@ -111,7 +110,7 @@ export default function StudentCoursesPage() {
       </section>
 
       <section aria-labelledby="sgk-h">
-        <h2 id="sgk-h" className="mb-3 flex items-center gap-2 text-lg font-semibold text-fg"><BookOpen className="size-5 text-cyan-fg" aria-hidden /> Học theo chương trình SGK</h2>
+        <h2 id="sgk-h" className="mb-3 flex items-center gap-2 text-lg font-semibold text-fg"><BookOpen className="size-5 text-cyan-fg" aria-hidden /> Bài học tương tác</h2>
         <Link href="/student/learning" className="flex flex-wrap items-center gap-4 rounded-2xl border border-line bg-surface p-5 transition-colors hover:border-cyan/40">
           <div className="min-w-0 flex-1">
             <p className="font-semibold text-fg">Tin học {grade} · {TEXTBOOKS.find((t) => t.id === book)?.name}</p>

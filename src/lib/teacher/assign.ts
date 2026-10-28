@@ -80,7 +80,9 @@ export function taskOutcome(d: D, studentId: string, a: Pick<Assignment, "task" 
       return { ok: sc.filter((i) => i.status === "correct").length, n: sc.length };
     };
     const best = rs.map(score).reduce((x, y) => (y.ok / Math.max(1, y.n) > x.ok / Math.max(1, x.n) ? y : x));
-    return { done: true, text: `${best.ok}/${best.n} câu đúng`, ratio: best.ok / Math.max(1, best.n), at: rs[0].finishedAt };
+    const left = Math.max(...rs.map((p) => p.violations ?? 0));
+    const auto = rs.some((p) => p.autoSubmitted);
+    return { done: true, text: `${best.ok}/${best.n} câu đúng${auto ? " · bị nộp tự động vì rời tab" : left ? ` · rời tab ${left} lần` : ""}`, ratio: best.ok / Math.max(1, best.n), at: rs[0].finishedAt };
   }
   const w = d.codeWorks.find((c) => c.studentId === studentId && c.exerciseId === t.ref);
   if (!w?.lastRun || w.lastRun.at < a.publishedAt) return { done: false };

@@ -20,6 +20,7 @@ import { PageHeader } from "@/components/ui/misc";
 import { AnimatedBar, Celebrate } from "@/components/motion";
 import { QuestionView } from "@/components/student/question-view";
 import { useTutor, useTutorActivity, useTutorLock } from "@/components/tutor/tutor-provider";
+import { LockStart, LockWarning, MAX_LEAVES, useExamLock } from "@/components/student/exam-lock";
 
 type Mode = "practice" | "adaptive" | "exam";
 const MODE_NAME: Record<Mode, string> = { practice: "Luyện tập", adaptive: "Thích ứng", exam: "Kiểm tra" };
@@ -66,7 +67,8 @@ function Session({ setId, mode, pool, passedLevels, onRestart }: { setId: string
   const limit = pool.length * 60 + 120;
   const [left, setLeft] = useState(limit);
 
-  const finish = (force = false) => {
+  const [started, setStarted] = useState(false);
+  const finish = (force = false, auto = false) => {
     if (finished) return;
     const unanswered = order.filter((q) => answers[q.id] === undefined).length;
     if (!force && mode === "exam" && unanswered && !window.confirm(`Còn ${unanswered} câu chưa trả lời. Em vẫn nộp bài?`)) return;
@@ -81,16 +83,20 @@ function Session({ setId, mode, pool, passedLevels, onRestart }: { setId: string
       startedAt,
       finishedAt: new Date().toISOString(),
       items: order.map((q) => ({ questionId: q.id, objectiveId: q.objectiveId, status: all[q.id].status, answer: toText(answers[q.id] ?? null) })),
+      violations: Math.max(lock.leaves, auto ? MAX_LEAVES : 0),
+      autoSubmitted: auto || undefined,
     });
-    toast.success("Đã lưu kết quả vào tiến độ học tập");
+    if (auto) toast.warning(`Em đã rời bài ${MAX_LEAVES} lần — bài được nộp tự động`);
+    else toast.success("Đã lưu kết quả vào tiến độ học tập");
   };
 
   const finishRef = useRef(finish);
   useEffect(() => {
     finishRef.current = finish;
   });
+  const lock = useExamLock(started && !finished, () => finishRef.current(true, true));
   useEffect(() => {
-    if (mode !== "exam" || finished) return;
+    if (mode !== "exam" || finished || !started) return;
     let remaining = limit;
     const t = window.setInterval(() => {
       remaining -= 1;
@@ -102,7 +108,7 @@ function Session({ setId, mode, pool, passedLevels, onRestart }: { setId: string
       }
     }, 1000);
     return () => window.clearInterval(t);
-  }, [mode, finished, limit]);
+  }, [mode, finished, limit, started]);
 
   // AI Gia sư đọc câu đang làm và câu trả lời của em; bài kiểm tra → gia sư tắt
   const cur = order[idx];
@@ -112,7 +118,9 @@ function Session({ setId, mode, pool, passedLevels, onRestart }: { setId: string
     { title: `Luyện tập – ${getSet(setId)?.title ?? ""}`, topic: cur ? (cur.objectiveId.endsWith("05") ? "loop" : cur.objectiveId.startsWith("O10-A") ? "binary" : "if") : "if", level: mode === "exam" ? "exam" : "guided", objectiveId: cur?.objectiveId },
   );
 
-  if (finished) return <Result order={order} answers={answers} graded={graded} onRestart={onRestart} />;
+  const warn = lock.warning && <LockWarning leaves={lock.leaves} onResume={lock.resume} />;
+  if (finished) return <>{warn}<Result order={order} answers={answers} graded={graded} onRestart={onRestart} /></>;
+  if (!started) return <LockStart title={getSet(setId)?.title ?? "Bộ câu hỏi"} count={mode === "adaptive" ? Math.min(ADAPTIVE_LEN, pool.length) : pool.length} onStart={() => setStarted(true)} />;
 
   const q = order[idx];
   const g = graded[q.id];
@@ -131,7 +139,11 @@ function Session({ setId, mode, pool, passedLevels, onRestart }: { setId: string
   const isLast = mode === "adaptive" ? order.length >= total : idx === order.length - 1;
 
   return (
-    <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_240px]">
+    // Đang làm bài: phủ toàn màn hình, che menu và thanh trên để không rời trang trong ứng dụng
+    <div className="fixed inset-0 z-[45] overflow-y-auto bg-bg px-4 py-6 sm:px-8">
+    <p className="mx-auto mb-4 flex max-w-6xl items-center gap-2 text-sm font-semibold text-fg"><Lock className="size-4 text-blue-fg" aria-hidden /> {getSet(setId)?.title ?? "Bộ câu hỏi"}</p>
+    <div className="mx-auto grid max-w-6xl gap-5 lg:grid-cols-[minmax(0,1fr)_240px]">
+      {warn}
       <Card>
         <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2">
           <div className="flex flex-wrap gap-1.5">
@@ -159,7 +171,7 @@ function Session({ setId, mode, pool, passedLevels, onRestart }: { setId: string
                 {isLast ? <Button onClick={() => finish()} data-testid="practice-submit">Nộp bài</Button> : <Button onClick={() => setIdx((i) => i + 1)}>Câu sau <ArrowRight className="size-4" /></Button>}
               </>
             ) : !g ? (
-              <Button onClick={check} disabled={answers[q.id] === undefined && q.kind !== "sim"} data-testid="practice-check">{q.kind === "short" ? "Xem gợi ý đáp án" : "Kiểm tra"}</Button>
+              <Button onClick={check} disabled={answers[q.id] === undefined && q.kind !== "sim" && q.kind !== "interactive"} data-testid="practice-check">{q.kind === "short" ? "Xem gợi ý đáp án" : "Kiểm tra"}</Button>
             ) : isLast ? (
               <Button onClick={() => finish()} data-testid="practice-finish">Xem kết quả</Button>
             ) : (
@@ -174,6 +186,7 @@ function Session({ setId, mode, pool, passedLevels, onRestart }: { setId: string
         </CardContent>
       </Card>
       <aside aria-label="Danh sách câu" className="space-y-3">
+        <p className="flex items-center gap-1.5 rounded-2xl border border-line bg-surface px-3 py-2 text-xs text-muted"><Lock className="size-3.5" aria-hidden /> Khóa tab · rời bài {lock.leaves}/{MAX_LEAVES}</p>
         <div className="flex flex-wrap gap-1.5 rounded-2xl border border-line bg-surface p-3">
           {Array.from({ length: total }, (_, i) => {
             const x = order[i];
@@ -193,7 +206,9 @@ function Session({ setId, mode, pool, passedLevels, onRestart }: { setId: string
         </div>
         {mode === "adaptive" && <p className="rounded-xl bg-surface-2 p-3 text-xs text-muted">Câu tiếp theo được chọn theo luật: ưu tiên mục tiêu em đang trả lời sai nhiều nhất và câu em chưa làm. Đây không phải mô hình AI.</p>}
         {mode === "exam" && <Button variant="secondary" className="w-full" onClick={() => finish()}>Nộp bài sớm</Button>}
+        {mode !== "exam" && <Button variant="ghost" className="w-full" onClick={() => finish()}>Kết thúc và nộp bài</Button>}
       </aside>
+    </div>
     </div>
   );
 }
@@ -206,7 +221,7 @@ function Feedback({ q, g }: { q: PracticeQuestion; g: GradeResult }) {
         {g.status === "self" ? "Em hãy tự so sánh với gợi ý đáp án" : ok ? <><CheckCircle2 className="size-4 text-success-fg" /> Chính xác!</> : <><XCircle className="size-4 text-danger-fg" /> Chưa đúng</>}
       </p>
       {g.detail && <p className="mt-1 text-fg">{g.detail}</p>}
-      {!ok && g.expected && (q.kind === "predict" || q.kind === "order" || q.kind === "fillcode" || q.kind === "short" ? <pre className="mt-2 whitespace-pre-wrap rounded-lg bg-surface p-2 font-mono text-xs text-fg">{g.expected}</pre> : <p className="mt-1 text-fg">Đáp án: <b>{g.expected}</b></p>)}
+      {!ok && g.expected && (q.kind === "predict" || q.kind === "order" || q.kind === "fillcode" || q.kind === "short" || q.kind === "match" ? <pre className="mt-2 whitespace-pre-wrap rounded-lg bg-surface p-2 font-mono text-xs text-fg">{g.expected}</pre> : <p className="mt-1 text-fg">Đáp án: <b>{g.expected}</b></p>)}
       <p className="mt-1 text-muted">{q.explanation}</p>
     </motion.div>
   );

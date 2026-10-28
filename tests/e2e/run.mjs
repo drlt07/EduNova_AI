@@ -381,6 +381,7 @@ await step("Bài học (học sinh): đánh dấu phần, quan sát trực quan,
 });
 await step("Luyện tập: chấm ngay + giải thích; dự đoán đầu ra chấm bằng chạy code thật", async () => {
   await go("/student/practice/if-basic?che-do=practice");
+  await page.getByTestId("lock-start").click();
   await page.getByText("if x == 5:", { exact: true }).click();
   await page.getByTestId("practice-check").click();
   await page.getByText("Chính xác!").waitFor();
@@ -392,6 +393,7 @@ await step("Luyện tập: chấm ngay + giải thích; dự đoán đầu ra ch
 });
 await step("Kiểm tra: có giờ, khóa gia sư, nộp → kết quả theo mục tiêu", async () => {
   await go("/student/practice/logic?che-do=exam");
+  await page.getByTestId("lock-start").click();
   await page.getByRole("timer").waitFor();
   await page.getByText("Gia sư AI tạm khóa trong bài kiểm tra").waitFor();
   page.once("dialog", (dlg) => dlg.accept());

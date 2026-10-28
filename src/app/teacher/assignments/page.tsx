@@ -125,7 +125,7 @@ export default function AssignmentsPage() {
       <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-fg">Bài tập & Đánh giá</h1>
-          <p className="mt-1 text-muted">Nhiệm vụ giao từ bài SGK: máy chấm mô phỏng, câu hỏi, code; thầy cô chấm phần theo tiêu chí.</p>
+          <p className="mt-1 text-muted">Nhiệm vụ giao từ bài học: máy chấm mô phỏng, câu hỏi, code; thầy cô chấm phần theo tiêu chí.</p>
         </div>
         <Button onClick={() => setCreating(true)}><Plus /> Giao nhiệm vụ</Button>
       </div>

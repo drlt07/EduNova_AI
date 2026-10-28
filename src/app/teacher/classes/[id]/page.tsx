@@ -6,9 +6,8 @@ import { ArrowLeft, CheckCircle2, Copy, FlaskConical, MonitorPlay, Pencil, Refre
 import { toast } from "sonner";
 import { classNotes } from "@/lib/analytics/class-notes";
 import { objectiveMastery } from "@/lib/analytics/compute";
-import { TEXTBOOKS } from "@/lib/data/curriculum";
 import { getLabBySlug } from "@/lib/data/labs";
-import { bookEntry, bookLessons, bookOf, lessonSimSlugs } from "@/lib/sgk/book";
+import { bookEntry, bookLessons, lessonSimSlugs } from "@/lib/sgk/book";
 import { fmtScore, labSummary } from "@/lib/sim/lab-score";
 import { classStudents, teacherClasses } from "@/lib/store/scoped";
 import { useSessionData } from "@/lib/store/use-role";
@@ -20,7 +19,6 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { EmptyState, PageSkeleton } from "@/components/ui/feedback";
 import { Field, Input } from "@/components/ui/form";
 import { Avatar } from "@/components/ui/misc";
-import { BookCover } from "@/components/sgk/book-cover";
 import { lessonAssignables } from "@/components/sgk/reader";
 import { AssignDialog, type AssignPreset } from "@/components/teacher/assign-dialog";
 import { ClassFormDialog } from "@/components/teacher/class-form-dialog";
@@ -73,10 +71,9 @@ function ClassDetail() {
         ))}
       </nav>
       <header className="mb-5 flex flex-wrap items-start gap-4">
-        <BookCover grade={cls.grade} className="h-24 w-auto shrink-0" />
         <div className="min-w-0 flex-1">
           <h1 className="text-3xl font-bold tracking-tight text-fg">Lớp {cls.name}</h1>
-          <p className="text-muted">{bookOf(cls.grade).title} · {TEXTBOOKS.find((t) => t.id === cls.textbookId)?.name} · {cls.pathway === "chung" ? "nội dung chung" : cls.pathway} · {cls.schoolYear}</p>
+          <p className="text-muted">Tin học {cls.grade} · {cls.pathway === "chung" ? "nội dung chung" : cls.pathway} · {cls.schoolYear}</p>
           <p className="text-sm text-muted">{students.length} học sinh · lịch {cls.schedule.map((s) => `${["", "Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6", "Thứ 7"][s.weekday]} ${s.period.toLowerCase()} (${s.room})`).join(", ") || "chưa có"}</p>
         </div>
         <div className="flex flex-col items-start gap-2 sm:items-end">
@@ -110,7 +107,7 @@ function ClassDetail() {
               {next ? (
                 <>
                   <p className="mt-1 text-xl font-bold text-fg">Bài {next.lesson.no}. {next.lesson.title}</p>
-                  <p className="text-sm text-muted">Chủ đề {next.topic.no}. {next.topic.title}{next.content ? ` · ${next.content.periods} tiết` : " · chưa có nội dung số"}</p>
+                  <p className="text-sm text-muted">Chủ đề {next.topic.no}. {next.topic.title}{next.content ? ` · ${next.content.periods} tiết` : " · chưa có nội dung"}</p>
                   <div className="mt-3 flex flex-wrap gap-2">
                     <Button asChild size="sm"><Link href={`/teacher/sgk/${next.ref}`}><MonitorPlay /> Mở bài, trình chiếu</Link></Button>
                     <Button size="sm" variant="secondary" onClick={() => assignFromLesson(next.ref)}><Send /> Giao nhiệm vụ của bài</Button>
@@ -292,7 +289,7 @@ function StudentSheet({ classId, studentId, onClose, onRemedy }: { classId: stri
   return (
     <Dialog open={!!u} onOpenChange={(o) => !o && onClose()}>
       {u && p && (
-        <DialogContent title={u.name} description={`${p.done} nhiệm vụ đã xong · ${p.open} còn mở · đã mở ${p.read.length} bài SGK`} className="max-w-2xl">
+        <DialogContent title={u.name} description={`${p.done} nhiệm vụ đã xong · ${p.open} còn mở · đã học ${p.read.length} bài`} className="max-w-2xl">
           <div className="space-y-5">
             <section>
               <h3 className="mb-2 text-sm font-semibold text-fg">Cần củng cố</h3>

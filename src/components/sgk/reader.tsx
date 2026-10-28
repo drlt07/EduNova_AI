@@ -2,13 +2,13 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { ArrowLeft, ArrowRight, BookOpen, Bot, CheckCircle2, ChevronRight, Circle, ClipboardList, Code2, FileText, FlaskConical, ListChecks, MonitorPlay, NotebookPen, PencilLine, Send, Star, Target, Trash2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, BookOpen, Bot, CheckCircle2, ChevronRight, Circle, ClipboardList, Code2, FileText, FlaskConical, ListChecks, Lock, MonitorPlay, NotebookPen, PencilLine, Send, Star, Target, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import type { Assignment } from "@/lib/domain/types";
 import type { DemoData } from "@/lib/data/seed";
 import { CODING_EXERCISES } from "@/lib/data/coding-exercises";
 import { getLabBySlug } from "@/lib/data/labs";
-import { PRACTICE_SETS } from "@/lib/data/practice";
+import { getQuestion, KIND_LABEL, PRACTICE_SETS, type PracticeQuestion } from "@/lib/data/practice";
 import { LessonCodeTab, LessonLabsTab, LessonQuizTab } from "@/components/courses/lesson-panel";
 import { sgkLessonId } from "@/lib/data/sgk-kntt";
 import { bookEntry, bookOf, itemKey, lessonChecks, lessonSimSlugs, neighbors, type BookEntry } from "@/lib/sgk/book";
@@ -31,7 +31,7 @@ type TabId = "noi-dung" | "mo-phong" | "cau-hoi" | "lap-trinh" | "khbd" | "nhiem
 const TAB_META: Record<TabId, { label: string; icon: React.ComponentType<{ className?: string }> }> = {
   "noi-dung": { label: "Nội dung", icon: FileText },
   "mo-phong": { label: "Mô phỏng", icon: FlaskConical },
-  "cau-hoi": { label: "Câu hỏi", icon: ListChecks },
+  "cau-hoi": { label: "Câu hỏi luyện tập", icon: ListChecks },
   "lap-trinh": { label: "Bài lập trình", icon: Code2 },
   "luyen-tap": { label: "Luyện tập", icon: ListChecks },
   khbd: { label: "KHBD", icon: NotebookPen },
@@ -95,7 +95,7 @@ function Notes({ refId, sectionId }: { refId: string; sectionId: string }) {
   );
 }
 
-/** Trang một bài của SGK số: mọi thứ của bài (nội dung, mô phỏng, câu hỏi, lập trình, KHBD, nhiệm vụ) nằm trong các tab ngay dưới tên bài. */
+/** Trang một bài trong Khóa học: mọi thứ của bài (nội dung, mô phỏng, câu hỏi, lập trình, KHBD, nhiệm vụ) nằm trong các tab ngay dưới tên bài. */
 export function BookReader({ refId, role }: { refId: string; role: Role }) {
   const { d, user } = useSessionData();
   const tutor = useTutor();
@@ -114,7 +114,7 @@ export function BookReader({ refId, role }: { refId: string; role: Role }) {
   const ids = content?.sections.map((s) => s.id) ?? [];
   useReadTracking(ids, (id) => markRead(userId, refId, id));
 
-  if (!e) return <EmptyState icon={BookOpen} title="Không tìm thấy bài" action={<Button asChild><Link href={base(role)}>Về thư viện SGK số</Link></Button>} />;
+  if (!e) return <EmptyState icon={BookOpen} title="Không tìm thấy bài" action={<Button asChild><Link href={base(role)}>Về Khóa học</Link></Button>} />;
   const teacher = role === "teacher";
   const book = bookOf(e.grade);
   const { prev, next } = neighbors(refId);
@@ -133,7 +133,7 @@ export function BookReader({ refId, role }: { refId: string; role: Role }) {
   return (
     <TutorScope title={`${book.title} · Bài ${e.lesson.no}. ${e.lesson.title}`} topic="general" level={teacher ? "free" : "guided"}>
       <nav aria-label="Vị trí" className="mb-3 flex flex-wrap items-center gap-1 text-xs text-muted">
-        <Link href={base(role)} className="hover:text-fg">SGK số</Link><ChevronRight className="size-3" aria-hidden />
+        <Link href={base(role)} className="hover:text-fg">Khóa học</Link><ChevronRight className="size-3" aria-hidden />
         <Link href={`${base(role)}?lop=${e.grade}`} className="hover:text-fg">{book.title}</Link><ChevronRight className="size-3" aria-hidden />
         <span>Chủ đề {e.topic.no}. {e.topic.title}</span><ChevronRight className="size-3" aria-hidden />
         <span className="font-medium text-fg">Bài {e.lesson.no}</span>
@@ -258,7 +258,7 @@ export function BookReader({ refId, role }: { refId: string; role: Role }) {
             </>
           ) : (
             <div className="space-y-3 rounded-2xl border border-dashed border-line p-5 text-sm text-muted">
-              <p>Bài này chưa có nội dung số. {teacher ? "Thầy cô vẫn gắn được mô phỏng, soạn câu hỏi và giao nhiệm vụ cho bài ở các tab phía trên; học sinh sẽ thấy ngay trong bài." : "Em theo dõi bài trên lớp; mô phỏng và nhiệm vụ của bài nằm ở các tab phía trên."}</p>
+              <p>Bài này chưa có nội dung. {teacher ? "Thầy cô vẫn gắn được mô phỏng, soạn câu hỏi và giao nhiệm vụ cho bài ở các tab phía trên; học sinh sẽ thấy ngay trong bài." : "Em theo dõi bài trên lớp; mô phỏng và nhiệm vụ của bài nằm ở các tab phía trên."}</p>
               <span className="flex flex-wrap gap-2">
                 {(teacher ? ["mo-phong", "cau-hoi", "nhiem-vu"] as TabId[] : ["mo-phong", "nhiem-vu"] as TabId[]).map((t) => <Button key={t} size="sm" variant="secondary" onClick={() => setTab(t)}>{TAB_META[t].label}{counts[t] ? ` (${counts[t]})` : ""}</Button>)}
               </span>
@@ -300,8 +300,9 @@ function studentLessonTasks(d: DemoData, userId: string, e: BookEntry) {
 /** Bộ câu hỏi học sinh làm được ở bài này: bộ có sẵn của bài và bộ thầy cô đã giao lớp em. */
 function studentPractice(d: DemoData, userId: string, e: BookEntry) {
   const classIds = studentClassIds(d, userId);
-  const sets = e.lesson.key ? PRACTICE_SETS.filter((s) => s.lessonKey === e.lesson.key).map((s) => ({ id: s.id, title: s.title, n: s.questionIds.length, mine: false })) : [];
-  const tq = d.teacherQuizzes.filter((q) => q.sgkRef === e.ref && q.status === "published" && q.classIds.some((c) => classIds.includes(c))).map((q) => ({ id: q.id, title: q.title, n: q.questions.length, mine: true }));
+  const kinds = (ks: PracticeQuestion["kind"][]) => [...new Set(ks)].map((k) => KIND_LABEL[k]);
+  const sets = e.lesson.key ? PRACTICE_SETS.filter((s) => s.lessonKey === e.lesson.key).map((s) => ({ id: s.id, title: s.title, n: s.questionIds.length, mine: false, kinds: kinds(s.questionIds.map(getQuestion).filter((q): q is PracticeQuestion => !!q).map((q) => q.kind)) })) : [];
+  const tq = d.teacherQuizzes.filter((q) => q.sgkRef === e.ref && q.status === "published" && q.classIds.some((c) => classIds.includes(c))).map((q) => ({ id: q.id, title: q.title, n: q.questions.length, mine: true, kinds: kinds(q.questions.map((x) => x.kind)) }));
   return [...tq, ...sets];
 }
 
@@ -461,9 +462,10 @@ function StudentPracticeTab({ e }: { e: BookEntry }) {
     <div className="space-y-6">
       {sets.length > 0 && (
         <section>
-          <h3 className="mb-2 font-semibold text-fg">Trắc nghiệm</h3>
+          <h3 className="font-semibold text-fg">Câu hỏi luyện tập</h3>
+          <p className="mb-2 flex items-center gap-1.5 text-xs text-muted"><Lock className="size-3.5" aria-hidden /> Làm trong chế độ khóa tab: toàn màn hình, rời bài 3 lần thì bài tự nộp.</p>
           <ul className="space-y-2">
-            {sets.map((s) => <li key={s.id} className="flex flex-wrap items-center gap-2 rounded-xl border border-line bg-surface p-3"><span className="min-w-0 flex-1"><span className="block font-semibold text-fg">{s.title}</span><span className="block text-xs text-muted">{s.n} câu{s.mine ? " · thầy cô giao" : ""}</span></span><Button asChild size="sm"><Link href={`/student/practice/${s.id}`}>Làm bài</Link></Button></li>)}
+            {sets.map((s) => <li key={s.id} className="flex flex-wrap items-center gap-2 rounded-xl border border-line bg-surface p-3"><span className="min-w-0 flex-1"><span className="block font-semibold text-fg">{s.title}</span><span className="block text-xs text-muted">{s.n} câu{s.mine ? " · thầy cô giao" : ""} · {s.kinds.join(", ")}</span></span><Button asChild size="sm"><Link href={`/student/practice/${s.id}`}>Làm bài</Link></Button></li>)}
           </ul>
         </section>
       )}

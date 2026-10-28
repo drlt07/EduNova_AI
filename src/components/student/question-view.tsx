@@ -7,10 +7,11 @@ import { shuffled, type Answer } from "@/lib/practice/grade";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input, Label, Textarea } from "@/components/ui/form";
+import { BlankQuestion, MatchQuestion, MultiQuestion, WidgetQuestion } from "./interactive-questions";
 
 function Code({ code, numbered }: { code: string; numbered?: boolean }) {
   return (
-    <pre tabIndex={0} className="overflow-x-auto rounded-xl bg-[#0B1220] p-3 font-mono text-[13px] leading-6 text-slate-200">
+    <pre tabIndex={0} className="overflow-x-auto rounded-xl bg-[#0B1220] p-3 font-mono text-[13px] leading-6 text-slate-200 [font-variant-ligatures:none]">
       {numbered ? code.split("\n").map((l, i) => <div key={i}><span className="mr-3 inline-block w-5 select-none text-right text-slate-500">{i + 1}</span>{l}</div>) : code}
     </pre>
   );
@@ -83,6 +84,14 @@ export function QuestionView({ q, answer, onAnswer, disabled }: { q: PracticeQue
           <p className="text-xs text-muted">Câu tự luận được em tự đối chiếu với gợi ý đáp án, không tính vào mức đạt.</p>
         </div>
       );
+    case "multi":
+      return <MultiQuestion q={q} answer={answer} onAnswer={onAnswer} disabled={disabled} />;
+    case "match":
+      return <MatchQuestion q={q} answer={answer} onAnswer={onAnswer} disabled={disabled} />;
+    case "blank":
+      return <BlankQuestion q={q} answer={answer} onAnswer={onAnswer} disabled={disabled} />;
+    case "interactive":
+      return <WidgetQuestion q={q} answer={answer} onAnswer={onAnswer} disabled={disabled} />;
     case "sim":
       return (
         <div className="space-y-2 rounded-xl border border-line bg-surface-2 p-4">
@@ -94,7 +103,7 @@ export function QuestionView({ q, answer, onAnswer, disabled }: { q: PracticeQue
 }
 
 function OrderQuestion({ q, answer, onAnswer, disabled }: { q: Extract<PracticeQuestion, { kind: "order" }>; answer: Answer; onAnswer: (a: Answer) => void; disabled?: boolean }) {
-  const lines = Array.isArray(answer) ? answer : shuffled(q.lines, q.id);
+  const lines = Array.isArray(answer) ? (answer as string[]) : shuffled(q.lines, q.id);
   const [drag, setDrag] = useState<number | null>(null);
   const move = (from: number, to: number) => {
     if (to < 0 || to >= lines.length || from === to) return;

@@ -31,7 +31,7 @@ export function ClassFormDialog({ open, onOpenChange, editing, onCreated }: { op
   });
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent title={editing ? `Sửa lớp ${editing.name}` : "Tạo lớp mới"} description="Khối và bộ sách quyết định lộ trình SGK số của lớp.">
+      <DialogContent title={editing ? `Sửa lớp ${editing.name}` : "Tạo lớp mới"} description="Khối và bộ sách quyết định lộ trình bài học của lớp.">
         <form onSubmit={submit} noValidate className="space-y-3">
           <div className="grid grid-cols-2 gap-3">
             <Field label="Tên lớp" htmlFor="c-name" error={form.formState.errors.name?.message}><Input id="c-name" {...form.register("name")} aria-invalid={!!form.formState.errors.name} /></Field>

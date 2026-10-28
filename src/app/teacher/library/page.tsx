@@ -79,7 +79,7 @@ export default function LibraryPage() {
 
   /** Gắn vào bài SGK thầy cô mở gần nhất: mô phỏng vào danh sách mô phỏng của bài, học liệu/KHBD vào mục đã chọn để dạy. */
   function addToLesson(x: Item) {
-    if (!currentLesson) return toast.error("Mở một bài trong SGK số trước, rồi quay lại thêm học liệu.");
+    if (!currentLesson) return toast.error("Mở một bài trong Khóa học trước, rồi quay lại thêm học liệu.");
     if (x.kind === "labConfigs") {
       const slug = getLab(d.labConfigs.find((y) => y.id === x.id)!.labTemplateId)?.slug;
       if (slug && !d.lessonLabs.some((l) => l.ownerId === user.id && l.sgkRef === currentLesson.ref && l.slug === slug)) d.toggleLessonLab(user.id, currentLesson.ref, slug);
@@ -131,7 +131,7 @@ export default function LibraryPage() {
                 ) : <Badge tone={x.visibility === "public" ? "success" : "blue"}>{VIS[x.visibility].label}</Badge>}
                 <div className="flex flex-wrap gap-1">
                   <Button size="sm" variant="ghost" onClick={() => setPreview(x)}><Eye /> Xem</Button>
-                  <Button size="sm" variant="ghost" onClick={() => addToLesson(x)} title={currentLesson ? `Thêm vào Bài ${currentLesson.lesson.no}` : "Mở một bài SGK trước"}><BookPlus /> Thêm vào bài</Button>
+                  <Button size="sm" variant="ghost" onClick={() => addToLesson(x)} title={currentLesson ? `Thêm vào Bài ${currentLesson.lesson.no}` : "Mở một bài trong Khóa học trước"}><BookPlus /> Thêm vào bài</Button>
                   {scope === "mine" && x.kind === "lessonPlans" ? <Button asChild size="sm" variant="secondary"><Link href={`/teacher/lesson-planner/${x.id}`}>Mở</Link></Button> : scope !== "mine" && <Button size="sm" variant="secondary" onClick={() => duplicate(x)}><Copy /> Tạo bản sao</Button>}
                 </div>
               </li>

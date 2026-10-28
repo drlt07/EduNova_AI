@@ -1,8 +1,8 @@
 /** Chấm câu luyện tập. Dự đoán đầu ra và điền code được đối chiếu bằng cách chạy chương trình thật. */
-import type { PracticeQuestion } from "@/lib/data/practice";
+import { widgetExpected, type PracticeQuestion } from "@/lib/data/practice";
 import { normalizeOutput, runPython } from "@/lib/py/interpreter";
 
-export type Answer = number | boolean | string | string[] | null;
+export type Answer = number | boolean | string | string[] | number[] | null;
 export interface GradeResult {
   /** correct/wrong: chấm tự động; self: học sinh tự đánh giá (không tính vào mức đạt) */
   status: "correct" | "wrong" | "self";
@@ -49,6 +49,36 @@ export function gradeQuestion(q: PracticeQuestion, answer: Answer, ctx: { passed
       return { status: "self", expected: q.sample };
     case "sim":
       return { status: ctx.passedLevels?.includes(q.level) ? "correct" : "wrong", detail: ctx.passedLevels?.includes(q.level) ? undefined : "Chưa hoàn thành cấp độ này trong trò chơi." };
+    case "multi": {
+      const got = Array.isArray(answer) ? [...(answer as number[])].map(Number).sort((a, b) => a - b) : [];
+      const want = [...q.correct].sort((a, b) => a - b);
+      return { status: got.length === want.length && got.every((x, i) => x === want[i]) ? "correct" : "wrong", expected: want.map((i) => q.options[i]).join("; ") };
+    }
+    case "match": {
+      const got = Array.isArray(answer) ? (answer as string[]) : [];
+      const wrong = q.pairs.filter(([, r], i) => got[i] !== r).length;
+      return { status: wrong === 0 ? "correct" : "wrong", expected: q.pairs.map(([l, r]) => `${l} → ${r}`).join("\n"), detail: wrong && got.length ? `Còn ${wrong}/${q.pairs.length} cặp ghép chưa đúng.` : undefined };
+    }
+    case "blank": {
+      const got = Array.isArray(answer) ? (answer as string[]) : [];
+      const fold = (x: string) => x.trim().toLowerCase();
+      const ok = q.answers.every((acc, i) => acc.some((a) => fold(a) === fold(got[i] ?? "")));
+      return { status: ok ? "correct" : "wrong", expected: q.answers.map((a) => a[0]).join(" · ") };
+    }
+    case "interactive": {
+      const want = widgetExpected(q.widget);
+      return { status: answer === want ? "correct" : "wrong", expected: interactiveText(q.widget, want) };
+    }
+  }
+}
+
+function interactiveText(w: Extract<PracticeQuestion, { kind: "interactive" }>["widget"], want: string): string {
+  switch (w.type) {
+    case "bits": return want;
+    case "gate": return `Bảng chân lý ${w.gate} (00, 01, 10, 11): ${want.split("").join(", ")}`;
+    case "pump": return w.readings.map((r, i) => `${r.humidity}%${r.water ? "" : " (bình cạn)"}: ${want[i] === "1" ? "bật" : "tắt"}`).join("; ");
+    case "sqlrows": return w.correct.map((i) => w.rows[i][0]).join(", ");
+    case "flag": return w.parts.filter((p) => p.suspicious).map((p) => `“${p.text.trim()}”`).join("; ");
   }
 }
 

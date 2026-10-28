@@ -460,6 +460,10 @@ export interface PracticeAttempt {
   items: PracticeItemResult[];
   startedAt: string;
   finishedAt: string;
+  /** Số lần rời tab / thoát toàn màn hình trong lúc làm (chế độ khóa tab). */
+  violations?: number;
+  /** Bài bị nộp tự động vì rời tab quá số lần cho phép. */
+  autoSubmitted?: boolean;
 }
 
 export interface CodeWork {

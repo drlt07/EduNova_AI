@@ -186,7 +186,7 @@ function Report() {
                 const isOpen = openObj === o.objectiveId;
                 return (
                   <li key={o.objectiveId} className="py-3">
-                    <p className="text-xs text-muted">{o.lessonRef ? <Link href={`/teacher/sgk/${o.lessonRef}`} className="inline-flex items-center gap-1 hover:text-cyan-fg"><BookOpen className="size-3" aria-hidden /> {o.lessonTitle}</Link> : "Ngoài SGK số"}</p>
+                    <p className="text-xs text-muted">{o.lessonRef ? <Link href={`/teacher/sgk/${o.lessonRef}`} className="inline-flex items-center gap-1 hover:text-cyan-fg"><BookOpen className="size-3" aria-hidden /> {o.lessonTitle}</Link> : "Ngoài khóa học"}</p>
                     <div className="mt-0.5 flex items-start gap-3">
                       <p className="min-w-0 flex-1 text-sm font-medium text-fg">{o.description}</p>
                       <span className={cn("shrink-0 font-bold tabular-nums", o.mastery < 70 ? "text-warning-fg" : "text-success-fg")}>{o.mastery}%</span>

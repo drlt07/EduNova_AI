@@ -17,7 +17,6 @@ import { isThisWeek } from "@/components/layout/week-calendar";
 import { ClassInsights, WeekTimetable } from "@/components/teacher/dashboard-panels";
 import { AssignDialog, type AssignPreset } from "@/components/teacher/assign-dialog";
 import { lessonAssignables } from "@/components/sgk/reader";
-import { BookCover } from "@/components/sgk/book-cover";
 
 const DAY = ["Chủ nhật", "Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy"];
 const hhmm = (d: Date) => `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
@@ -41,7 +40,7 @@ function SlotRow({ s, now }: { s: Slot; now: Date }) {
       <div className="min-w-0 flex-1 basis-56">
         <p className="text-sm text-muted"><span className="mr-1.5 rounded bg-fg px-1.5 py-0.5 text-xs font-bold text-bg">{s.cls.name}</span>{s.room}{!sameDay(s.at, now) && ` · ${DAY[s.at.getDay()]} ${formatDate(s.at.toISOString()).slice(0, 5)}`}</p>
         {s.lesson ? <Link href={`/teacher/sgk/${s.lesson.ref}`} className="mt-0.5 block font-semibold text-fg hover:text-cyan-fg">Bài {s.lesson.lesson.no}. {s.lesson.lesson.title}</Link> : <p className="mt-0.5 font-semibold text-fg">Đã dạy hết sách</p>}
-        {s.lesson && <p className="text-xs text-muted">{bookOf(s.cls.grade).title} · {s.planId ? "đã có KHBD" : "chưa có KHBD"}{s.lesson.content ? "" : " · bài chưa có nội dung số"}</p>}
+        {s.lesson && <p className="text-xs text-muted">{bookOf(s.cls.grade).title} · {s.planId ? "đã có KHBD" : "chưa có KHBD"}</p>}
       </div>
       {s.lesson && (
         <div className="flex flex-wrap gap-1.5">
@@ -163,7 +162,7 @@ export default function TeacherToday() {
         <div className="min-w-0 space-y-6">
           {lastEntry && (
             <Link href={`/teacher/sgk/${lastEntry.ref}${data.last!.last ? `#muc-${data.last!.last}` : ""}`} className="group flex items-center gap-4 rounded-2xl border border-line bg-surface p-4 transition-colors hover:border-cyan/50">
-              <BookCover grade={lastEntry.grade} className="h-20 w-auto shrink-0" />
+              <span className="grid size-14 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-[#2563eb] to-[#06b6d4] text-xl font-extrabold text-white">{lastEntry.grade}</span>
               <span className="min-w-0 flex-1">
                 <span className="block text-xs font-semibold uppercase tracking-wide text-cyan-fg">Tiếp tục bài dạy</span>
                 <span className="block font-bold text-fg">Bài {lastEntry.lesson.no}. {lastEntry.lesson.title}</span>
@@ -195,7 +194,7 @@ export default function TeacherToday() {
             <h2 id="tat-h" className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted">Lối tắt</h2>
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
               {[
-                { href: "/teacher/sgk", label: "SGK số", icon: BookOpen },
+                { href: "/teacher/sgk", label: "Khóa học", icon: BookOpen },
                 { href: "/labs", label: "Tình huống mô phỏng", icon: FlaskConical },
                 { href: "/teacher/lesson-planner/assistant", label: "Trợ lý KHBD AI", icon: Bot },
                 { href: "/teacher/resources", label: "Câu hỏi & học liệu", icon: ListChecks },
