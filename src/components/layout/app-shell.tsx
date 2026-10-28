@@ -32,7 +32,7 @@ function SidebarNav({ role, onNavigate }: { role: Role; onNavigate?: () => void 
             aria-current={active ? "page" : undefined}
             className={cn(
               "group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-muted transition-colors hover:bg-surface-2 hover:text-fg",
-              active && "bg-gradient-to-r from-cyan/15 to-blue/5 text-fg ring-1 ring-cyan/25",
+              active && "bg-brand/10 font-semibold text-fg",
             )}
           >
             <item.icon className={cn("size-[18px] shrink-0", active ? "text-cyan-fg" : "text-muted group-hover:text-fg")} />

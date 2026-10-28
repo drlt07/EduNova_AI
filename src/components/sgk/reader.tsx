@@ -250,6 +250,8 @@ function TeacherPanel({ e, picks, onAssign }: { e: BookEntry; picks: Set<string>
   const sectionTitle = (k: string) => {
     const id = k.split("#")[1];
     if (id.startsWith("sim:")) return `Mô phỏng: ${getLabBySlug(id.slice(4))?.title ?? id}`;
+    if (id.startsWith("res:")) return `Học liệu: ${d.resources.find((r) => r.id === id.slice(4))?.title ?? "đã xóa"}`;
+    if (id.startsWith("khbd:")) return `KHBD: ${d.lessonPlans.find((p) => p.id === id.slice(5))?.title ?? "đã xóa"}`;
     return e.content?.sections.find((s) => s.id === id)?.title ?? id;
   };
   return (

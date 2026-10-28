@@ -15,6 +15,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { EmptyState, PageSkeleton } from "@/components/ui/feedback";
 import { Field, Input, Select } from "@/components/ui/form";
 import { PageHeader } from "@/components/ui/misc";
+import { PlannerHome } from "@/components/khbd/planner-home";
 
 function LessonPlannerList() {
   const { d, user } = useSessionData();
@@ -60,9 +61,11 @@ function LessonPlannerList() {
     <>
       <PageHeader
         title="Trợ lý KHBD AI"
-        description="Soạn KHBD theo 4 hoạt động: Mở đầu, Hình thành kiến thức, Luyện tập, Vận dụng — tự soạn hoặc dùng trợ lý (tải KHBD có sẵn hoặc soạn mới, gắn mô phỏng, xuất Word)."
+        description="Chọn bài sắp dạy, trợ lý dựng KHBD từ nội dung SGK, gợi ý mô phỏng kèm lý do và đề xuất điều chỉnh từ bài làm của học sinh."
         actions={<><Button asChild><Link href="/teacher/lesson-planner/assistant"><Wand2 /> Soạn với trợ lý</Link></Button><Button variant="secondary" onClick={() => setOpen(true)}><FilePlus2 /> KHBD mới</Button></>}
       />
+      <PlannerHome />
+      <h2 className="mb-3 text-lg font-bold text-fg">KHBD của tôi</h2>
       <div className="mb-4 grid gap-3 sm:grid-cols-[1fr_160px_160px]">
         <div className="relative">
           <label htmlFor="lp-q" className="sr-only">Tìm KHBD</label>

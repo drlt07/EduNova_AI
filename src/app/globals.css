@@ -18,6 +18,10 @@
   --warning: #b86e00;
   --danger: #d0334a;
   --ring: #0e93b0;
+  /* màu thương hiệu: nút chính, trạng thái đang chọn (chữ trắng trên nền ≥ 4.5:1) */
+  --brand: #0b6e86;
+  --brand-hover: #095a6e;
+  --brand-ink: #ffffff;
   --grid: rgba(11, 18, 32, 0.05);
   /* màu chữ trên nền sáng: tương phản ≥ 4.5:1 */
   --cyan-fg: #065d72;
@@ -43,6 +47,9 @@
   --warning: #fbbf24;
   --danger: #fb7185;
   --ring: #22d3ee;
+  --brand: #22d3ee;
+  --brand-hover: #67e8f9;
+  --brand-ink: #04111f;
   --grid: rgba(148, 163, 184, 0.07);
   /* màu chữ trên nền tối: tương phản ≥ 4.5:1 */
   --cyan-fg: #22d3ee;
@@ -54,6 +61,9 @@
 }
 
 @theme inline {
+  --color-brand: var(--brand);
+  --color-brand-hover: var(--brand-hover);
+  --color-brand-ink: var(--brand-ink);
   --color-bg: var(--bg);
   --color-surface: var(--surface);
   --color-surface-2: var(--surface-2);

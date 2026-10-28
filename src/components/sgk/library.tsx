@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { ArrowLeft, ArrowRight, BookMarked, CheckCircle2, FileText, FlaskConical, Trophy } from "lucide-react";
+import { ArrowLeft, ArrowRight, BookMarked, Library, CheckCircle2, FileText, FlaskConical, Trophy } from "lucide-react";
 import type { Grade } from "@/lib/domain/types";
 import { ALGO_IDS } from "@/lib/data/hsg";
 import { BOOKS, bookEntry, bookLessons, bookOf, contentCount, lessonSimSlugs } from "@/lib/sgk/book";
@@ -42,7 +42,7 @@ function Shelf({ role }: { role: Role }) {
           <h1 className="text-3xl font-bold tracking-tight text-fg">Sách giáo khoa số</h1>
           <p className="mt-1 text-muted">{teacher ? "Đọc, trình chiếu, chọn học liệu và giao nhiệm vụ ngay trong từng bài." : "Đọc bài, làm mô phỏng và câu hỏi củng cố ngay trong sách."}</p>
         </div>
-        {teacher && <Button asChild variant="ghost"><Link href="/teacher/courses"><BookMarked /> Khóa học thầy cô đã soạn</Link></Button>}
+        {teacher && <span className="flex flex-wrap gap-2"><Button asChild variant="secondary"><Link href="/teacher/library"><Library /> Thư viện học liệu</Link></Button><Button asChild variant="ghost"><Link href="/teacher/courses"><BookMarked /> Khóa học đã soạn</Link></Button></span>}
       </div>
 
       {last?.e && (

@@ -34,7 +34,7 @@ export function AlgoPage({ id }: { id: string }) {
           <ul className="flex w-max gap-1 rounded-2xl border border-line bg-surface p-1">
             {topic.algos.map((x) => (
               <li key={x}>
-                <Link href={`/thuat-toan/${x}`} aria-current={x === id ? "page" : undefined} className={cn("block rounded-xl px-3.5 py-2 text-sm font-medium transition-colors", x === id ? "bg-gradient-to-r from-[#22d3ee] to-[#4f7fff] text-[#04111f] shadow-sm" : "text-muted hover:bg-surface-2 hover:text-fg")}>{ALGOS[x].title}</Link>
+                <Link href={`/thuat-toan/${x}`} aria-current={x === id ? "page" : undefined} className={cn("block rounded-xl px-3.5 py-2 text-sm font-medium transition-colors", x === id ? "bg-brand text-brand-ink" : "text-muted hover:bg-surface-2 hover:text-fg")}>{ALGOS[x].title}</Link>
               </li>
             ))}
           </ul>
