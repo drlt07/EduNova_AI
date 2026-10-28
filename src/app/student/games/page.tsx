@@ -2,36 +2,83 @@
 import { MiniSimPreview } from "@/components/landing/hero-visuals";
 import { PageHero } from "@/components/layout/page-hero";
 import Link from "next/link";
-import { useMemo, useState } from "react";
-import { Clock, Compass, Gamepad2, Lock, Swords, Trophy } from "lucide-react";
+import { useState } from "react";
+import { Compass, Gamepad2, Search, Swords, Trophy } from "lucide-react";
 import { FARM_LEVELS, GAMES, WORLDS } from "@/lib/data/games";
-import { DIFFICULTY_LABEL } from "@/lib/data/curriculum";
+import { LAB_LEVELS, LAB_TOPICS, labMeta, topicLabel } from "@/lib/data/lab-catalog";
+import { fmtScore } from "@/lib/sim/lab-score";
 import { useSessionData } from "@/lib/store/use-role";
-import { cn } from "@/lib/utils";
+import { cn, matchesQuery } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
-import { Select } from "@/components/ui/form";
-import { LabIcon } from "@/components/labs/lab-card";
-import { AnimatedBar, Stagger, StaggerItem } from "@/components/motion";
+import { Input, Select } from "@/components/ui/form";
+import { SimCard, type LabProgress } from "@/components/labs/lab-card";
+import { Stagger, StaggerItem } from "@/components/motion";
 import { AlgoThumb } from "@/components/algo/hsg-catalog";
 import { ALGO_IDS, HSG_TOPICS } from "@/lib/data/hsg";
 
 const WORLD_STYLE = { success: "from-success/25 via-cyan/10", blue: "from-blue/25 via-cyan/10", violet: "from-violet/25 via-blue/10" } as const;
-const DIFF_TONE = { "co-ban": "success", "trung-binh": "warning", "nang-cao": "danger" } as const;
 
 export default function GamesPage() {
   const { d, user } = useSessionData();
   const [grade, setGrade] = useState("");
   const [world, setWorld] = useState("");
   const [diff, setDiff] = useState("");
-  const games = useMemo(() => GAMES.filter((g) => (!grade || String(g.grade) === grade) && (!world || g.worldId === world) && (!diff || g.difficulty === diff)), [grade, world, diff]);
+  const [q, setQ] = useState("");
+  const [topic, setTopic] = useState("");
+  const [status, setStatus] = useState("");
   const farm = d.gameProgress.find((g) => g.studentId === user.id && g.gameSlug === "smart-farm");
+  /** Trạng thái của em: nông trại theo cấp đã vượt, các mô phỏng khác theo điểm đã lưu. */
+  const progressOf = (g: (typeof GAMES)[number]): LabProgress => {
+    if (g.slug === "smart-farm") { const n = farm?.passed.length ?? 0; return n ? { label: `Cấp ${n}/${FARM_LEVELS.length}`, done: n >= FARM_LEVELS.length } : { label: "Chưa học", done: false }; }
+    const rs = d.labResults.filter((r) => r.studentId === user.id && r.labSlug === g.labSlug);
+    return rs.length ? { label: `Hoàn thành · ${fmtScore(Math.max(...rs.map((r) => r.score)))}`, done: true } : { label: "Chưa học", done: false };
+  };
+  const games = GAMES.filter((g) => {
+    const m = labMeta(g.labSlug ?? g.icon);
+    const done = progressOf(g)?.done ?? false;
+    return (!grade || String(g.grade) === grade) && (!world || g.worldId === world) && (!diff || g.difficulty === diff) && (!topic || m.topic === topic) && (!status || (status === "done" ? done : !done)) && matchesQuery(q, g.title, g.description, g.focus, topicLabel(m.topic));
+  });
 
   return (
     <>
       <PageHero variant="app" eyebrow="Tình huống mô phỏng" icon={Gamepad2} title="Khám phá Tin học" accent="bằng cách thử" description="Thuật toán, máy tính, mạng và những tình huống tương tác. Gặp khó, mở AI Gia sư ngay bên cạnh mô phỏng." stats={[{ value: GAMES.filter((g) => g.status === "available").length, label: "chơi được ngay" }, { value: GAMES.length, label: "tình huống" }, { value: WORLDS.length, label: "thế giới" }, { value: "3D", label: "giao lộ thông minh" }]} visual={<MiniSimPreview href="/student/games/traffic-city" cta="Chơi ngay" />} />
-      <Link href="/thuat-toan" className="group mb-6 flex flex-wrap items-center gap-4 rounded-2xl border border-warning/40 bg-gradient-to-r from-warning/20 via-warning/5 to-transparent p-4 transition-all hover:-translate-y-0.5 sm:p-5">
-        <span className="flex gap-2" aria-hidden>{(["bubble", "bfs", "dijkstra"] as const).map((id) => <AlgoThumb key={id} id={id} className="h-10 w-16 rounded-lg bg-surface" />)}</span>
-        <span className="min-w-0 flex-1">
+      <div className="rounded-2xl border border-line bg-surface p-5 shadow-sm">
+        <div className="grid gap-3 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)]">
+          <div className="relative">
+            <Search className="pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-muted" aria-hidden />
+            <Input type="search" aria-label="Tìm tình huống" placeholder="Tìm tình huống (ví dụ: nhị phân, gói tin, SQL, lừa đảo)…" value={q} onChange={(e) => setQ(e.target.value)} className="h-12 rounded-xl pl-11" />
+          </div>
+          <Select aria-label="Khối lớp" className="h-12 rounded-xl" value={grade} onChange={(e) => setGrade(e.target.value)}><option value="">Tất cả khối lớp (10, 11, 12)</option>{[10, 11, 12].map((g) => <option key={g} value={g}>Lớp {g}</option>)}</Select>
+          <Select aria-label="Mức độ" className="h-12 rounded-xl" value={diff} onChange={(e) => setDiff(e.target.value)}><option value="">Tất cả mức độ</option>{Object.entries(LAB_LEVELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</Select>
+        </div>
+        <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-line pt-4" role="group" aria-label="Lọc theo chủ đề">
+          <span className="mr-1 text-sm font-medium text-muted">Chủ đề:</span>
+          {[{ id: "", label: "Tất cả" }, ...LAB_TOPICS].map((t) => (
+            <button key={t.id} type="button" aria-pressed={topic === t.id} onClick={() => setTopic(t.id)} className={cn("rounded-xl px-3 py-1.5 text-sm font-medium transition-colors", topic === t.id ? "bg-brand text-brand-ink shadow-sm shadow-brand/30" : "bg-surface-2 text-fg/80 hover:bg-line")}>{t.label}</button>
+          ))}
+        </div>
+        <div className="mt-3 flex flex-wrap items-center gap-3">
+          <label htmlFor="game-status" className="text-sm font-medium text-muted">Trạng thái:</label>
+          <Select id="game-status" className="h-9 w-44 rounded-xl" value={status} onChange={(e) => setStatus(e.target.value)}><option value="">Tất cả bài</option><option value="todo">Chưa học</option><option value="done">Đã hoàn thành</option></Select>
+          {world && <button type="button" onClick={() => setWorld("")} className="rounded-xl bg-brand/10 px-3 py-1.5 text-sm font-medium text-blue-fg">{WORLDS.find((w) => w.id === world)?.name} ✕</button>}
+        </div>
+      </div>
+
+      <p className="mt-6 text-sm text-muted" aria-live="polite">Hiển thị <b className="text-fg">{games.length}</b> tình huống</p>
+      <Stagger as="ul" className="mt-4 grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
+        {games.map((g) => {
+          const m = labMeta(g.labSlug ?? g.icon);
+          const p = progressOf(g);
+          return (
+            <StaggerItem as="li" key={g.slug} className="min-w-0">
+              <SimCard href={g.status === "available" ? `/student/games/${g.slug}` : undefined} art={g.labSlug ?? g.icon} grades={[g.grade]} level={g.difficulty} minutes={g.minutes} missions={g.slug === "smart-farm" ? FARM_LEVELS.length : m.missions} topic={topicLabel(m.topic)} title={g.title} description={g.description} footer={`Kiến thức: ${g.focus}`} cta={g.status === "available" ? (p?.done ? "Làm lại" : "Khám phá") : "Sắp có"} pill={p} dim={g.status !== "available"} />
+            </StaggerItem>
+          );
+        })}
+      </Stagger>
+      <Link href="/thuat-toan" className="group mb-6 mt-10 flex flex-wrap items-center gap-4 rounded-2xl border border-warning/40 bg-gradient-to-r from-warning/20 via-warning/5 to-transparent p-4 transition-all hover:-translate-y-0.5 sm:p-5">
+        <span className="hidden gap-2 sm:flex" aria-hidden>{(["bubble", "bfs", "dijkstra"] as const).map((id) => <AlgoThumb key={id} id={id} className="h-10 w-16 rounded-lg bg-surface" />)}</span>
+        <span className="min-w-0 flex-1 basis-60">
           <span className="flex items-center gap-2 text-lg font-bold text-fg"><Trophy className="size-5 text-warning-fg" aria-hidden /> Chuyên đề HSG: mô phỏng thuật toán</span>
           <span className="block text-sm text-muted">{ALGO_IDS.length} thuật toán trong {HSG_TOPICS.length} chuyên đề: sắp xếp, tìm kiếm, loang BFS/DFS, Dijkstra, quy hoạch động, sàng nguyên tố. Chạy từng bước và đoán bước tiếp theo.</span>
         </span>
@@ -64,51 +111,6 @@ export default function GamesPage() {
         ))}
       </div>
 
-      <div className="mb-4 flex flex-wrap gap-3">
-        <Select aria-label="Lớp" className="w-36" value={grade} onChange={(e) => setGrade(e.target.value)}><option value="">Mọi lớp</option>{[10, 11, 12].map((g) => <option key={g} value={g}>Lớp {g}</option>)}</Select>
-        <Select aria-label="Thế giới" className="w-52" value={world} onChange={(e) => setWorld(e.target.value)}><option value="">Mọi thế giới</option>{WORLDS.map((w) => <option key={w.id} value={w.id}>{w.name}</option>)}</Select>
-        <Select aria-label="Độ khó" className="w-40" value={diff} onChange={(e) => setDiff(e.target.value)}><option value="">Mọi độ khó</option>{Object.entries(DIFFICULTY_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</Select>
-      </div>
-
-      <Stagger as="ul" className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-        {games.map((g) => {
-          const available = g.status === "available";
-          const passed = g.slug === "smart-farm" ? farm?.passed.length ?? 0 : null;
-          const inner = (
-            <>
-              <div className="flex aspect-[16/8] items-center justify-center bg-gradient-to-br from-cyan/15 via-surface-2 to-violet/15">
-                <LabIcon slug={g.icon} className={cn("size-16", available ? "text-cyan-fg" : "text-muted")} />
-                {!available && <span className="absolute right-3 top-3 flex items-center gap-1 rounded-full bg-surface px-2 py-0.5 text-xs font-medium text-muted"><Lock className="size-3" /> Sắp có</span>}
-              </div>
-              <div className="flex flex-1 flex-col gap-2 p-4">
-                <p className="text-xs text-muted">{WORLDS.find((w) => w.id === g.worldId)?.name} · Lớp {g.grade}</p>
-                <h3 className="text-lg font-bold text-fg">{g.title}</h3>
-                <p className="text-sm text-muted">{g.description}</p>
-                <p className="text-sm text-fg"><span className="text-muted">Kiến thức:</span> {g.focus}</p>
-                <div className="mt-auto flex flex-wrap items-center gap-2 pt-2">
-                  <Badge tone={DIFF_TONE[g.difficulty]}>{DIFFICULTY_LABEL[g.difficulty]}</Badge>
-                  <Badge><Clock className="size-3" /> {g.minutes} phút</Badge>
-                </div>
-                {passed !== null && (
-                  <div className="pt-1">
-                    <div className="mb-1 flex justify-between text-xs text-muted"><span>Cấp độ đã vượt</span><span>{passed}/{FARM_LEVELS.length}</span></div>
-                    <AnimatedBar value={(passed / FARM_LEVELS.length) * 100} tone="success" label={`Đã vượt ${passed} trên ${FARM_LEVELS.length} cấp`} />
-                  </div>
-                )}
-              </div>
-            </>
-          );
-          return (
-            <StaggerItem as="li" key={g.slug}>
-              {available ? (
-                <Link href={`/student/games/${g.slug}`} className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-line bg-surface shadow-sm transition-all hover:-translate-y-1 hover:border-cyan/50 hover:shadow-lg">{inner}</Link>
-              ) : (
-                <div className="relative flex h-full flex-col overflow-hidden rounded-2xl border border-dashed border-line bg-surface">{inner}</div>
-              )}
-            </StaggerItem>
-          );
-        })}
-      </Stagger>
     </>
   );
 }
