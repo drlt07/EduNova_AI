@@ -7,6 +7,7 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import { AUTH_MODE } from "@/lib/supabase/config";
+import type { TeacherQuiz } from "@/lib/data/practice";
 import type {
   ActivityQuestion,
   User,
@@ -127,6 +128,10 @@ interface Actions {
   deleteNote: (id: string) => void;
   toggleBookmark: (b: Omit<Bookmark, "id" | "createdAt">) => boolean;
   savePracticeAttempt: (a: Omit<PracticeAttempt, "id">) => string;
+  /** Lưu (tạo mới nếu chưa có id) bộ câu hỏi của giáo viên cho một bài SGK. */
+  saveTeacherQuiz: (q: Omit<TeacherQuiz, "id" | "updatedAt"> & { id?: string }) => string;
+  deleteTeacherQuiz: (id: string, ownerId: string) => void;
+  toggleLessonLab: (ownerId: string, sgkRef: string, slug: string) => void;
   saveCode: (studentId: string, exerciseId: string, code: string, versionNote?: string) => void;
   recordCodeRun: (studentId: string, exerciseId: string, code: string, run: { passed: number; total: number; errorType?: string }) => void;
   saveGameCode: (studentId: string, gameSlug: string, level: number, code: string) => void;
@@ -464,6 +469,17 @@ export const useApp = create<AppState>()(
               return { ...p, done: next };
             }),
           })),
+        saveTeacherQuiz: (q) => {
+          const id = q.id ?? uid("tq");
+          set((s) => ({ teacherQuizzes: [{ ...q, id, updatedAt: now() }, ...s.teacherQuizzes.filter((x) => x.id !== id)] }));
+          return id;
+        },
+        deleteTeacherQuiz: (id, ownerId) => set((s) => ({ teacherQuizzes: s.teacherQuizzes.filter((x) => !(x.id === id && x.ownerId === ownerId)) })),
+        toggleLessonLab: (ownerId, sgkRef, slug) =>
+          set((s) => {
+            const has = s.lessonLabs.some((l) => l.ownerId === ownerId && l.sgkRef === sgkRef && l.slug === slug);
+            return { lessonLabs: has ? s.lessonLabs.filter((l) => !(l.ownerId === ownerId && l.sgkRef === sgkRef && l.slug === slug)) : [...s.lessonLabs, { ownerId, sgkRef, slug }] };
+          }),
         logTutorEvent: (e) => set((s) => ({ tutorEvents: [{ ...e, id: uid("te"), at: now() }, ...s.tutorEvents].slice(0, 2000) })),
         setCourseLastLesson: (studentId, courseId, lessonId) =>
           set((s) => ({ courseProgress: upsertCourseProgress(s.courseProgress, studentId, courseId, (p) => ({ ...p, lastLessonId: lessonId })) })),

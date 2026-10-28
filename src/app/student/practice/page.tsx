@@ -8,6 +8,8 @@ import { DIFFICULTY_LABEL } from "@/lib/data/curriculum";
 import { PRACTICE_SETS, KIND_LABEL, getQuestion } from "@/lib/data/practice";
 import type { Difficulty } from "@/lib/domain/types";
 import { useSessionData } from "@/lib/store/use-role";
+import { studentClassIds } from "@/lib/store/scoped";
+import { findSgk } from "@/lib/data/sgk-kntt";
 import { cn, formatDate, matchesQuery } from "@/lib/utils";
 import { SectionHead } from "@/components/layout/section-head";
 import { Badge } from "@/components/ui/badge";
@@ -51,11 +53,13 @@ function PracticeHub() {
   const nextUp = rows.find((r) => r.st === "tried") ?? rows.find((r) => r.st === "new");
   const topics = [...new Set(CODING_EXERCISES.map((e) => e.topic))];
   const shown = rows.filter((r) => matchesQuery(q, r.e.title, r.e.task, r.e.topic) && (!topic || r.e.topic === topic) && (!diff || r.e.difficulty === diff) && (!status || r.st === status));
+  const myClasses = studentClassIds(d, user.id);
+  const assigned = d.teacherQuizzes.filter((tq) => tq.status === "published" && tq.classIds.some((c) => myClasses.includes(c)));
   const setTab = (t: Tab) => router.replace(`${pathname}?muc=${t}`, { scroll: false });
 
   const tabs: { id: Tab; label: string; icon: React.ComponentType<{ className?: string }>; count: string }[] = [
     { id: "code", label: "Lập trình Python", icon: Code2, count: `${solved}/${CODING_EXERCISES.length}` },
-    { id: "quiz", label: "Trắc nghiệm", icon: ListChecks, count: String(PRACTICE_SETS.length) },
+    { id: "quiz", label: "Trắc nghiệm", icon: ListChecks, count: String(PRACTICE_SETS.length + assigned.length) },
     { id: "other", label: "Thực hành khác", icon: Gauge, count: String(OTHER.length) },
   ];
 
@@ -147,6 +151,28 @@ function PracticeHub() {
 
       {tab === "quiz" && (
         <>
+          {assigned.length > 0 && (
+            <section aria-labelledby="assigned-h" className="mb-6">
+              <h2 id="assigned-h" className="mb-2 text-sm font-semibold uppercase tracking-wide text-violet-fg">Thầy cô giao</h2>
+              <ul className="grid gap-3 lg:grid-cols-2">
+                {assigned.map((tq) => {
+                  const ref = findSgk(tq.sgkRef);
+                  const done = d.practiceAttempts.filter((a) => a.studentId === user.id && a.setId === tq.id);
+                  return (
+                    <li key={tq.id} className="flex flex-col rounded-2xl border border-violet/40 bg-gradient-to-br from-violet/10 to-transparent p-4">
+                      <p className="text-xs text-muted">{d.users.find((u) => u.id === tq.ownerId)?.name} · {ref ? `Tin ${ref.grade} – Bài ${ref.lesson.no}. ${ref.lesson.title}` : tq.sgkRef}</p>
+                      <h3 className="mt-1 font-semibold text-fg">{tq.title}</h3>
+                      <p className="text-xs text-muted">{tq.questions.length} câu{done.length ? ` · em đã làm ${done.length} lần` : " · chưa làm"}</p>
+                      <div className="mt-3 flex gap-2">
+                        <Button asChild size="sm"><Link href={`/student/practice/${tq.id}?che-do=practice`}>Luyện tập</Link></Button>
+                        <Button asChild size="sm" variant="secondary"><Link href={`/student/practice/${tq.id}?che-do=exam`}>Kiểm tra</Link></Button>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            </section>
+          )}
           <p className="mb-4 flex flex-wrap gap-x-5 gap-y-1 text-xs text-muted">{MODES.map((m) => <span key={m.id} className="flex items-center gap-1.5"><m.icon className="size-3.5 text-cyan-fg" aria-hidden /><b className="text-fg">{m.label}</b>: {m.desc}</span>)}</p>
           <ul className="grid gap-4 lg:grid-cols-2">
             {PRACTICE_SETS.map((s) => {

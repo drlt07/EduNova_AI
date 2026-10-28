@@ -1,8 +1,8 @@
 "use client";
 import Link from "next/link";
-import { BookOpen, FlaskConical, NotebookPen, Plus } from "lucide-react";
+import { BookOpen, FlaskConical, ListChecks, NotebookPen, Plus, SlidersHorizontal } from "lucide-react";
 import type { Grade } from "@/lib/domain/types";
-import { SGK_KNTT, sgkCount, sgkLabs, sgkLessonId } from "@/lib/data/sgk-kntt";
+import { SGK_KNTT, sgkCount, sgkLabs, sgkLessonId, sgkRef } from "@/lib/data/sgk-kntt";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
@@ -23,7 +23,7 @@ const TOPIC_TONE = [
 ];
 
 /** Chọn khối lớp → mục lục SGK Kết nối tri thức theo chủ đề, mỗi bài kèm bài tương tác, mô phỏng và lối soạn KHBD. */
-export function SgkBrowser({ grade, onGrade, onCreate }: { grade: Grade; onGrade: (g: Grade) => void; onCreate: (g: Grade) => void }) {
+export function SgkBrowser({ grade, onGrade, onCreate, onOpenLesson, stats }: { grade: Grade; onGrade: (g: Grade) => void; onCreate: (g: Grade) => void; onOpenLesson?: (ref: string) => void; stats?: (ref: string) => { quizzes: number; extraLabs: number } }) {
   const count = sgkCount(grade);
   return (
     <section aria-labelledby="sgk-h" className="mb-10">
@@ -91,24 +91,25 @@ export function SgkBrowser({ grade, onGrade, onCreate }: { grade: Grade; onGrade
                 {t.lessons.map((l) => {
                   const id = sgkLessonId(l);
                   const labs = sgkLabs(l);
+                  const st = stats?.(sgkRef(grade, l));
                   return (
-                    <li key={l.no} className="flex flex-wrap items-center gap-x-3 gap-y-1.5 px-5 py-2.5">
+                    <li key={l.no} className="flex flex-wrap items-center gap-x-3 gap-y-1.5 px-5 py-2.5 transition-colors hover:bg-surface-2/50">
                       <span className={cn("grid h-8 w-12 shrink-0 place-items-center rounded-lg text-[11px] font-bold leading-none", tone.chip)} aria-hidden>Bài {l.no}</span>
                       <span className="min-w-0 flex-1">
-                        <span className="block text-sm font-medium text-fg"><span className="sr-only">Bài {l.no}. </span>{l.title}</span>
-                        {(id || labs.length > 0) && (
+                        <button type="button" onClick={() => onOpenLesson?.(sgkRef(grade, l))} className="block text-left text-sm font-medium text-fg hover:text-cyan-fg"><span className="sr-only">Bài {l.no}. </span>{l.title}</button>
+                        {(id || labs.length > 0 || st?.quizzes || st?.extraLabs) ? (
                           <span className="mt-0.5 flex flex-wrap gap-x-3 text-xs text-muted">
                             {id && <span className="inline-flex items-center gap-1 text-cyan-fg"><BookOpen className="size-3" aria-hidden /> Bài tương tác</span>}
                             {labs.map((lab) => <span key={lab.id} className="inline-flex items-center gap-1 text-violet-fg"><FlaskConical className="size-3" aria-hidden /> {lab.title}</span>)}
+                            {!!st?.extraLabs && <span className="inline-flex items-center gap-1 text-violet-fg"><FlaskConical className="size-3" aria-hidden /> +{st.extraLabs} mô phỏng thầy cô gắn</span>}
+                            {!!st?.quizzes && <span className="inline-flex items-center gap-1 text-success-fg"><ListChecks className="size-3" aria-hidden /> {st.quizzes} bộ câu hỏi</span>}
                           </span>
-                        )}
+                        ) : null}
                       </span>
-                      {id && (
-                        <span className="flex w-full gap-1.5 pl-[60px] sm:w-auto sm:pl-0">
-                          <Link href={`/bai-hoc/${id}`} className="rounded-lg border border-line px-2 py-1 text-xs font-medium text-fg hover:border-cyan/40">Xem bài</Link>
-                          <Link href={`/teacher/lesson-planner/assistant?lesson=${id}`} className="inline-flex items-center gap-1 rounded-lg bg-cyan/15 px-2 py-1 text-xs font-semibold text-cyan-fg hover:bg-cyan/25"><NotebookPen className="size-3" aria-hidden /> Soạn KHBD</Link>
-                        </span>
-                      )}
+                      <span className="flex w-full gap-1.5 pl-[60px] sm:w-auto sm:pl-0">
+                        <button type="button" onClick={() => onOpenLesson?.(sgkRef(grade, l))} className="inline-flex items-center gap-1 rounded-lg border border-line px-2 py-1 text-xs font-medium text-fg hover:border-cyan/40"><SlidersHorizontal className="size-3" aria-hidden /> Mô phỏng, câu hỏi…</button>
+                        {id && <Link href={`/teacher/lesson-planner/assistant?lesson=${id}`} className="inline-flex items-center gap-1 rounded-lg bg-cyan/15 px-2 py-1 text-xs font-semibold text-cyan-fg hover:bg-cyan/25"><NotebookPen className="size-3" aria-hidden /> Soạn KHBD</Link>}
+                      </span>
                     </li>
                   );
                 })}

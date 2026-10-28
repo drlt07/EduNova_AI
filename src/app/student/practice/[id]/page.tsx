@@ -10,6 +10,7 @@ import { LESSONS, getObjective } from "@/lib/data/curriculum";
 import { gradeQuestion, pickNext, type Answer, type GradeResult } from "@/lib/practice/grade";
 import { studentBook } from "@/lib/store/student-insights";
 import { useSessionData } from "@/lib/store/use-role";
+import { studentClassIds } from "@/lib/store/scoped";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -30,11 +31,13 @@ function Runner({ setId }: { setId: string }) {
   const params = useSearchParams();
   const raw = params.get("che-do");
   const mode: Mode = raw === "adaptive" || raw === "exam" ? raw : "practice";
-  const set = getSet(setId);
+  // Bộ có sẵn trong ngân hàng, hoặc bộ câu hỏi thầy cô giao cho lớp của em
+  const tq = d.teacherQuizzes.find((q) => q.id === setId && q.status === "published" && q.classIds.some((c) => studentClassIds(d, user.id).includes(c)));
+  const set = getSet(setId) ?? (tq ? { id: tq.id, title: tq.title, grade: tq.grade, lessonKey: "", description: "", questionIds: tq.questions.map((q) => q.id) } : undefined);
   const [run, setRun] = useState(0);
   if (!set) return <ErrorState page title="Không tìm thấy bộ câu hỏi" action={<Button asChild variant="secondary"><Link href="/student/practice">Về danh sách</Link></Button>} />;
   // Bộ thích ứng lấy câu từ mọi bộ cùng bài học
-  const pool = mode === "adaptive"
+  const pool = tq ? tq.questions : mode === "adaptive"
     ? PRACTICE_SETS.filter((s) => s.lessonKey === set.lessonKey).flatMap((s) => s.questionIds).map(getQuestion).filter((q): q is PracticeQuestion => !!q)
     : set.questionIds.map(getQuestion).filter((q): q is PracticeQuestion => !!q);
   const passedLevels = d.gameProgress.find((g) => g.studentId === user.id && g.gameSlug === "smart-farm")?.passed ?? [];

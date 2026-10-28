@@ -3,6 +3,7 @@ import { ArrowRight, CalendarClock, ClipboardList, NotebookPen } from "lucide-re
 import type { ClassRoom, Grade } from "@/lib/domain/types";
 import type { ObjectiveMastery, RefinementSuggestion } from "@/lib/analytics/compute";
 import { LESSONS } from "@/lib/data/curriculum";
+import { sgkRefForKey } from "@/lib/data/sgk-kntt";
 import { vnWeekday } from "@/components/layout/week-calendar";
 import { cn, formatDate } from "@/lib/utils";
 
@@ -84,6 +85,16 @@ export function WeekTimetable({ classes, deadlines }: { classes: ClassRoom[]; de
   );
 }
 
+/** Gợi ý → đúng bài SGK: mở tab Câu hỏi của bài trong Khóa học, và Trợ lý KHBD của bài đó. */
+function suggestionLinks(objectiveId?: string) {
+  const lesson = objectiveId ? LESSONS.find((l) => l.textbookId === "kntt" && l.objectiveIds.includes(objectiveId)) : undefined;
+  const ref = lesson ? sgkRefForKey(lesson.key) : undefined;
+  return {
+    quiz: ref ? `/teacher/courses?grade=${ref.split("-")[0]}&bai=${ref}&tab=quiz` : "/teacher/courses",
+    plan: lesson ? `/teacher/lesson-planner/assistant?lesson=${lesson.id}` : "/teacher/lesson-planner",
+  };
+}
+
 /** Tên bài học gắn với yêu cầu cần đạt, để giáo viên đọc "Câu lệnh rẽ nhánh if" thay vì mã O10-F-02. */
 function lessonFor(objectiveId: string) {
   return LESSONS.find((l) => l.textbookId === "kntt" && l.objectiveIds.includes(objectiveId))?.title;
@@ -118,6 +129,7 @@ export function ClassInsights({ mastery, suggestions }: { mastery: ObjectiveMast
           <h3 className="mt-6 text-xs font-semibold uppercase tracking-wide text-muted">Nên làm ở tiết sau</h3>
           <ol className="mt-2 space-y-3">
             {suggestions.map((s) => {
+              const links = suggestionLinks(s.objectiveId);
               const m = /^(\d+)% (.*)$/.exec(s.trigger);
               return (
                 <li key={s.id} className="rounded-xl border-l-4 border-warning bg-warning/5 p-3">
@@ -126,8 +138,8 @@ export function ClassInsights({ mastery, suggestions }: { mastery: ObjectiveMast
                   </p>
                   <p className="mt-1 text-sm text-muted">{s.suggestion}</p>
                   <span className="mt-2 flex flex-wrap gap-3 text-xs font-semibold">
-                    <Link href="/teacher/lesson-planner" className="inline-flex items-center gap-1 text-cyan-fg hover:underline"><NotebookPen className="size-3.5" aria-hidden /> Thêm vào KHBD</Link>
-                    <Link href="/teacher/assessment" className="inline-flex items-center gap-1 text-cyan-fg hover:underline"><ClipboardList className="size-3.5" aria-hidden /> Giao bài luyện tập</Link>
+                    <Link href={links.plan} className="inline-flex items-center gap-1 text-cyan-fg hover:underline"><NotebookPen className="size-3.5" aria-hidden /> Thêm vào KHBD</Link>
+                    <Link href={links.quiz} className="inline-flex items-center gap-1 text-cyan-fg hover:underline"><ClipboardList className="size-3.5" aria-hidden /> Giao bài luyện tập</Link>
                   </span>
                 </li>
               );

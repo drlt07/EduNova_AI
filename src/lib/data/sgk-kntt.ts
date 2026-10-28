@@ -78,3 +78,27 @@ export function sgkCount(grade: Grade) {
   const lessons = SGK_KNTT[grade].flatMap((t) => t.lessons);
   return { topics: SGK_KNTT[grade].length, lessons: lessons.length, linked: lessons.filter((l) => l.key).length };
 }
+
+/** Mã bài SGK dùng chung trong ứng dụng: "lớp-số bài", vd "10-19". */
+export const sgkRef = (grade: Grade, l: SgkLesson) => `${grade}-${l.no}`;
+
+export function findSgk(ref: string): { grade: Grade; topic: SgkTopic; lesson: SgkLesson } | undefined {
+  const [g, n] = ref.split("-").map(Number);
+  if (g !== 10 && g !== 11 && g !== 12) return undefined;
+  for (const topic of SGK_KNTT[g]) {
+    const lesson = topic.lessons.find((l) => l.no === n);
+    if (lesson) return { grade: g, topic, lesson };
+  }
+  return undefined;
+}
+
+/** Bài SGK đầu tiên gắn với một bài tương tác (key), vd "10-if" → "10-19". */
+export function sgkRefForKey(key: string): string | undefined {
+  for (const g of [10, 11, 12] as Grade[]) {
+    for (const t of SGK_KNTT[g]) {
+      const l = t.lessons.find((x) => x.key === key);
+      if (l) return sgkRef(g, l);
+    }
+  }
+  return undefined;
+}

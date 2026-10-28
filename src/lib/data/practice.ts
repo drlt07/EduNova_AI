@@ -65,4 +65,24 @@ export const PRACTICE_SETS: PracticeSet[] = [
 ];
 
 export const getQuestion = (id: string) => QUESTIONS.find((q) => q.id === id);
+
+/** Bộ câu hỏi giáo viên soạn cho một bài SGK (mã sgkRef, vd "10-19") và giao cho lớp. */
+export interface TeacherQuiz {
+  id: string;
+  ownerId: string;
+  sgkRef: string;
+  grade: Grade;
+  title: string;
+  questions: PracticeQuestion[];
+  classIds: string[];
+  status: "draft" | "published";
+  updatedAt: string;
+}
+
+/** Mô phỏng giáo viên gắn thêm vào một bài SGK (ngoài các mô phỏng gắn sẵn theo chương trình). */
+export interface LessonLabLink {
+  ownerId: string;
+  sgkRef: string;
+  slug: string;
+}
 export const getSet = (id: string) => PRACTICE_SETS.find((s) => s.id === id);

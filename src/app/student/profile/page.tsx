@@ -35,7 +35,7 @@ export default function StudentProfilePage() {
       }),
       ...d.practiceAttempts.filter((p) => p.studentId === user.id).map((p) => {
         const scored = p.items.filter((i) => i.status !== "self");
-        return { at: p.finishedAt, icon: Dumbbell, kind: "Trắc nghiệm", title: getSet(p.setId)?.title ?? p.setId, result: `${scored.filter((i) => i.status === "correct").length}/${scored.length} câu đúng` };
+        return { at: p.finishedAt, icon: Dumbbell, kind: "Trắc nghiệm", title: getSet(p.setId)?.title ?? d.teacherQuizzes.find((q) => q.id === p.setId)?.title ?? p.setId, result: `${scored.filter((i) => i.status === "correct").length}/${scored.length} câu đúng` };
       }),
       ...d.codeWorks.filter((w) => w.studentId === user.id && w.lastRun).map((w) => ({ at: w.lastRun!.at, icon: Code2, kind: "Lập trình", title: getExercise(w.exerciseId)?.title ?? "Bài tự do", result: `Kiểm thử ${w.lastRun!.passed}/${w.lastRun!.total}${w.lastRun!.errorType ? ` · lỗi ${w.lastRun!.errorType}` : ""}`, href: "/student/code" })),
       ...d.courseProgress.filter((p) => p.studentId === user.id).flatMap((p) => {

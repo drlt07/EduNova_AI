@@ -3,6 +3,7 @@
  * engine Smart Garden để số liệu analytics phản ánh đúng logic — nhưng đây vẫn là
  * dữ liệu demo, không phải chứng cứ triển khai thật.
  */
+import type { LessonLabLink, TeacherQuiz } from "./practice";
 import type {
   ActivityDraft,
   Course,
@@ -88,6 +89,8 @@ export interface DemoData {
   courses: Course[];
   courseProgress: CourseProgress[];
   tutorEvents: TutorEvent[];
+  teacherQuizzes: TeacherQuiz[];
+  lessonLabs: LessonLabLink[];
 }
 
 export const SEED_RUBRIC_CRITERIA = (prefix: string) => [
@@ -382,6 +385,8 @@ export function buildSeed(now: Date = new Date()): DemoData {
     courses: seedCourses(at(-10)),
     courseProgress: [],
     tutorEvents: seedTutorEvents(at),
+    teacherQuizzes: [],
+    lessonLabs: [],
     classes: SEED_CLASSES,
     enrollments: SEED_ENROLLMENTS,
     lessonPlans: [ifPlan, dbPlan, t2Plan],

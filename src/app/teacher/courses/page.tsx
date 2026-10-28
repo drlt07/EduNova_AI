@@ -18,6 +18,7 @@ import { EmptyState } from "@/components/ui/feedback";
 import { Checkbox, Field, Input, Select, Textarea } from "@/components/ui/form";
 import { SharedResources } from "@/components/teacher/shared-resources";
 import { SgkBrowser } from "@/components/courses/sgk-browser";
+import { LessonPanel, type LessonTab } from "@/components/courses/lesson-panel";
 
 export default function TeacherCoursesPage() {
   const { d, user } = useSessionData();
@@ -25,13 +26,27 @@ export default function TeacherCoursesPage() {
   const pathname = usePathname();
   const params = useSearchParams();
   const grade = ([10, 11, 12] as const).find((g) => String(g) === params.get("grade")) ?? 10;
+  const lessonRef = params.get("bai");
+  const lessonTab = (["labs", "quiz", "code", "plan"].includes(params.get("tab") ?? "") ? params.get("tab") : "labs") as LessonTab;
+  const setQuery = (patch: Record<string, string | null>) => {
+    const q = new URLSearchParams(params.toString());
+    for (const [k, v] of Object.entries(patch)) if (v === null) q.delete(k); else q.set(k, v);
+    router.replace(`${pathname}?${q.toString()}`, { scroll: false });
+  };
   const [open, setOpen] = useState<Grade | null>(null);
   const courses = d.courses.filter((c) => c.ownerId === user.id);
 
   return (
     <>
       <PageHero variant="app" eyebrow="Khóa học" icon={BookMarked} title="Xây bài học," accent="giao hoạt động" description="Khóa học theo khối lớp, bộ sách, chủ đề và bài học; mỗi bài gồm kiến thức, video, mô phỏng, thực hành Python và luyện tập, phát hành cho lớp." actions={<Button onClick={() => setOpen(grade)}><Plus /> Tạo khóa học</Button>} stats={[{ value: courses.length, label: "khóa học của tôi" }, { value: courses.filter((c) => c.status === "published").length, label: "đã phát hành" }, { value: courses.reduce((n, c) => n + allLessons(c).length, 0), label: "bài học" }, { value: 6, label: "loại nội dung" }]} visual={<LabCollage slugs={["inside-computer-3d", "network-journey", "os-explorer", "smart-coding-city"]} hrefFor={(s) => `/labs/${s}`} />} />
-      <SgkBrowser grade={grade} onGrade={(g) => router.replace(`${pathname}?grade=${g}`, { scroll: false })} onCreate={setOpen} />
+      <SgkBrowser
+        grade={grade}
+        onGrade={(g) => router.replace(`${pathname}?grade=${g}`, { scroll: false })}
+        onCreate={setOpen}
+        onOpenLesson={(ref) => setQuery({ bai: ref, tab: "labs" })}
+        stats={(ref) => ({ quizzes: d.teacherQuizzes.filter((q) => q.ownerId === user.id && q.sgkRef === ref).length, extraLabs: d.lessonLabs.filter((l) => l.ownerId === user.id && l.sgkRef === ref).length })}
+      />
+      {lessonRef && <LessonPanel refId={lessonRef} tab={lessonTab} onTab={(t) => setQuery({ tab: t })} onClose={() => setQuery({ bai: null, tab: null })} />}
       <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
         <div>
           <p className="text-xs font-semibold uppercase tracking-wide text-violet-fg">Đã soạn</p>

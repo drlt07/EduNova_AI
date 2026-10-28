@@ -39,7 +39,7 @@ function selfChosen(d: DemoData, studentId: string): SelfItem[] {
   for (const a of sets.values()) {
     const sc = a.items.filter((i) => i.status !== "self");
     const ok = sc.filter((i) => i.status === "correct").length;
-    out.push({ id: `p-${a.setId}`, icon: ListChecks, kind: "Luyện tập", title: getSet(a.setId)?.title ?? a.setId, detail: `Lần gần nhất ${ok}/${sc.length} câu đúng`, href: `/student/practice/${a.setId}`, done: sc.length > 0 && ok / sc.length >= 0.8, at: a.finishedAt });
+    out.push({ id: `p-${a.setId}`, icon: ListChecks, kind: "Luyện tập", title: getSet(a.setId)?.title ?? d.teacherQuizzes.find((q) => q.id === a.setId)?.title ?? a.setId, detail: `Lần gần nhất ${ok}/${sc.length} câu đúng`, href: `/student/practice/${a.setId}`, done: sc.length > 0 && ok / sc.length >= 0.8, at: a.finishedAt });
   }
   for (const p of d.projects.filter((x) => x.studentId === studentId)) out.push({ id: `pj-${p.id}`, icon: FolderKanban, kind: "Dự án", title: p.title, detail: `${p.tasks.filter((t) => t.done).length}/${p.tasks.length} việc`, href: `/student/projects/${p.id}`, done: p.status === "done", at: p.updatedAt });
   return out.sort((a, b) => b.at.localeCompare(a.at));
