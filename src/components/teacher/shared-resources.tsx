@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ClipboardCheck, FlaskConical, Library, ListChecks, Sparkles, Wand2 } from "lucide-react";
 
 const ALL = {
-  labs: { href: "/teacher/labs", icon: FlaskConical, label: "Kho mô phỏng", desc: "Chơi thử, cấu hình, chọn màn chơi" },
+  labs: { href: "/teacher/labs", icon: FlaskConical, label: "Thiết lập mô phỏng", desc: "Chơi thử, cấu hình, chọn màn chơi" },
   resources: { href: "/teacher/resources", icon: Sparkles, label: "Học liệu & ngân hàng câu hỏi", desc: "Phiếu, sơ đồ, câu hỏi theo bài" },
   library: { href: "/teacher/library", icon: Library, label: "Thư viện dùng chung", desc: "KHBD, học liệu đồng nghiệp chia sẻ" },
   activity: { href: "/teacher/activity-builder", icon: Wand2, label: "Thiết kế hoạt động", desc: "Hoạt động có tiêu chí, giao cho lớp" },

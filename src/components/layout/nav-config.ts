@@ -30,7 +30,7 @@ export interface NavItem {
 }
 
 export const NAV: Record<Role, NavItem[]> = {
-  // 6 chức năng chính của giáo viên, rồi nhóm kho dùng chung (học liệu, mô phỏng, chuyên đề HSG).
+  // Các chức năng chính của giáo viên (gồm thư viện tình huống mô phỏng), rồi kho dùng chung (học liệu, thiết lập mô phỏng, chuyên đề HSG).
   teacher: [
     { href: "/teacher/dashboard", label: "Hôm nay", icon: Home },
     { href: "/teacher/classes", label: "Lớp học của tôi", icon: Users, badge: "classes" },
@@ -38,8 +38,9 @@ export const NAV: Record<Role, NavItem[]> = {
     { href: "/teacher/assignments", label: "Bài tập & Đánh giá", icon: ClipboardCheck, badge: "todos", match: ["/teacher/assessment", "/teacher/activity-builder"] },
     { href: "/teacher/analytics", label: "Kết quả học tập", icon: BarChart3 },
     { href: "/teacher/lesson-planner", label: "Trợ lý KHBD AI", icon: NotebookPen },
+    { href: "/labs", label: "Tình huống mô phỏng", icon: Gamepad2, match: ["/student/games"] },
     { href: "/teacher/library", label: "Thư viện học liệu", icon: Library, group: "Kho dùng chung", match: ["/teacher/resources"] },
-    { href: "/teacher/labs", label: "Kho mô phỏng", icon: FlaskConical, group: "Kho dùng chung", match: ["/labs"] },
+    { href: "/teacher/labs", label: "Thiết lập mô phỏng", icon: FlaskConical, group: "Kho dùng chung" },
     { href: "/thuat-toan", label: "Chuyên đề HSG", icon: Trophy, group: "Kho dùng chung" },
   ],
   // 5 chức năng của học sinh (Trang chủ = trang giới thiệu chung); trang con (match) vẫn đánh dấu đúng mục cha. Kết quả học tập nằm ở Trang cá nhân.

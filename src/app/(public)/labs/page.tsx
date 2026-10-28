@@ -9,7 +9,7 @@ import { PageHero } from "@/components/layout/page-hero";
 import { MiniSimPreview } from "@/components/landing/hero-visuals";
 import { LabsClient } from "./labs-client";
 
-export const metadata: Metadata = { title: "Kho mô phỏng" };
+export const metadata: Metadata = { title: "Tình huống mô phỏng" };
 
 export default function LabsPage() {
   const playable = LAB_TEMPLATES.filter((l) => l.status !== "planned").length;
@@ -17,7 +17,7 @@ export default function LabsPage() {
   return (
     <>
       <PageHero
-        eyebrow="Kho mô phỏng"
+        eyebrow="Tình huống mô phỏng"
         icon={FlaskConical}
         title="Kiến thức trở nên sống động"
         accent="qua từng mô phỏng"

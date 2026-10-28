@@ -113,7 +113,7 @@ export default function StudentDashboard() {
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className="flex-row items-center justify-between"><CardTitle as="h2">Hoạt động nổi bật</CardTitle><Link href="/student/games" className="text-sm text-cyan-fg hover:underline">Kho mô phỏng</Link></CardHeader>
+          <CardHeader className="flex-row items-center justify-between"><CardTitle as="h2">Hoạt động nổi bật</CardTitle><Link href="/student/games" className="text-sm text-cyan-fg hover:underline">Tình huống mô phỏng</Link></CardHeader>
           <CardContent>
             <ul className="space-y-2">
               {data.featured.map((g) => (

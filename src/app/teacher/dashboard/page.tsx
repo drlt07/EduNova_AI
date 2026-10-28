@@ -196,7 +196,7 @@ export default function TeacherToday() {
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
               {[
                 { href: "/teacher/sgk", label: "SGK số", icon: BookOpen },
-                { href: "/labs", label: "Kho mô phỏng", icon: FlaskConical },
+                { href: "/labs", label: "Tình huống mô phỏng", icon: FlaskConical },
                 { href: "/teacher/lesson-planner/assistant", label: "Trợ lý KHBD AI", icon: Bot },
                 { href: "/teacher/resources", label: "Câu hỏi & học liệu", icon: ListChecks },
                 { href: "/teacher/assignments", label: "Giao nhiệm vụ", icon: ClipboardCheck },
