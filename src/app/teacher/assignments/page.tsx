@@ -20,6 +20,7 @@ import { Field, Input, Select } from "@/components/ui/form";
 import { LabArt } from "@/components/labs/lab-art";
 import { LabPreview } from "@/components/labs/lab-preview";
 import { AssessTabs } from "@/components/teacher/assess-tabs";
+import { LabReviewQueue } from "@/components/teacher/lab-review";
 import { AssignDialog } from "@/components/teacher/assign-dialog";
 import { lessonAssignables } from "@/components/sgk/reader";
 
@@ -129,6 +130,7 @@ export default function AssignmentsPage() {
         <Button onClick={() => setCreating(true)}><Plus /> Giao nhiệm vụ</Button>
       </div>
       <AssessTabs />
+      <LabReviewQueue />
 
       <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center">
         <div className="flex gap-1 overflow-x-auto rounded-xl border border-line bg-surface p-1" role="tablist" aria-label="Trạng thái nhiệm vụ">

@@ -17,6 +17,7 @@ export default defineConfig({
       { find: /^next\/dynamic$/, replacement: shim("dynamic.tsx") },
       { find: /^@\/lib\/ai\/client$/, replacement: shim("ai-client.ts") },
       { find: /^@\/lib\/ai\/tutor-runtime$/, replacement: shim("tutor-runtime.ts") },
+      { find: /^@\/lib\/ai\/lab-grade-runtime$/, replacement: shim("lab-grade-runtime.ts") },
       { find: /^@\/lib\/khbd\/runtime$/, replacement: shim("khbd-runtime.ts") },
       { find: /^@\/lib\/supabase\/config$/, replacement: shim("supabase-config.ts") },
       { find: /^@\/lib\/supabase\/client$/, replacement: shim("supabase-client.ts") },

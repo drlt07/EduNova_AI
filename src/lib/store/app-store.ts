@@ -8,6 +8,7 @@ import type { LabResult } from "@/lib/sim/lab-score";
 import type { BookNote } from "@/lib/sgk/types";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
+import type { LabGrade } from "@/lib/ai/lab-grader";
 import { AUTH_MODE } from "@/lib/supabase/config";
 import type { TeacherQuiz } from "@/lib/data/practice";
 import type {
@@ -132,7 +133,11 @@ interface Actions {
   savePracticeAttempt: (a: Omit<PracticeAttempt, "id">) => string;
   /** Lưu (tạo mới nếu chưa có id) bộ câu hỏi của giáo viên cho một bài SGK. */
   saveTeacherQuiz: (q: Omit<TeacherQuiz, "id" | "updatedAt"> & { id?: string }) => string;
-  recordLabResult: (r: Omit<LabResult, "id" | "finishedAt">) => void;
+  recordLabResult: (r: Omit<LabResult, "id" | "finishedAt">) => string;
+  /** Lưu câu giải thích và bản chấm của AI; điểm của lượt làm đổi theo bản chấm. */
+  gradeLabResult: (id: string, studentId: string, answer: string, grade: LabGrade) => void;
+  /** Giáo viên duyệt hoặc sửa điểm một lượt làm mô phỏng. */
+  reviewLabResult: (id: string, teacherId: string, score: number, note: string) => void;
   addBookNote: (n: Omit<BookNote, "id" | "at">) => void;
   deleteBookNote: (id: string, userId: string) => void;
   toggleBookPick: (userId: string, key: string) => void;
@@ -494,7 +499,15 @@ export const useApp = create<AppState>()(
           }),
         toggleTaught: (teacherId, classId, ref) =>
           set((s) => ({ taughtLessons: s.taughtLessons.some((t) => t.teacherId === teacherId && t.classId === classId && t.ref === ref) ? s.taughtLessons.filter((t) => !(t.teacherId === teacherId && t.classId === classId && t.ref === ref)) : [...s.taughtLessons, { teacherId, classId, ref, at: now() }] })),
-        recordLabResult: (r) => set((s) => ({ labResults: [{ ...r, id: uid("lr"), finishedAt: now() }, ...s.labResults].slice(0, 5000) })),
+        recordLabResult: (r) => {
+          const id = uid("lr");
+          set((s) => ({ labResults: [{ ...r, id, finishedAt: now() }, ...s.labResults].slice(0, 5000) }));
+          return id;
+        },
+        gradeLabResult: (id, studentId, answer, grade) =>
+          set((s) => ({ labResults: s.labResults.map((r) => (r.id === id && r.studentId === studentId && !r.review ? { ...r, answer, grade, score: grade.score } : r)) })),
+        reviewLabResult: (id, teacherId, score, note) =>
+          set((s) => ({ labResults: s.labResults.map((r) => (r.id === id ? { ...r, score: Math.min(10, Math.max(0, Math.round(score * 2) / 2)), review: { score: Math.min(10, Math.max(0, Math.round(score * 2) / 2)), note, by: teacherId, at: now() } } : r)) })),
         deleteTeacherQuiz: (id, ownerId) => set((s) => ({ teacherQuizzes: s.teacherQuizzes.filter((x) => !(x.id === id && x.ownerId === ownerId)) })),
         toggleLessonLab: (ownerId, sgkRef, slug) =>
           set((s) => {

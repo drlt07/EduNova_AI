@@ -77,6 +77,9 @@ export function todos(d: DemoData, teacherId: string, now: Date): Todo[] {
     if (!missing.length) continue;
     out.push({ id: `m-${a.id}`, kind: "missing", title: `${missing.length} em chưa ${a.task ? "làm" : "nộp"} “${a.title}”`, detail: `${cls.name} · ${hours < 0 ? "đã quá hạn" : `còn ${Math.max(1, Math.round(hours))} giờ`}`, names: missing.map((u) => u.name), href: "/teacher/assignments", urgency: hours < 0 ? 3.5 : 3 });
   }
+  const ids = new Set(teacherClasses(d, teacherId).flatMap((c) => classStudents(d, c.id).map((u) => u.id)));
+  const toReview = d.labResults.filter((r) => r.grade?.needsReview && !r.review && ids.has(r.studentId));
+  if (toReview.length) out.push({ id: "lab-review", kind: "grade", title: `Xem lại ${toReview.length} bài mô phỏng AI đã chấm`, detail: "AI chưa chắc chắn ở phần giải thích; điểm đang là điểm tạm", href: "/teacher/assignments#duyet-mo-phong", urgency: 2.2 });
   const seen = new Set<string>();
   for (const s of upcomingSlots(d, teacherId, now, 3)) {
     if (s.at.getTime() < t || !s.lesson || s.planId || seen.has(s.cls.id)) continue;

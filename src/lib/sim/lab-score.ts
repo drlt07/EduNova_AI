@@ -1,5 +1,7 @@
 /** Chấm điểm mô phỏng có nhiệm vụ: hoàn thành là có điểm, mỗi lần chọn sai trừ bớt. */
 
+import type { LabGrade } from "@/lib/ai/lab-grader";
+
 export interface LabResult {
   id: string;
   studentId: string;
@@ -10,6 +12,12 @@ export interface LabResult {
   /** Thời gian làm (giây), tính từ lúc mở mô phỏng. */
   seconds: number;
   finishedAt: string;
+  /** Câu trả lời phần giải thích sau khi làm xong. */
+  answer?: string;
+  /** Bản chấm của AI (hoặc bộ luật) cho cả bài. */
+  grade?: LabGrade;
+  /** Giáo viên duyệt hoặc sửa điểm; khi có, \`score\` lấy theo điểm này. */
+  review?: { score: number; note: string; by: string; at: string };
 }
 
 /** Mô phỏng có nhiệm vụ và màn hình hoàn thành, nên chấm được điểm. */

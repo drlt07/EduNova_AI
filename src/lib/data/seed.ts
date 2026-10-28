@@ -3,6 +3,7 @@
  * engine Smart Garden để số liệu analytics phản ánh đúng logic — nhưng đây vẫn là
  * dữ liệu demo, không phải chứng cứ triển khai thật.
  */
+import { gradeLabWithRules } from "@/lib/ai/lab-grader";
 import type { LabResult } from "@/lib/sim/lab-score";
 import type { BookNote, BookProgress, TaughtLesson } from "@/lib/sgk/types";
 import type { LessonLabLink, TeacherQuiz } from "./practice";
@@ -56,6 +57,12 @@ function seedTutorEvents(at: (days: number, hours?: number) => string): TutorEve
   return rows.map(([studentId, capability, topic, activity, errorType, objectiveId], i) => ({
     id: `te-seed-${i}`, studentId, at: at(-(i % 6), -i), capability, topic, activity, level: activity === "free" || activity === "lesson" ? "free" : "guided", errorType, objectiveId, source: "rules",
   }));
+}
+
+/** Lượt làm mô phỏng mẫu đã có câu giải thích, chấm bằng bộ luật (không gọi mô hình). */
+function seedGraded(r: Omit<LabResult, "score" | "answer" | "grade">, answer: string): LabResult {
+  const grade = gradeLabWithRules({ slug: r.labSlug, labTitle: r.labSlug, mistakes: r.mistakes, seconds: r.seconds, answer });
+  return { ...r, score: grade.score, answer, grade };
 }
 
 export interface DemoData {
@@ -399,8 +406,8 @@ export function buildSeed(now: Date = new Date()): DemoData {
     bookProgress: [{ userId: "t1", ref: "10-19", read: ["dieu-kien", "if-else"], last: "if-else", at: at(-1) }],
     taughtLessons: [{ teacherId: "t1", classId: "c-10a1", ref: "10-17", at: at(-6) }, { teacherId: "t1", classId: "c-10a1", ref: "10-18", at: at(-3) }, { teacherId: "t1", classId: "c-11a2", ref: "11-1", at: at(-5) }],
     labResults: [
-      { id: "lr-seed-1", studentId: "s9", labSlug: "os-explorer", score: 9.5, mistakes: 1, seconds: 540, finishedAt: at(-1, 3) },
-      { id: "lr-seed-2", studentId: "s10", labSlug: "os-explorer", score: 6, mistakes: 8, seconds: 900, finishedAt: at(-1, 4) },
+      seedGraded({ id: "lr-seed-1", studentId: "s9", labSlug: "os-explorer", mistakes: 1, seconds: 540, finishedAt: at(-1, 3) }, "Khi em mở ứng dụng, hệ điều hành đọc chương trình từ ổ đĩa, cấp bộ nhớ RAM cho nó và tạo một tiến trình để chia thời gian CPU. Nó cũng nhận thao tác chuột, bàn phím rồi hiện kết quả lên màn hình."),
+      seedGraded({ id: "lr-seed-2", studentId: "s10", labSlug: "os-explorer", mistakes: 8, seconds: 900, finishedAt: at(-1, 4) }, "Hệ điều hành là ứng dụng như Word, nó mở app lên."),
       { id: "lr-seed-3", studentId: "s11", labSlug: "os-explorer", score: 8, mistakes: 4, seconds: 660, finishedAt: at(-1, 5) },
       { id: "lr-seed-4", studentId: "s9", labSlug: "inside-computer-3d", score: 8.5, mistakes: 3, seconds: 720, finishedAt: at(-3) },
     ],
