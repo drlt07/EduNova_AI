@@ -44,7 +44,7 @@ export const G12: BookLesson[] = [
         blocks: [
           { t: "figure", fig: "lan", caption: "Các máy nối vào switch thành mạng LAN; router nối LAN ra Internet." },
           { t: "table", head: ["Thiết bị", "Chức năng"], rows: [["Switch", "Nối các máy trong cùng mạng LAN, chuyển dữ liệu đúng cổng"], ["Router", "Nối các mạng khác nhau, chọn đường đi theo địa chỉ IP"], ["Modem", "Chuyển tín hiệu giữa mạng nhà cung cấp và mạng trong nhà"], ["Access Point", "Phát Wi-Fi cho thiết bị không dây"]] },
-          { t: "sim", slug: "network-journey", task: "Nhiệm vụ 1: đấu dây cho mạng phòng Tin: máy vào switch, switch vào router." },
+          { t: "sim", slug: "network-builder", task: "Đặt switch, access point, router, modem vào sơ đồ trường để mọi phòng vào được mạng nội bộ và Internet." },
           { t: "check", id: "c12-3-a", q: "Hai máy cùng phòng gửi tệp cho nhau, dữ liệu đi qua thiết bị nào?", options: ["Switch", "Router ra Internet rồi quay lại", "Modem"], answer: 0, why: "Cùng mạng LAN thì switch chuyển trực tiếp.", objective: 0 },
           { t: "check", id: "c12-3-b", q: "Thiết bị nào nối mạng LAN của trường ra Internet?", options: ["Switch", "Router", "Bàn phím"], answer: 1, why: "Router nối các mạng khác nhau, gồm LAN và Internet.", objective: 1 },
         ],

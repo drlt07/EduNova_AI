@@ -29,7 +29,7 @@ describe("trang chi tiết lớp", () => {
     expect(p.taught).toBe(2);
     expect(p.topics.reduce((s, t) => s + t.total, 0)).toBe(p.total);
     const prof = studentProfile(d, "s10", "c-11a2");
-    expect(prof.weak.some((w) => w.label.includes("Khám phá hệ điều hành"))).toBe(true);
+    expect(prof.weak.some((w) => w.label.includes("Trung tâm điều hành máy tính"))).toBe(true);
     expect(refForObjective("O10-F-04")).toMatch(/^10-/);
   });
 });

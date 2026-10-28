@@ -61,7 +61,7 @@ describe("Gợi ý mô phỏng và lưu vào KHBD EduNova", () => {
     const plan = toPlanActivities(tomTatHoatDong(pt, pt.thongTin, lc, kh, { hoc_lieu: res }), res, IF.objectiveIds);
     expect(plan.map((p) => p.phase)).toEqual(["mo-dau", "hinh-thanh", "luyen-tap", "van-dung"]);
     expect(plan[3].labTemplateId).toBe(city.lab.id);
-    expect(plan[3].organization + plan[3].content).toContain("Giao lộ thông minh 3D");
+    expect(plan[3].organization + plan[3].content).toContain("Giao lộ thông minh");
     expect(plan[0].labTemplateId).toBeUndefined();
   });
 });

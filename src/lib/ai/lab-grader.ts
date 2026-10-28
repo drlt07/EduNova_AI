@@ -120,6 +120,128 @@ export const LAB_RUBRICS: Record<string, LabRubric> = {
     ],
     misconceptions: [{ label: "Cho rằng xóa bài là mất hẳn", keys: ["xoa la mat", "xoa di la xong"], fix: "Bài đã đăng có thể bị chụp lại, lưu lại dù em xóa." }],
   },
+  "binary-control": {
+    prompt: "Vì sao với 8 bit, 255 + 1 lại thành 0? Giá trị của mỗi bit được tính thế nào?",
+    need: 3,
+    ideas: [
+      { id: "weight", label: "Mỗi bit có giá trị gấp đôi bit bên phải (1, 2, 4, 8…)", keys: ["gap doi", "luy thua cua 2", "2 mu", "1 2 4 8", "128", "gia tri vi tri"] },
+      { id: "sum", label: "Số thập phân bằng tổng giá trị các bit 1", keys: ["cong", "tong", "bit 1", "bat"] },
+      { id: "max", label: "8 bit lớn nhất là 255 (2^8 − 1)", keys: ["255", "lon nhat", "toi da", "2 8"] },
+      { id: "overflow", label: "Vượt quá thì tràn số, quay về 0", keys: ["tran", "quay ve", "khong du bit", "thua bit", "mat bit"] },
+    ],
+    misconceptions: [{ label: "Cho rằng bit bên trái có giá trị nhỏ nhất", keys: ["bit ben trai nho nhat", "ben trai la 1"], fix: "Bit ngoài cùng bên phải có giá trị 1; càng sang trái càng lớn." }],
+  },
+  "smart-home": {
+    prompt: "Đèn hiên dùng luật toi and nguoi. Nếu đổi thành toi or nguoi thì đèn sáng thêm những lúc nào? Vì sao?",
+    need: 3,
+    ideas: [
+      { id: "and", label: "AND chỉ đúng khi cả hai vế đều đúng", keys: ["ca hai", "deu dung", "and chi"] },
+      { id: "or", label: "OR đúng khi ít nhất một vế đúng", keys: ["mot trong hai", "it nhat mot", "chi can", "or"] },
+      { id: "case", label: "Đèn sáng thêm khi trời sáng mà có người, hoặc trời tối mà không có người", keys: ["troi sang", "ban ngay", "khong co nguoi", "luc nao cung", "toi ma khong"] },
+      { id: "truth", label: "Dùng bảng chân trị để kiểm tra mọi trường hợp", keys: ["bang chan tri", "moi truong hop", "4 truong hop"] },
+    ],
+    misconceptions: [{ label: "Nhầm AND với OR", keys: ["and la mot trong hai", "or la ca hai"], fix: "AND cần cả hai đúng; OR chỉ cần một vế đúng." }],
+  },
+  "digital-camera": {
+    prompt: "Vì sao tăng độ phân giải hoặc số bit màu làm ảnh đẹp hơn nhưng tệp nặng hơn?",
+    need: 3,
+    ideas: [
+      { id: "pixel", label: "Ảnh gồm nhiều điểm ảnh, độ phân giải cao thì nhiều điểm hơn", keys: ["diem anh", "pixel", "do phan giai", "nhieu diem"] },
+      { id: "bits", label: "Nhiều bit mỗi điểm thì biểu diễn được nhiều màu hơn", keys: ["nhieu mau", "so bit", "bit mau", "muc xam"] },
+      { id: "size", label: "Dung lượng = số điểm × số bit ÷ 8", keys: ["nhan", "dung luong", "chia 8", "byte"] },
+      { id: "tradeoff", label: "Chất lượng cao hơn thì tốn bộ nhớ hơn", keys: ["nang hon", "ton", "lon hon", "nhieu bo nho"] },
+    ],
+    misconceptions: [{ label: "Cho rằng số bit màu không ảnh hưởng dung lượng", keys: ["bit mau khong anh huong", "chi do phan giai"], fix: "Dung lượng tỉ lệ với cả số điểm ảnh lẫn số bit mỗi điểm." }],
+  },
+  "robot-factory": {
+    prompt: "range(2, 11, 2) cho cánh tay đặt hộp ở những vị trí nào? Giải thích vai trò của start, stop, step.",
+    need: 3,
+    ideas: [
+      { id: "seq", label: "Cho 2, 4, 6, 8, 10", keys: ["2 4 6 8 10", "so chan"] },
+      { id: "start", label: "start là giá trị bắt đầu", keys: ["bat dau", "start"] },
+      { id: "stop", label: "stop không được lấy, dừng trước stop", keys: ["khong lay", "dung truoc", "khong tinh", "stop"] },
+      { id: "step", label: "step là bước nhảy giữa hai lần lặp", keys: ["buoc nhay", "moi lan tang", "step", "cach"] },
+    ],
+    misconceptions: [{ label: "Cho rằng range lấy cả giá trị stop", keys: ["lay ca 11", "co 11", "den 11"], fix: "range dừng trước stop, không lấy stop." }],
+  },
+  "maze-robot": {
+    prompt: "Khi nào vòng lặp while của robot dừng? Điều gì làm vòng lặp chạy mãi không dừng?",
+    need: 3,
+    ideas: [
+      { id: "stop", label: "Dừng khi điều kiện thành False", keys: ["false", "sai", "khong con dung", "toi dich"] },
+      { id: "check", label: "Điều kiện được kiểm tra trước mỗi lần lặp", keys: ["kiem tra", "moi lan", "truoc khi"] },
+      { id: "change", label: "Thân vòng lặp phải làm thay đổi trạng thái", keys: ["thay doi", "di chuyen", "tang", "buoc"] },
+      { id: "infinite", label: "Điều kiện luôn đúng thì lặp vô hạn", keys: ["vo han", "chay mai", "luon dung", "khong dung"] },
+    ],
+    misconceptions: [{ label: "Nhầm while với lặp số lần biết trước", keys: ["while lap dung so lan", "while giong for"], fix: "while lặp theo điều kiện, không biết trước số lần." }],
+  },
+  "software-ecosystem": {
+    prompt: "Phần mềm nguồn mở khác phần mềm chạy trên Internet như thế nào? Miễn phí có phải là nguồn mở không?",
+    need: 3,
+    ideas: [
+      { id: "open", label: "Nguồn mở công bố mã nguồn, được xem, sửa, phân phối lại", keys: ["ma nguon", "xem va sua", "phan phoi lai", "cong khai"] },
+      { id: "web", label: "Phần mềm chạy trên Internet dùng qua trình duyệt, cần mạng", keys: ["trinh duyet", "can mang", "internet", "may chu"] },
+      { id: "free", label: "Miễn phí chưa chắc là nguồn mở", keys: ["mien phi chua chac", "khong phai nguon mo", "mien phi nhung"] },
+      { id: "license", label: "Giấy phép quy định quyền dùng phần mềm", keys: ["giay phep", "ban quyen", "license"] },
+    ],
+    misconceptions: [{ label: "Cho rằng mọi phần mềm miễn phí đều là nguồn mở", keys: ["mien phi la nguon mo", "mien phi thi nguon mo"], fix: "Google Docs miễn phí nhưng mã nguồn đóng." }],
+  },
+  "device-connection": {
+    prompt: "Kể ba thiết bị em đã kết nối, cổng em dùng và vì sao chọn cổng đó.",
+    need: 3,
+    ideas: [
+      { id: "hdmi", label: "HDMI truyền hình ảnh tới màn hình, máy chiếu", keys: ["hdmi", "may chieu", "man hinh"] },
+      { id: "usb", label: "USB cho chuột, bàn phím, USB lưu trữ, máy in", keys: ["usb", "chuot", "ban phim"] },
+      { id: "audio", label: "Cổng 3,5 mm cho loa (ra) và micro (vào)", keys: ["loa", "micro", "3 5", "xanh la", "hong"] },
+      { id: "wireless", label: "Bluetooth, Wi-Fi kết nối không dây", keys: ["bluetooth", "wifi", "wi fi", "khong day"] },
+      { id: "lan", label: "LAN nối dây mạng", keys: ["lan", "day mang", "rj45"] },
+    ],
+    misconceptions: [{ label: "Nhầm cổng loa với cổng micro", keys: ["loa cam cong hong", "micro cam cong xanh"], fix: "Loa cắm cổng xanh lá (ra), micro cắm cổng hồng (vào)." }],
+  },
+  "cloud-sharing": {
+    prompt: "Khi nộp bài cho cô giáo qua đám mây, em đặt quyền thế nào và vì sao không nên dùng liên kết công khai?",
+    need: 3,
+    ideas: [
+      { id: "perm", label: "Cho cô quyền xem hoặc bình luận, không cho sửa", keys: ["binh luan", "chi xem", "khong sua", "quyen xem"] },
+      { id: "least", label: "Chỉ cho đủ quyền cần thiết", keys: ["du quyen", "can thiet", "dung nguoi"] },
+      { id: "public", label: "Liên kết công khai thì người lạ cũng mở được", keys: ["nguoi la", "ai cung", "bat ky ai", "cong khai"] },
+      { id: "sync", label: "Tệp trên đám mây đồng bộ giữa các thiết bị có mạng", keys: ["dong bo", "thiet bi", "ban moi nhat"] },
+    ],
+    misconceptions: [{ label: "Cho rằng xóa tệp ở máy là xóa luôn bản đã chia sẻ", keys: ["xoa o may la mat"], fix: "Bản trên đám mây vẫn còn; cần thu hồi quyền chia sẻ." }],
+  },
+  "network-builder": {
+    prompt: "Mạng trường em dựng cần những thiết bị nào? Mỗi thiết bị làm nhiệm vụ gì?",
+    need: 3,
+    ideas: [
+      { id: "switch", label: "Switch nối các máy có dây trong một phòng", keys: ["switch", "noi cac may"] },
+      { id: "ap", label: "Access point phát Wi-Fi cho laptop", keys: ["access point", "wifi", "wi fi", "khong day"] },
+      { id: "router", label: "Router nối các mạng, các phòng với nhau", keys: ["router", "noi cac mang", "dinh tuyen"] },
+      { id: "modem", label: "Modem nối mạng trường với Internet", keys: ["modem", "nha cung cap", "ra internet"] },
+    ],
+    misconceptions: [{ label: "Nhầm switch với router", keys: ["switch noi internet", "router noi cac may trong phong"], fix: "Switch nối các máy trong một mạng; router nối các mạng với nhau." }],
+  },
+  "css-box": {
+    prompt: "Hộp có width 200px, padding 20px, border 5px. Với content-box và border-box, hộp rộng bao nhiêu? Vì sao?",
+    need: 3,
+    ideas: [
+      { id: "content", label: "content-box: rộng 200 + 2×20 + 2×5 = 250px", keys: ["250", "content box"] },
+      { id: "border", label: "border-box: rộng đúng 200px, nội dung co lại", keys: ["border box", "dung 200", "co lai", "150"] },
+      { id: "layers", label: "Hộp gồm nội dung, padding, border, margin", keys: ["padding", "margin", "vien", "lop"] },
+      { id: "margin", label: "Margin là khoảng cách ngoài, không làm hộp to ra", keys: ["margin", "ben ngoai", "khoang cach"] },
+    ],
+    misconceptions: [{ label: "Cho rằng padding nằm ngoài viền", keys: ["padding ben ngoai", "padding ngoai vien"], fix: "Padding nằm trong viền, margin nằm ngoài viền." }],
+  },
+  "web-navigation": {
+    prompt: "Trang lop/10a1.html muốn liên kết về trang chủ index.html thì viết href thế nào? Vì sao?",
+    need: 3,
+    ideas: [
+      { id: "parent", label: "Dùng ../index.html để ra thư mục cha", keys: ["index html", "thu muc cha", "ra ngoai", "cha"] },
+      { id: "relative", label: "Đường dẫn tương đối tính từ thư mục của trang hiện tại", keys: ["tuong doi", "trang hien tai", "thu muc hien tai"] },
+      { id: "exact", label: "Tên tệp phải đúng từng kí tự, sai là lỗi 404", keys: ["404", "dung ten", "sai mot", "loi"] },
+      { id: "nav", label: "Thanh điều hướng giúp mọi trang về được trang chủ", keys: ["dieu huong", "menu", "moi trang"] },
+    ],
+    misconceptions: [{ label: "Cho rằng viết index.html ở trang trong thư mục con vẫn đúng", keys: ["chi can index html", "viet index html la duoc"], fix: "Trong lop/, index.html trỏ tới lop/index.html; cần ../index.html." }],
+  },
 };
 
 export const PRACTICE_MAX = 6;

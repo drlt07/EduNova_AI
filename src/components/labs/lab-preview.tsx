@@ -16,6 +16,32 @@ import { SmartGardenLab } from "./smart-garden/smart-garden-lab";
 import { BinaryLab } from "./binary-lab";
 import { WebCreator } from "./web-creator";
 import dynamic from "next/dynamic";
+import { BinaryControlLab } from "@/components/phet/binary-control";
+import { SmartHomeLab } from "@/components/phet/smart-home";
+import { DigitalCameraLab } from "@/components/phet/digital-camera";
+import { RobotFactoryLab } from "@/components/phet/robot-factory";
+import { MazeRobotLab } from "@/components/phet/maze-robot";
+import { SoftwareEcosystemLab } from "@/components/phet/software-ecosystem";
+import { DeviceConnectionLab } from "@/components/phet/device-connection";
+import { CloudSharingLab } from "@/components/phet/cloud-sharing";
+import { NetworkBuilderLab } from "@/components/phet/network-builder";
+import { CssBoxLab } from "@/components/phet/css-box";
+import { WebNavigationLab } from "@/components/phet/web-navigation";
+
+/** Mô phỏng kiểu PhET (màn Khám phá + Thử thách). */
+const PHET: Record<string, () => React.ReactElement> = {
+  "binary-control": BinaryControlLab,
+  "smart-home": SmartHomeLab,
+  "digital-camera": DigitalCameraLab,
+  "robot-factory": RobotFactoryLab,
+  "maze-robot": MazeRobotLab,
+  "software-ecosystem": SoftwareEcosystemLab,
+  "device-connection": DeviceConnectionLab,
+  "cloud-sharing": CloudSharingLab,
+  "network-builder": NetworkBuilderLab,
+  "css-box": CssBoxLab,
+  "web-navigation": WebNavigationLab,
+};
 import { Skeleton } from "@/components/ui/feedback";
 
 const SmartTrafficCity = dynamic(() => import("@/components/traffic3d/smart-traffic-city").then((m) => m.SmartTrafficCity), { ssr: false, loading: () => <Skeleton className="h-[560px] w-full rounded-2xl" /> });
@@ -42,5 +68,7 @@ function LabBody({ slug, onSaveWeb }: { slug: string; onSaveWeb?: (content: stri
   if (slug === "digital-safety") return <DigitalSafetyLab />;
   if (slug === "ai-discovery") return <AiDiscoveryLab />;
   if (slug === "digital-citizen") return <DigitalCitizenLab />;
+  const Phet = PHET[slug];
+  if (Phet) return <Phet />;
   return <EmptyState title="Sắp có" description={`"${lab.title}" đang được xây dựng. Bạn có thể xem mục tiêu và bài tập mẫu bên dưới.`} />;
 }

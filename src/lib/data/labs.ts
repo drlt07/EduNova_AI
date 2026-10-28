@@ -6,7 +6,7 @@ const ALL: TextbookId[] = ["kntt", "cd", "ctst"];
 const map = (key: string, books: TextbookId[] = ALL) => books.map((b) => ({ textbookId: b, lessonIds: [lessonId(key, b)] }));
 const PROV = { author: "EduNova AI (nhóm phát triển)", license: "CC BY-SA 4.0 (dự kiến)", source: "Tự xây dựng — giai đoạn 1" };
 
-export const LAB_TEMPLATES: LabTemplate[] = [
+const BASE_LABS: LabTemplate[] = [
   {
     id: "lab-smart-garden",
     slug: "smart-garden",
@@ -77,7 +77,7 @@ export const LAB_TEMPLATES: LabTemplate[] = [
   {
     id: "lab-smart-coding-city",
     slug: "smart-coding-city",
-    title: "Giao lộ thông minh 3D",
+    title: "Giao lộ thông minh",
     tagline: "Mô phỏng 3D giao lộ bốn hướng: đèn tín hiệu, xe dừng trước vạch, đi qua giao lộ",
     description: "Giao lộ 3D low-poly (WebGL) với bốn cột đèn, bốn ô tô và luật giao thông cơ bản: xanh đi, đỏ dừng trước vạch, vàng chỉ đi tiếp khi quá gần vạch. Học sinh xoay, zoom, bấm vào xe và đèn, chuyển pha đèn để quan sát.",
     grades: [10],
@@ -155,7 +155,7 @@ export const LAB_TEMPLATES: LabTemplate[] = [
   {
     id: "lab-inside-computer",
     slug: "inside-computer-3d",
-    title: "Bên trong máy tính 3D",
+    title: "Khám phá bên trong máy tính",
     tagline: "Lắp máy, bật nguồn, theo dấu dữ liệu và sửa máy hỏng",
     description:
       "Thùng máy 3D mở nắp: lắp bộ nguồn, bo mạch chủ, CPU, tản nhiệt, RAM, SSD, card đồ họa vào đúng khe rồi bật nguồn — thiếu linh kiện nào máy báo đúng triệu chứng đó. Tiếp theo xếp đường đi dữ liệu khi mở một tệp ảnh và làm kỹ thuật viên chẩn đoán 5 ca sự cố.",
@@ -182,7 +182,7 @@ export const LAB_TEMPLATES: LabTemplate[] = [
   {
     id: "lab-os-explorer",
     slug: "os-explorer",
-    title: "Khám phá hệ điều hành",
+    title: "Trung tâm điều hành máy tính",
     tagline: "Sắp xếp tệp, giải phóng RAM, hiểu hệ điều hành làm gì",
     description: "Màn hình máy tính thu nhỏ: dùng File Explorer tạo thư mục, chuyển, đổi tên, xóa và khôi phục tệp (đường dẫn hiện rõ); dùng Task Manager giải phóng RAM để mở phần mềm thi mà không làm mất bài chưa lưu; nhận diện chức năng của hệ điều hành trong 6 tình huống.",
     grades: [11],
@@ -260,7 +260,7 @@ export const LAB_TEMPLATES: LabTemplate[] = [
   {
     id: "lab-ai-discovery",
     slug: "ai-discovery",
-    title: "Khám phá trí tuệ nhân tạo",
+    title: "Dạy robot phân loại trái cây",
     tagline: "Dạy camera phân loại xoài, phát hiện thiên lệch dữ liệu",
     description: "Camera ở chợ đầu mối học phân loại xoài chín / còn xanh. Học sinh gán nhãn dữ liệu, huấn luyện mô hình k láng giềng gần nhất (thấy vùng quyết định trên biểu đồ), kiểm tra trên lô mới có xoài keo — chín mà vỏ vẫn xanh — để thấy thiên lệch dữ liệu, bổ sung dữ liệu và huấn luyện lại; cuối cùng phân biệt AI với chương trình chạy theo luật.",
     grades: [12],
@@ -362,6 +362,31 @@ export const LAB_TEMPLATES: LabTemplate[] = [
     sampleTasks: ["Thả “haha” vào ảnh chế bạn có sao không?", "Dùng AI làm bài thế nào là trung thực?", "Làm gì khi thấy một video gây sốc về người quen?"],
   },
 ];
+/** Mô phỏng kiểu PhET: màn Khám phá tự do và màn Thử thách có chấm điểm. */
+function phet(slug: string, title: string, grade: 10 | 11 | 12, tagline: string, description: string, objectiveIds: string[], tags: string[], accent: LabTemplate["accent"], sampleTasks: string[], capabilities: string[]): LabTemplate {
+  return {
+    id: `lab-${slug}`, slug, title, tagline, description, grades: [grade], pathways: ["chung"], textbookMapping: [], objectiveIds, capabilities,
+    parameterSchema: [], engine: "svg-ts", safetyConstraints: ["Không chạy mã thật, không truy cập mạng thật"], testCases: [], evidenceEvents: ["input_change", "submit"], rubricMapping: [],
+    status: "available", featureStatus: "REAL", assets: [], provenance: PROV, tags, modes: ["explore", "challenge"], accent, sampleTasks,
+  };
+}
+
+export const PHET_LABS: LabTemplate[] = [
+  phet("binary-control", "Phòng điều khiển mã nhị phân", 10, "Công tắc bit, đèn, giá trị vị trí và tràn số", "Bật tắt từng công tắc bit, đèn sáng theo bit 1, số thập phân và thanh số cập nhật ngay; cộng trừ 1 để thấy tràn số với 4 bit và 8 bit. Thử thách: tạo số, đọc số, tìm số lớn nhất.", ["O10-A-01"], ["bit", "nhị phân", "byte"], "cyan", ["Tạo số 100 bằng 8 bit.", "Vì sao 255 + 1 lại thành 0 với 8 bit?", "4 bit biểu diễn được bao nhiêu số?"], ["Công tắc bit ↔ đèn ↔ thập phân", "4 bit / 8 bit", "Tràn số", "5 thử thách"]),
+  phet("smart-home", "Ngôi nhà thông minh", 10, "Cảm biến đúng/sai, AND, OR, NOT điều khiển thiết bị", "Bấm vào ngôi nhà để đổi cảm biến (trời tối, có người, cửa mở, đi vắng, mưa); lắp biểu thức AND, OR, NOT cho đèn hiên, còi báo trộm, vòi tưới; bảng chân trị tự cập nhật. Thử thách: lắp đúng luật cho 5 tình huống.", ["O10-A-02", "O10-F-03"], ["logic", "AND", "OR", "NOT", "IoT"], "violet", ["Đèn hiên sáng khi nào với luật toi and nguoi?", "Đổi AND thành OR thì đèn sáng thêm những lúc nào?", "Viết luật cho vòi tưới: không mưa và không tối."], ["Ngôi nhà bấm được", "Lắp biểu thức", "Bảng chân trị", "5 thử thách"]),
+  phet("digital-camera", "Phòng thí nghiệm máy ảnh số", 10, "Điểm ảnh, số bit màu, lấy mẫu âm thanh và dung lượng", "Đổi độ phân giải và số bit mỗi điểm ảnh, xem ảnh vỡ hạt hay mất màu và dung lượng thay đổi; bấm vào một điểm ảnh để xem mã nhị phân. Màn âm thanh: đổi số mẫu và số bit, so sóng số với sóng gốc, tính dung lượng tệp.", ["O10-A-01"], ["ảnh số", "âm thanh số", "điểm ảnh", "dung lượng"], "amber", ["Ảnh 100×100, 24 bit nặng bao nhiêu?", "Cần mấy bit để có 16 mức xám?", "Tăng số mẫu làm âm thanh thay đổi thế nào?"], ["Ảnh vẽ bằng công thức, mọi độ phân giải", "1–24 bit màu", "Sóng âm và lấy mẫu", "Tính dung lượng"]),
+  phet("robot-factory", "Nhà máy robot tự động", 10, "Vòng lặp for và range điều khiển cánh tay robot", "Chỉnh start, stop, step của range; cánh tay robot đặt hộp lên băng chuyền ở từng giá trị i, chạy từng bước, xem biến i, số lần lặp và tổng cộng dồn. Thử thách: đặt hộp đúng các vị trí yêu cầu, kể cả đếm ngược.", ["O10-F-05"], ["python", "for", "range", "vòng lặp"], "blue", ["range(2, 11, 2) cho những số nào?", "Vì sao range(5) không có số 5?", "Đặt hộp từ 10 về 1, mỗi lần cách 3 ô."], ["range(start, stop, step)", "Chạy từng bước", "Cộng dồn", "5 thử thách"]),
+  phet("maze-robot", "Robot tìm đường thoát", 10, "Vòng lặp while, điều kiện dừng và lặp vô hạn", "Lắp vòng lặp while từ điều kiện và thân (có thể có if/else) để robot đi trong mê cung; xem nhật kí từng lần kiểm tra điều kiện, số lần lặp; phát hiện vòng lặp không dừng. Thử thách: 4 mê cung.", ["O10-F-05"], ["python", "while", "vòng lặp", "điều kiện"], "emerald", ["Khi nào vòng lặp while dừng?", "Điều gì làm vòng lặp chạy mãi?", "Kết hợp while với if để robot rẽ đúng chỗ."], ["Lắp chương trình", "Nhật kí từng bước", "Phát hiện lặp vô hạn", "4 mê cung"]),
+  phet("software-ecosystem", "Khám phá thế giới phần mềm", 11, "Nguồn mở, nguồn đóng, phần mềm chạy trên Internet", "Bản đồ 10 phần mềm theo hai trục: nguồn mở/nguồn đóng và cài trên máy/chạy trên Internet; xem giấy phép, giá; thử tình huống mất mạng hoặc cần sửa mã nguồn. Thử thách: phân loại và chọn phần mềm cho từng tình huống.", ["O11-A-02"], ["nguồn mở", "giấy phép", "phần mềm"], "emerald", ["Miễn phí có phải là nguồn mở?", "Mất mạng thì phần mềm nào còn dùng được?", "Chọn phần mềm cho nhóm cùng sửa một văn bản."], ["Bản đồ phần mềm", "Giấy phép", "Tình huống mất mạng", "4 thử thách"]),
+  phet("device-connection", "Trạm kết nối thiết bị số", 11, "Cổng USB, HDMI, LAN, âm thanh, Bluetooth, Wi-Fi", "Chọn thiết bị (chuột, máy chiếu, loa, micro, máy in, điện thoại…) rồi bấm cổng ở mặt sau máy tính hoặc ghép nối không dây; cổng phù hợp được tô sáng, cắm sai có giải thích. Thử thách: chuẩn bị máy cho 4 tình huống.", ["O11-A-01"], ["thiết bị", "cổng kết nối", "USB", "HDMI"], "blue", ["Máy chiếu cắm vào cổng nào?", "Cổng xanh lá và cổng hồng khác nhau thế nào?", "Thiết bị nào kết nối được qua Bluetooth?"], ["Mặt sau máy tính", "10 thiết bị", "Kết nối không dây", "4 tình huống"]),
+  phet("cloud-sharing", "Đám mây dữ liệu", 11, "Đồng bộ qua đám mây, phân quyền chia sẻ, liên kết công khai", "Sửa tệp trên một thiết bị, bật tắt mạng, đồng bộ và xem phiên bản trên các thiết bị; đặt quyền xem, bình luận, chỉnh sửa cho cô giáo, nhóm, cả lớp và chế độ liên kết. Thử thách: đặt chia sẻ đúng cho 3 tình huống và đồng bộ.", ["O11-A-02"], ["đám mây", "chia sẻ", "quyền truy cập"], "cyan", ["Thiết bị mất mạng có nhận bản mới không?", "Quyền bình luận khác chỉnh sửa thế nào?", "Vì sao cẩn thận với liên kết công khai?"], ["Đồng bộ nhiều thiết bị", "Phân quyền", "Liên kết công khai", "4 thử thách"]),
+  phet("network-builder", "Xây dựng mạng trường học", 12, "Switch, router, access point, modem và ping thử", "Đặt thiết bị vào phòng máy, thư viện, văn phòng, phòng thiết bị và lối ra Internet; bấm kiểm tra để thấy máy nào vào được mạng nội bộ, máy nào ra được Internet và vì sao. Thử thách: xây mạng từng bước.", ["O12-B-01"], ["mạng", "switch", "router", "access point"], "violet", ["Vì sao laptop ở thư viện cần access point?", "Router khác switch thế nào?", "Thiếu modem thì mạng trường thế nào?"], ["Sơ đồ trường", "4 loại thiết bị", "Kiểm tra kết nối", "4 thử thách"]),
+  phet("css-box", "Phòng thiết kế những chiếc hộp", 12, "Mô hình hộp CSS: padding, border, margin, box-sizing", "Kéo thanh trượt width, height, padding, border, margin; hộp tô màu từng lớp, mã CSS và tổng kích thước cập nhật ngay; so sánh content-box với border-box. Thử thách: tạo hộp đúng kích thước yêu cầu.", ["O12-F-01"], ["css", "box model", "web"], "amber", ["Hộp width 200, padding 20, border 5 rộng bao nhiêu?", "border-box khác content-box ở đâu?", "Margin có làm hộp to ra không?"], ["Tô màu 4 lớp hộp", "Mã CSS trực tiếp", "content-box / border-box", "4 thử thách"]),
+  phet("web-navigation", "Mê cung website", 12, "Liên kết, đường dẫn tương đối và thanh điều hướng", "Trình duyệt thu nhỏ với 5 trang (có thư mục lop/): bấm liên kết để đi, sửa href trên từng trang; sơ đồ trang hiện liên kết hỏng và trang không tới được. Thử thách: sửa toàn bộ thanh điều hướng.", ["O12-F-01"], ["html", "liên kết", "đường dẫn", "web"], "rose", ["../index.html nghĩa là gì?", "Vì sao gioithieu.html báo 404?", "Làm sao để mọi trang đều về được trang chủ?"], ["Trình duyệt thu nhỏ", "Sửa href", "Sơ đồ trang", "Lỗi 404"]),
+];
+
+export const LAB_TEMPLATES: LabTemplate[] = [...BASE_LABS, ...PHET_LABS];
+
 
 export function getLabBySlug(slug: string) {
   return LAB_TEMPLATES.find((l) => l.slug === slug);

@@ -1,3 +1,4 @@
+import { SGK_SIMS } from "@/lib/data/lab-catalog";
 import type { Grade } from "@/lib/domain/types";
 import { SGK_KNTT, findSgk, sgkLabs, sgkRef, type SgkLesson, type SgkTopic } from "@/lib/data/sgk-kntt";
 import type { BookBlock, BookLesson } from "./types";
@@ -54,7 +55,9 @@ export const contentCount = (g: Grade) => bookLessons(g).filter((e) => e.content
 /** Các mô phỏng nằm trong bài: đặt trong nội dung trước, rồi mô phỏng gắn theo chương trình. */
 export function lessonSimSlugs(e: BookEntry): string[] {
   const inline = (e.content?.sections ?? []).flatMap((s) => s.blocks.flatMap((b) => (b.t === "sim" ? [b.slug] : [])));
-  return [...new Set([...inline, ...sgkLabs(e.lesson).map((l) => l.slug)])];
+  const main = SGK_SIMS[e.ref];
+  // Bài đã có tình huống chính: không kèm mô phỏng chung theo chủ đề (vd Bit và cổng logic cho cả Bài 4, 5)
+  return [...new Set([...(main ?? []), ...inline, ...(main ? [] : sgkLabs(e.lesson).map((l) => l.slug))])];
 }
 
 export type CheckBlock = Extract<BookBlock, { t: "check" }>;

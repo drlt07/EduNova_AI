@@ -21,7 +21,7 @@ export interface LabResult {
 }
 
 /** Mô phỏng có nhiệm vụ và màn hình hoàn thành, nên chấm được điểm. */
-export const SCORED_LABS = new Set(["inside-computer-3d", "network-journey", "os-explorer", "database-city", "sql-detective", "debug-detective", "digital-safety", "ai-discovery", "digital-citizen"]);
+export const SCORED_LABS = new Set(["inside-computer-3d", "network-journey", "os-explorer", "database-city", "sql-detective", "debug-detective", "digital-safety", "ai-discovery", "digital-citizen", "binary-control", "smart-home", "digital-camera", "robot-factory", "maze-robot", "software-ecosystem", "device-connection", "cloud-sharing", "network-builder", "css-box", "web-navigation"]);
 
 /** 10 điểm, mỗi lần chọn sai trừ 0,5; đã hoàn thành thì thấp nhất 5. */
 export const labScore = (mistakes: number) => Math.max(5, 10 - 0.5 * Math.max(0, mistakes));

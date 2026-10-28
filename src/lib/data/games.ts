@@ -141,6 +141,22 @@ export const GAMES: GameInfo[] = [
   { slug: "network-journey", title: "Hành trình gói tin", worldId: "digital-future", grade: 12, focus: "Switch, router, địa chỉ IP, ping", minutes: 20, difficulty: "trung-binh", status: "available", description: "Đấu nối mạng phòng Tin, dẫn gói tin qua switch và router, sửa lỗi mạng bằng ping.", labSlug: "network-journey", icon: "network-journey" },
 ];
 
+/** Tình huống mô phỏng kiểu PhET theo từng bài Kết nối tri thức. */
+const PHET_GAMES: GameInfo[] = [
+  { slug: "binary-control", title: "Phòng điều khiển mã nhị phân", worldId: "codecraft", grade: 10, focus: "Bit, giá trị vị trí, tràn số", minutes: 15, difficulty: "co-ban", status: "available", description: "Bật tắt công tắc bit, xem đèn, số thập phân và thanh số thay đổi cùng lúc.", labSlug: "binary-control", icon: "binary-control" },
+  { slug: "smart-home", title: "Ngôi nhà thông minh", worldId: "codecraft", grade: 10, focus: "AND, OR, NOT, bảng chân trị", minutes: 20, difficulty: "trung-binh", status: "available", description: "Lắp biểu thức lôgic điều khiển đèn hiên, còi báo trộm, vòi tưới.", labSlug: "smart-home", icon: "smart-home" },
+  { slug: "digital-camera", title: "Phòng thí nghiệm máy ảnh số", worldId: "codecraft", grade: 10, focus: "Điểm ảnh, bit màu, lấy mẫu âm thanh", minutes: 25, difficulty: "trung-binh", status: "available", description: "Đổi độ phân giải, số bit màu, số mẫu âm thanh và xem dung lượng thay đổi.", labSlug: "digital-camera", icon: "digital-camera" },
+  { slug: "robot-factory", title: "Nhà máy robot tự động", worldId: "codecraft", grade: 10, focus: "Vòng lặp for, range", minutes: 20, difficulty: "co-ban", status: "available", description: "Chỉnh range để cánh tay robot đặt hộp đúng vị trí trên băng chuyền.", labSlug: "robot-factory", icon: "robot-factory" },
+  { slug: "maze-robot", title: "Robot tìm đường thoát", worldId: "codecraft", grade: 10, focus: "Vòng lặp while, điều kiện dừng", minutes: 25, difficulty: "trung-binh", status: "available", description: "Lắp vòng lặp while có if để robot thoát mê cung, tránh lặp vô hạn.", labSlug: "maze-robot", icon: "maze-robot" },
+  { slug: "software-ecosystem", title: "Khám phá thế giới phần mềm", worldId: "cybercore", grade: 11, focus: "Nguồn mở, giấy phép, phần mềm trên Internet", minutes: 15, difficulty: "co-ban", status: "available", description: "Bản đồ phần mềm nguồn mở, nguồn đóng, chạy trên Internet; chọn phần mềm cho từng tình huống.", labSlug: "software-ecosystem", icon: "software-ecosystem" },
+  { slug: "device-connection", title: "Trạm kết nối thiết bị số", worldId: "cybercore", grade: 11, focus: "Cổng USB, HDMI, LAN, âm thanh, không dây", minutes: 15, difficulty: "co-ban", status: "available", description: "Cắm thiết bị vào đúng cổng ở mặt sau máy tính hoặc ghép nối không dây.", labSlug: "device-connection", icon: "device-connection" },
+  { slug: "cloud-sharing", title: "Đám mây dữ liệu", worldId: "cybercore", grade: 11, focus: "Đồng bộ, phân quyền chia sẻ", minutes: 20, difficulty: "co-ban", status: "available", description: "Đồng bộ tệp giữa các thiết bị, đặt quyền xem, bình luận, chỉnh sửa an toàn.", labSlug: "cloud-sharing", icon: "cloud-sharing" },
+  { slug: "network-builder", title: "Xây dựng mạng trường học", worldId: "digital-future", grade: 12, focus: "Switch, router, access point, modem", minutes: 20, difficulty: "trung-binh", status: "available", description: "Đặt thiết bị mạng vào sơ đồ trường và kiểm tra máy nào ra được Internet.", labSlug: "network-builder", icon: "network-builder" },
+  { slug: "css-box", title: "Phòng thiết kế những chiếc hộp", worldId: "digital-future", grade: 12, focus: "Mô hình hộp CSS", minutes: 20, difficulty: "trung-binh", status: "available", description: "Kéo padding, border, margin, đổi box-sizing và xem hộp thay đổi.", labSlug: "css-box", icon: "css-box" },
+  { slug: "web-navigation", title: "Mê cung website", worldId: "digital-future", grade: 12, focus: "Liên kết, đường dẫn tương đối", minutes: 20, difficulty: "trung-binh", status: "available", description: "Sửa href trên thanh điều hướng để mọi trang đều tới được, không còn lỗi 404.", labSlug: "web-navigation", icon: "web-navigation" },
+];
+GAMES.push(...PHET_GAMES);
+
 export const getGame = (slug: string) => GAMES.find((g) => g.slug === slug);
 
 export function farmGlobals(c: FarmCase): Record<string, PyValue> {

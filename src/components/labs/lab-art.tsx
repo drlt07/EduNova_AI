@@ -1,4 +1,5 @@
 import { ComputerArt, FarmArt, NetworkArt, TrafficArt } from "@/components/landing/sim-art";
+import { PHET_ART } from "@/components/phet/phet-art";
 
 /**
  * Ảnh xem trước cho thẻ trong Kho mô phỏng. Cùng phong cách với sim-art (SVG 320×180, vẽ bằng code),
@@ -216,6 +217,7 @@ const ART: Record<string, React.ComponentType<ArtProps>> = {
   "network-journey": NetworkArt,
   "web-creator": WebArt,
   "digital-citizen": CitizenArt,
+  ...PHET_ART,
 };
 
 export function LabArt({ slug, className }: { slug: string; className?: string }) {
