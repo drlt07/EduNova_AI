@@ -2,14 +2,6 @@
 import { LabResultScope } from "@/components/sim/lab-result";
 import { getLabBySlug } from "@/lib/data/labs";
 import { InsideComputerLab } from "@/components/pc3d/inside-computer-lab";
-import { NetworkLab } from "@/components/network/network-lab";
-import { OsExplorerLab } from "@/components/os/os-explorer-lab";
-import { DatabaseCityLab } from "@/components/db/database-city-lab";
-import { SqlDetectiveLab } from "@/components/sql/sql-detective-lab";
-import { DebugDetectiveLab } from "@/components/debug/debug-detective-lab";
-import { DigitalSafetyLab } from "@/components/safety/digital-safety-lab";
-import { AiDiscoveryLab } from "@/components/ai/ai-discovery-lab";
-import { DigitalCitizenLab } from "@/components/citizen/digital-citizen-lab";
 import { DEFAULT_GARDEN_PARAMS, gardenTestCases } from "@/lib/sim/smart-garden";
 import { EmptyState } from "@/components/ui/feedback";
 import { SmartGardenLab } from "./smart-garden/smart-garden-lab";
@@ -27,6 +19,14 @@ import { CloudSharingLab } from "@/components/phet/cloud-sharing";
 import { NetworkBuilderLab } from "@/components/phet/network-builder";
 import { CssBoxLab } from "@/components/phet/css-box";
 import { WebNavigationLab } from "@/components/phet/web-navigation";
+import { OsCenterLab } from "@/components/phet/os-center";
+import { DatabaseCityLab } from "@/components/phet/database-city";
+import { SqlDetectiveLab } from "@/components/phet/sql-detective";
+import { DebugDetectiveLab } from "@/components/phet/debug-detective";
+import { DigitalSafetyLab } from "@/components/phet/digital-safety";
+import { AiDiscoveryLab } from "@/components/phet/ai-discovery";
+import { DigitalCitizenLab } from "@/components/phet/digital-citizen";
+import { NetworkJourneyLab } from "@/components/phet/network-journey";
 
 /** Mô phỏng kiểu PhET (màn Khám phá + Thử thách). */
 const PHET: Record<string, () => React.ReactElement> = {
@@ -41,6 +41,14 @@ const PHET: Record<string, () => React.ReactElement> = {
   "network-builder": NetworkBuilderLab,
   "css-box": CssBoxLab,
   "web-navigation": WebNavigationLab,
+  "os-explorer": OsCenterLab,
+  "database-city": DatabaseCityLab,
+  "sql-detective": SqlDetectiveLab,
+  "debug-detective": DebugDetectiveLab,
+  "digital-safety": DigitalSafetyLab,
+  "ai-discovery": AiDiscoveryLab,
+  "digital-citizen": DigitalCitizenLab,
+  "network-journey": NetworkJourneyLab,
 };
 import { Skeleton } from "@/components/ui/feedback";
 
@@ -60,14 +68,6 @@ function LabBody({ slug, onSaveWeb }: { slug: string; onSaveWeb?: (content: stri
   if (slug === "smart-coding-city") return <SmartTrafficCity />;
   if (slug === "web-creator") return <WebCreator onSave={onSaveWeb} />;
   if (slug === "inside-computer-3d") return <InsideComputerLab />;
-  if (slug === "network-journey") return <NetworkLab />;
-  if (slug === "os-explorer") return <OsExplorerLab />;
-  if (slug === "database-city") return <DatabaseCityLab />;
-  if (slug === "sql-detective") return <SqlDetectiveLab />;
-  if (slug === "debug-detective") return <DebugDetectiveLab />;
-  if (slug === "digital-safety") return <DigitalSafetyLab />;
-  if (slug === "ai-discovery") return <AiDiscoveryLab />;
-  if (slug === "digital-citizen") return <DigitalCitizenLab />;
   const Phet = PHET[slug];
   if (Phet) return <Phet />;
   return <EmptyState title="Sắp có" description={`"${lab.title}" đang được xây dựng. Bạn có thể xem mục tiêu và bài tập mẫu bên dưới.`} />;
