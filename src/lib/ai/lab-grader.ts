@@ -20,6 +20,66 @@ export interface LabRubric {
 }
 
 export const LAB_RUBRICS: Record<string, LabRubric> = {
+  "info-processor": {
+    prompt: "38,5 °C là dữ liệu hay thông tin? Máy tính xử lí thông tin qua những bước nào?",
+    need: 3,
+    ideas: [
+      { id: "data", label: "Dữ liệu là những gì ghi lại được (con số, chữ, ảnh)", keys: ["du lieu la", "con so", "ghi lai", "so lieu"] },
+      { id: "info", label: "Thông tin là ý nghĩa rút ra từ dữ liệu", keys: ["y nghia", "rut ra", "hieu duoc", "quyet dinh"] },
+      { id: "steps", label: "Thu nhận → lưu trữ → xử lí → xuất", keys: ["thu nhan", "luu tru", "xu li", "xu ly", "xuat"] },
+    ],
+    misconceptions: [{ label: "Cho rằng con số tự nó là thông tin", keys: ["38 5 la thong tin", "con so la thong tin"], fix: "Con số là dữ liệu; thông tin là điều ta hiểu ra từ nó (đang sốt)." }],
+  },
+  "text-encoding": {
+    prompt: "Vì sao chữ “ệ” cần nhiều byte hơn chữ “e” trong UTF-8? ASCII khác Unicode ở điểm nào?",
+    need: 3,
+    ideas: [
+      { id: "code", label: "Mỗi kí tự được gán một mã số, lưu dưới dạng bit", keys: ["ma so", "gan ma", "bit", "nhi phan"] },
+      { id: "ascii", label: "ASCII chỉ có 128 kí tự, không có chữ có dấu", keys: ["128", "ascii", "khong co dau", "khong co chu viet"] },
+      { id: "utf8", label: "Unicode/UTF-8 có mọi chữ, dùng 1–4 byte", keys: ["unicode", "utf", "nhieu byte", "2 byte", "3 byte"] },
+    ],
+    misconceptions: [{ label: "Cho rằng mỗi kí tự luôn 1 byte", keys: ["moi ki tu 1 byte", "luon 1 byte"], fix: "Chỉ chữ Latinh không dấu mới 1 byte trong UTF-8; chữ Việt có dấu cần 2–3 byte." }],
+  },
+  "variable-boxes": {
+    prompt: "Sau a = 4; b = a; a = 10 thì b bằng mấy? Vì sao đổi chỗ hai biến cần biến tạm?",
+    need: 3,
+    ideas: [
+      { id: "overwrite", label: "Lệnh gán ghi đè giá trị cũ", keys: ["ghi de", "mat gia tri cu", "thay gia tri", "gia tri moi"] },
+      { id: "copy", label: "b = a chép giá trị lúc đó, sửa a sau không đổi b", keys: ["chep", "sao chep", "b van", "b bang 4", "khong doi"] },
+      { id: "temp", label: "Cần biến tạm giữ giá trị cũ khi đổi chỗ", keys: ["bien tam", "tam", "giu lai", "luu tam"] },
+    ],
+    misconceptions: [{ label: "Cho rằng b = a làm hai biến gắn liền nhau", keys: ["b doi theo a", "b cung bang 10"], fix: "Với số, b = a chỉ chép giá trị hiện tại; gán lại a không đổi b." }],
+  },
+  "list-lab": {
+    prompt: "a.insert(0, x) làm gì với các phần tử cũ? Chỉ số âm a[-1] là phần tử nào?",
+    need: 3,
+    ideas: [
+      { id: "zero", label: "Chỉ số bắt đầu từ 0", keys: ["tu 0", "bat dau 0", "chi so 0"] },
+      { id: "shift", label: "insert chèn vào, các phần tử sau dịch sang phải", keys: ["dich", "lui", "chen", "sang phai"] },
+      { id: "neg", label: "Chỉ số âm đếm từ cuối, a[-1] là phần tử cuối", keys: ["cuoi", "am", "-1", "tu cuoi"] },
+    ],
+    misconceptions: [{ label: "Nhầm remove (theo giá trị) với del (theo vị trí)", keys: ["remove theo vi tri", "remove xoa vi tri"], fix: "remove(x) xóa theo giá trị; del a[i] và pop xóa theo vị trí." }],
+  },
+  "string-lab": {
+    prompt: "s[1:4] lấy những kí tự nào? Vì sao kí tự ở vị trí stop không được lấy?",
+    need: 3,
+    ideas: [
+      { id: "zero", label: "Chỉ số bắt đầu từ 0", keys: ["tu 0", "bat dau 0", "chi so 0"] },
+      { id: "stop", label: "Lấy từ start đến trước stop", keys: ["truoc stop", "khong lay", "den truoc", "khong bao gom"] },
+      { id: "step", label: "step là bước nhảy, âm thì đi ngược", keys: ["buoc nhay", "step", "nguoc", "dao"] },
+    ],
+    misconceptions: [{ label: "Cho rằng cắt xâu làm thay đổi xâu gốc", keys: ["xau goc thay doi", "sua xau"], fix: "Cắt xâu tạo xâu mới; xâu gốc không đổi." }],
+  },
+  "function-machine": {
+    prompt: "Vì sao một hàm in ra kết quả mà vẫn trả về None? Biến tạo trong hàm có dùng được bên ngoài không?",
+    need: 3,
+    ideas: [
+      { id: "args", label: "Đối số khi gọi được đưa vào tham số", keys: ["doi so", "tham so", "truyen vao"] },
+      { id: "return", label: "return đưa kết quả ra chỗ gọi; thiếu return thì None", keys: ["return", "tra ve", "none"] },
+      { id: "local", label: "Biến trong hàm là cục bộ, mất khi hàm xong", keys: ["cuc bo", "ben trong ham", "khong dung duoc ben ngoai", "mat khi"] },
+    ],
+    misconceptions: [{ label: "Cho rằng print giống return", keys: ["print la tra ve", "in ra la tra ve"], fix: "print chỉ hiện lên màn hình; muốn dùng kết quả tiếp phải return." }],
+  },
   "inside-computer-3d": {
     prompt: "Vì sao máy tính cần cả RAM lẫn ổ cứng (SSD/HDD)? CPU dùng RAM để làm gì?",
     need: 3,

@@ -128,6 +128,58 @@ function WebNavArt({ className }: P) {
   );
 }
 
+function InfoProcessorArt({ className }: P) {
+  return (
+    <Svg className={className} bg="#0f172a" label="Bốn bước xử lí thông tin">
+      {["Thu nhận", "Lưu trữ", "Xử lí", "Xuất"].map((t, i) => <g key={t} transform={`translate(${22 + i * 75} 62)`}><rect width="62" height="54" rx="12" fill={i === 3 ? "#f59e0b" : "#0e7490"} /><text x="31" y="32" textAnchor="middle" fontSize="11" fontWeight="700" fill="#fff">{t}</text>{i < 3 && <path d="M64 27 L74 27" stroke="#67e8f9" strokeWidth="3" />}</g>)}
+      <text x="160" y="40" textAnchor="middle" fontSize="12" fontFamily={M} fill="#94a3b8">31°C · 85% · mây 70%</text>
+      <text x="160" y="150" textAnchor="middle" fontSize="13" fontWeight="700" fill="#fde68a">“Chiều nay có thể mưa”</text>
+    </Svg>
+  );
+}
+function TextEncodingArt({ className }: P) {
+  const cs: [string, string][] = [["T", "54"], ["i", "69"], ["n", "6E"], ["ệ", "E1 BB 87"]];
+  return (
+    <Svg className={className} bg="#f5f3ff" label="Kí tự thành mã và byte">
+      {cs.map(([c, h], i) => <g key={c} transform={`translate(${24 + i * 72} 40)`}><rect width="60" height="96" rx="10" fill="#fff" stroke="#a78bfa" strokeWidth="2" /><text x="30" y="40" textAnchor="middle" fontSize="28" fontWeight="800" fill="#1e1b4b">{c}</text><text x="30" y="70" textAnchor="middle" fontSize="9" fontFamily={M} fill="#7c3aed">{h}</text><text x="30" y="86" textAnchor="middle" fontSize="9" fill="#64748b">{h.split(" ").length} byte</text></g>)}
+      <text x="160" y="160" textAnchor="middle" fontSize="12" fontFamily={M} fill="#6d28d9">UTF-8</text>
+    </Svg>
+  );
+}
+function VariableBoxesArt({ className }: P) {
+  return (
+    <Svg className={className} bg="#0b1220" label="Hộp biến">
+      <text x="20" y="34" fontSize="13" fontFamily={M} fill="#e2e8f0">a = 5</text><text x="20" y="54" fontSize="13" fontFamily={M} fill="#e2e8f0">b = a</text><text x="20" y="74" fontSize="13" fontFamily={M} fill="#67e8f9">a = a + 3</text>
+      {[["a", "8", true], ["b", "5", false]].map(([n, v, hi], i) => <g key={n as string} transform={`translate(${150 + i * 82} 54)`}><rect x="12" y="-18" width="40" height="18" rx="4" fill="#334155" /><text x="32" y="-5" textAnchor="middle" fontSize="12" fontFamily={M} fontWeight="700" fill="#fff">{n}</text><rect width="64" height="56" rx="10" fill="#fff" stroke={hi ? "#fbbf24" : "#cbd5e1"} strokeWidth="4" /><text x="32" y="37" textAnchor="middle" fontSize="24" fontFamily={M} fontWeight="800" fill="#0f172a">{v}</text></g>)}
+    </Svg>
+  );
+}
+function ListArt({ className }: P) {
+  return (
+    <Svg className={className} bg="#1e293b" label="Đoàn toa danh sách">
+      <rect x="14" y="72" width="34" height="50" rx="12" fill="#f43f5e" />
+      {["Toán", "Văn", "Tin", "Anh"].map((t, i) => <g key={t} transform={`translate(${54 + i * 64} 72)`}><text x="28" y="-8" textAnchor="middle" fontSize="12" fontFamily={M} fontWeight="700" fill="#67e8f9">{i}</text><rect width="58" height="46" rx="8" fill={i === 2 ? "#fcd34d" : "#3b82f6"} /><text x="29" y="29" textAnchor="middle" fontSize="13" fontWeight="700" fill={i === 2 ? "#0f172a" : "#fff"}>{t}</text><circle cx="14" cy="54" r="5" fill="#64748b" /><circle cx="44" cy="54" r="5" fill="#64748b" /><text x="28" y="76" textAnchor="middle" fontSize="10" fontFamily={M} fill="#f9a8d4">{i - 4}</text></g>)}
+    </Svg>
+  );
+}
+function StringArt({ className }: P) {
+  return (
+    <Svg className={className} bg="#0f172a" label="Cắt xâu kí tự">
+      {[..."PYTHON"].map((c, i) => <g key={i} transform={`translate(${42 + i * 40} 60)`}><text x="17" y="-8" textAnchor="middle" fontSize="11" fontFamily={M} fill="#67e8f9">{i}</text><rect width="34" height="40" rx="6" fill={i >= 1 && i < 4 ? "#fcd34d" : "#1e293b"} stroke={i === 4 ? "#fb7185" : "#475569"} strokeDasharray={i === 4 ? "4 3" : undefined} strokeWidth="2" /><text x="17" y="27" textAnchor="middle" fontSize="18" fontFamily={M} fontWeight="800" fill={i >= 1 && i < 4 ? "#0f172a" : "#e2e8f0"}>{c}</text></g>)}
+      <text x="160" y="150" textAnchor="middle" fontSize="14" fontFamily={M} fill="#86efac">{"s[1:4] → 'YTH'"}</text>
+    </Svg>
+  );
+}
+function FunctionArt({ className }: P) {
+  return (
+    <Svg className={className} bg="#0b1220" label="Cỗ máy hàm">
+      <circle cx="140" cy="22" r="12" fill="#fcd34d" /><circle cx="180" cy="22" r="12" fill="#fcd34d" /><text x="140" y="26" textAnchor="middle" fontSize="12" fontWeight="800" fill="#0f172a">3</text><text x="180" y="26" textAnchor="middle" fontSize="12" fontWeight="800" fill="#0f172a">5</text>
+      <rect x="90" y="44" width="140" height="74" rx="16" fill="#334155" stroke="#64748b" strokeWidth="3" /><text x="160" y="72" textAnchor="middle" fontSize="12" fontFamily={M} fill="#67e8f9">def tong(a, b):</text><text x="160" y="94" textAnchor="middle" fontSize="12" fontFamily={M} fill="#e2e8f0">return a + b</text>
+      <rect x="130" y="132" width="60" height="34" rx="10" fill="#065f46" stroke="#34d399" strokeWidth="3" /><text x="160" y="155" textAnchor="middle" fontSize="16" fontFamily={M} fontWeight="800" fill="#fff">8</text>
+    </Svg>
+  );
+}
+
 export const PHET_ART: Record<string, React.ComponentType<P>> = {
   "binary-control": BinaryControlArt,
   "smart-home": SmartHomeArt,
@@ -140,4 +192,10 @@ export const PHET_ART: Record<string, React.ComponentType<P>> = {
   "network-builder": NetworkBuilderArt,
   "css-box": CssBoxArt,
   "web-navigation": WebNavArt,
+  "info-processor": InfoProcessorArt,
+  "text-encoding": TextEncodingArt,
+  "variable-boxes": VariableBoxesArt,
+  "list-lab": ListArt,
+  "string-lab": StringArt,
+  "function-machine": FunctionArt,
 };

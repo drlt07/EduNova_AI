@@ -27,6 +27,12 @@ import { DigitalSafetyLab } from "@/components/phet/digital-safety";
 import { AiDiscoveryLab } from "@/components/phet/ai-discovery";
 import { DigitalCitizenLab } from "@/components/phet/digital-citizen";
 import { NetworkJourneyLab } from "@/components/phet/network-journey";
+import { InfoProcessorLab } from "@/components/phet/info-processor";
+import { TextEncodingLab } from "@/components/phet/text-encoding";
+import { VariableBoxesLab } from "@/components/phet/variable-boxes";
+import { ListLab } from "@/components/phet/list-lab";
+import { StringLab } from "@/components/phet/string-lab";
+import { FunctionMachineLab } from "@/components/phet/function-machine";
 
 /** Mô phỏng kiểu PhET (màn Khám phá + Thử thách). */
 const PHET: Record<string, () => React.ReactElement> = {
@@ -49,6 +55,12 @@ const PHET: Record<string, () => React.ReactElement> = {
   "ai-discovery": AiDiscoveryLab,
   "digital-citizen": DigitalCitizenLab,
   "network-journey": NetworkJourneyLab,
+  "info-processor": InfoProcessorLab,
+  "text-encoding": TextEncodingLab,
+  "variable-boxes": VariableBoxesLab,
+  "list-lab": ListLab,
+  "string-lab": StringLab,
+  "function-machine": FunctionMachineLab,
 };
 import { Skeleton } from "@/components/ui/feedback";
 
