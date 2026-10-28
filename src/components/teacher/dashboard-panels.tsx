@@ -91,7 +91,7 @@ function suggestionLinks(objectiveId?: string) {
   const lesson = objectiveId ? LESSONS.find((l) => l.textbookId === "kntt" && l.objectiveIds.includes(objectiveId)) : undefined;
   const ref = lesson ? sgkRefForKey(lesson.key) : undefined;
   return {
-    quiz: ref ? `/teacher/courses?grade=${ref.split("-")[0]}&bai=${ref}&tab=quiz` : "/teacher/courses",
+    quiz: ref ? `/teacher/sgk/${ref}?tab=cau-hoi` : "/teacher/courses",
     plan: lesson ? `/teacher/lesson-planner/assistant?lesson=${lesson.id}` : "/teacher/lesson-planner",
   };
 }

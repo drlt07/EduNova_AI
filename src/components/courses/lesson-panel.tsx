@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useState } from "react";
-import { BookOpen, CheckCircle2, Code2, FlaskConical, ListChecks, NotebookPen, Pencil, Play, Plus, Send, Trash2, X } from "lucide-react";
+import { CheckCircle2, Pencil, Play, Plus, Send, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import { CODING_EXERCISES } from "@/lib/data/coding-exercises";
 import { getLesson } from "@/lib/data/curriculum";
@@ -16,16 +16,7 @@ import { LabClassResults } from "@/components/teacher/lab-results";
 import { AssignDialog, type AssignPreset } from "@/components/teacher/assign-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Field, Input, Select, Textarea } from "@/components/ui/form";
-
-export type LessonTab = "labs" | "quiz" | "code" | "plan";
-const TABS: { id: LessonTab; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
-  { id: "labs", label: "Mô phỏng", icon: FlaskConical },
-  { id: "quiz", label: "Câu hỏi trắc nghiệm", icon: ListChecks },
-  { id: "code", label: "Bài lập trình", icon: Code2 },
-  { id: "plan", label: "Bài học & KHBD", icon: NotebookPen },
-];
 
 type Draft = { id?: string; title: string; questions: PracticeQuestion[]; classIds: string[] };
 type NewQ = { kind: "mcq" | "truefalse"; prompt: string; options: string[]; correct: number; answer: boolean; explanation: string };
@@ -129,28 +120,74 @@ function QuizEditor({ draft, setDraft, bank, objectiveId, grade, onSave, onCance
   );
 }
 
-/**
- * Bảng làm việc của một bài SGK cho giáo viên: mô phỏng (gắn sẵn + tự gắn), bộ câu hỏi trắc nghiệm giao cho lớp,
- * bài lập trình liên quan, bài học tương tác và KHBD.
- */
-export function LessonPanel({ refId, tab, onTab, onClose }: { refId: string; tab: LessonTab; onTab: (t: LessonTab) => void; onClose: () => void }) {
+function useLessonData(refId: string) {
   const { d, user } = useSessionData();
   const found = findSgk(refId);
-  const [draft, setDraft] = useState<Draft | null>(null);
-  const [assign, setAssign] = useState<AssignPreset | undefined>();
   const lesson = found?.lesson;
   const id = lesson ? sgkLessonId(lesson) : undefined;
   const linked = lesson ? sgkLabs(lesson) : [];
   const attached = d.lessonLabs.filter((l) => l.ownerId === user.id && l.sgkRef === refId).map((l) => LAB_TEMPLATES.find((x) => x.slug === l.slug)).filter((x): x is (typeof LAB_TEMPLATES)[number] => !!x);
-  const quizzes = d.teacherQuizzes.filter((q) => q.ownerId === user.id && q.sgkRef === refId);
-  const bank = lesson?.key ? [...new Set(PRACTICE_SETS.filter((s) => s.lessonKey === lesson.key).flatMap((s) => s.questionIds))].map(getQuestion).filter((q): q is PracticeQuestion => !!q && (q.kind === "mcq" || q.kind === "truefalse" || q.kind === "predict")) : [];
-  const exercises = lesson?.key ? CODING_EXERCISES.filter((e) => e.lessonKey === lesson.key) : [];
-  if (!found || !lesson) return null;
-  const objectiveId = (id && getLesson(id)?.objectiveIds[0]) || `SGK-${refId}`;
-  const shownLabs = [...linked, ...attached.filter((a) => !linked.some((l) => l.slug === a.slug))];
-  const others = LAB_TEMPLATES.filter((l) => !shownLabs.some((x) => x.slug === l.slug)).sort((a, b) => Number(b.grades.includes(found.grade)) - Number(a.grades.includes(found.grade)));
-  const className = (cid: string) => d.classes.find((c) => c.id === cid)?.name ?? cid;
+  return { d, user, found, lesson, id, linked, attached };
+}
 
+/** Tab Mô phỏng của một bài (giáo viên): mô phỏng theo chương trình và tự gắn, giao cho lớp, kết quả từng lớp, gắn thêm từ kho. */
+export function LessonLabsTab({ refId, inline = [] }: { refId: string; inline?: string[] }) {
+  const { d, user, found, linked, attached } = useLessonData(refId);
+  const [assign, setAssign] = useState<AssignPreset | undefined>();
+  if (!found) return null;
+  const inlineLabs = inline.map((s) => LAB_TEMPLATES.find((l) => l.slug === s)).filter((l): l is (typeof LAB_TEMPLATES)[number] => !!l);
+  const base = [...inlineLabs, ...linked.filter((l) => !inline.includes(l.slug))];
+  const shownLabs = [...base, ...attached.filter((a) => !base.some((l) => l.slug === a.slug))];
+  const others = LAB_TEMPLATES.filter((l) => l.status !== "planned" && !shownLabs.some((x) => x.slug === l.slug)).sort((a, b) => Number(b.grades.includes(found.grade)) - Number(a.grades.includes(found.grade)));
+  return (
+    <div className="space-y-6">
+      {shownLabs.length === 0 ? <p className="text-sm text-muted">Bài này chưa có mô phỏng. Gắn thêm từ kho bên dưới.</p> : (
+        <ul className="space-y-3">
+          {shownLabs.map((l) => {
+            const mine = attached.some((a) => a.slug === l.slug) && !base.some((x) => x.slug === l.slug);
+            return (
+              <li key={l.slug} className="overflow-hidden rounded-2xl border border-line bg-surface">
+                <div className="flex flex-wrap items-center gap-3 p-3">
+                  <LabArt slug={l.slug} className="h-16 w-28 shrink-0 rounded-lg" />
+                  <span className="min-w-0 flex-1 basis-48"><span className="block font-semibold text-fg">{l.title}</span><span className="block text-xs text-muted">{inline.includes(l.slug) ? "Có trong nội dung bài" : mine ? "Thầy cô gắn thêm" : "Gắn theo chương trình"} · {l.tagline}</span></span>
+                  <Button asChild size="sm" variant="ghost"><Link href={`/labs/${l.slug}`}><Play /> Chơi thử</Link></Button>
+                  <Button size="sm" onClick={() => setAssign({ kind: "lab", ref: l.slug })}><Send /> Giao</Button>
+                  {mine && <Button size="icon" variant="ghost" aria-label={`Bỏ gắn ${l.title}`} onClick={() => d.toggleLessonLab(user.id, refId, l.slug)}><Trash2 /></Button>}
+                </div>
+                <LabClassResults slug={l.slug} grades={[found.grade]} />
+              </li>
+            );
+          })}
+        </ul>
+      )}
+      <details className="rounded-2xl border border-dashed border-line p-3">
+        <summary className="cursor-pointer text-sm font-semibold text-fg">Gắn thêm mô phỏng từ kho ({others.length})</summary>
+        <ul className="mt-2 grid gap-1.5 sm:grid-cols-2">
+          {others.map((l) => (
+            <li key={l.slug} className="flex items-center gap-2 rounded-lg border border-line px-3 py-1.5 text-sm">
+              <span className="min-w-0 flex-1 truncate text-fg">{l.title}</span>
+              <span className="text-xs text-muted">Tin {l.grades.join(", ")}</span>
+              <Button size="sm" variant="ghost" onClick={() => { d.toggleLessonLab(user.id, refId, l.slug); toast.success(`Đã gắn “${l.title}” vào bài`); }}><Plus /> Gắn</Button>
+            </li>
+          ))}
+        </ul>
+      </details>
+      <AssignDialog open={!!assign} onOpenChange={(o) => !o && setAssign(undefined)} preset={assign} sgkRef={refId} />
+    </div>
+  );
+}
+
+/** Tab Câu hỏi của một bài (giáo viên): bộ câu hỏi giao lớp, soạn từ ngân hàng của bài hoặc tự soạn. */
+export function LessonQuizTab({ refId }: { refId: string }) {
+  const { d, user, found, lesson, id } = useLessonData(refId);
+  const [draft, setDraft] = useState<Draft | null>(null);
+  const [assign, setAssign] = useState<AssignPreset | undefined>();
+  if (!found || !lesson) return null;
+  const quizzes = d.teacherQuizzes.filter((q) => q.ownerId === user.id && q.sgkRef === refId);
+  const sets = lesson.key ? PRACTICE_SETS.filter((s) => s.lessonKey === lesson.key) : [];
+  const bank = [...new Set(sets.flatMap((s) => s.questionIds))].map(getQuestion).filter((q): q is PracticeQuestion => !!q && (q.kind === "mcq" || q.kind === "truefalse" || q.kind === "predict"));
+  const objectiveId = (id && getLesson(id)?.objectiveIds[0]) || `SGK-${refId}`;
+  const className = (cid: string) => d.classes.find((c) => c.id === cid)?.name ?? cid;
   const save = (publish: boolean) => {
     if (!draft) return;
     if (draft.title.trim().length < 3) return toast.error("Đặt tên bộ câu hỏi (ít nhất 3 kí tự)");
@@ -160,108 +197,69 @@ export function LessonPanel({ refId, tab, onTab, onClose }: { refId: string; tab
     toast.success(publish ? `Đã giao cho ${draft.classIds.map(className).join(", ")}` : "Đã lưu nháp");
     setDraft(null);
   };
-
+  if (draft) return <QuizEditor draft={draft} setDraft={setDraft} bank={bank} objectiveId={objectiveId} grade={found.grade} onSave={save} onCancel={() => setDraft(null)} />;
   return (
-    <Dialog open onOpenChange={(o) => !o && onClose()}>
-      <DialogContent title={`Bài ${lesson.no}. ${lesson.title}`} description={`Tin học ${found.grade} · Chủ đề ${found.topic.no}. ${found.topic.title}`} className="max-w-4xl">
-        <div className="-mt-1 mb-4 flex gap-1 overflow-x-auto border-b border-line" role="tablist">
-          {TABS.map((t) => (
-            <button key={t.id} type="button" role="tab" aria-selected={tab === t.id} onClick={() => onTab(t.id)} className={cn("flex shrink-0 items-center gap-1.5 border-b-2 px-3 py-2 text-sm font-medium", tab === t.id ? "border-cyan text-fg" : "border-transparent text-muted hover:text-fg")}>
-              <t.icon className="size-4" aria-hidden /> {t.label}
-              {t.id === "quiz" && quizzes.length > 0 && <span className="rounded-full bg-cyan/15 px-1.5 text-xs font-bold text-cyan-fg">{quizzes.length}</span>}
-            </button>
-          ))}
+    <div className="space-y-6">
+      <section>
+        <div className="mb-2 flex items-center justify-between gap-2">
+          <h3 className="font-semibold text-fg">Bộ câu hỏi của thầy cô</h3>
+          <Button size="sm" onClick={() => setDraft({ title: `Kiểm tra nhanh – Bài ${lesson.no}. ${lesson.title}`, questions: [], classIds: [] })}><Plus /> Tạo bộ câu hỏi</Button>
         </div>
-
-        {tab === "labs" && (
-          <div className="space-y-5">
-            {shownLabs.length === 0 ? <p className="text-sm text-muted">Bài này chưa có mô phỏng. Gắn thêm từ kho bên dưới.</p> : (
-              <ul className="grid gap-3 sm:grid-cols-2">
-                {shownLabs.map((l) => {
-                  const mine = attached.some((a) => a.slug === l.slug) && !linked.some((x) => x.slug === l.slug);
-                  return (
-                    <li key={l.slug} className="overflow-hidden rounded-xl border border-line">
-                      <div className="aspect-[16/7] overflow-hidden"><LabArt slug={l.slug} className="size-full" /></div>
-                      <div className="flex items-center gap-2 p-3">
-                        <span className="min-w-0 flex-1"><span className="block truncate text-sm font-semibold text-fg">{l.title}</span><span className="block text-xs text-muted">{mine ? "Thầy cô gắn thêm" : "Gắn theo chương trình"}</span></span>
-                        <Button asChild size="sm" variant="ghost"><Link href={`/labs/${l.slug}`}><Play /> Chơi thử</Link></Button>
-                        <Button size="sm" onClick={() => setAssign({ kind: "lab", ref: l.slug })}><Send /> Giao</Button>
-                        {mine && <Button size="icon" variant="ghost" aria-label={`Bỏ gắn ${l.title}`} onClick={() => d.toggleLessonLab(user.id, refId, l.slug)}><Trash2 /></Button>}
-                      </div>
-                      <LabClassResults slug={l.slug} grades={[found.grade]} />
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
-            <div>
-              <p className="text-sm font-semibold text-fg">Gắn thêm mô phỏng từ kho</p>
-              <ul className="mt-2 grid gap-1.5 sm:grid-cols-2">
-                {others.map((l) => (
-                  <li key={l.slug} className="flex items-center gap-2 rounded-lg border border-line px-3 py-1.5 text-sm">
-                    <span className="min-w-0 flex-1 truncate text-fg">{l.title}</span>
-                    <span className="text-xs text-muted">Tin {l.grades.join(", ")}</span>
-                    <Button size="sm" variant="ghost" onClick={() => { d.toggleLessonLab(user.id, refId, l.slug); toast.success(`Đã gắn “${l.title}”`); }}><Plus /> Gắn</Button>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        )}
-
-        {tab === "quiz" && (draft ? (
-          <QuizEditor draft={draft} setDraft={setDraft} bank={bank} objectiveId={objectiveId} grade={found.grade} onSave={save} onCancel={() => setDraft(null)} />
-        ) : (
-          <div className="space-y-3">
-            {quizzes.length === 0 ? <p className="text-sm text-muted">Chưa có bộ câu hỏi nào cho bài này.</p> : (
-              <ul className="space-y-2">
-                {quizzes.map((qz: TeacherQuiz) => (
-                  <li key={qz.id} className="flex flex-wrap items-center gap-2 rounded-xl border border-line p-3">
-                    <span className="min-w-0 flex-1">
-                      <span className="block font-semibold text-fg">{qz.title}</span>
-                      <span className="block text-xs text-muted">{qz.questions.length} câu · {qz.status === "published" ? `đã giao ${qz.classIds.map(className).join(", ")}` : "bản nháp"}</span>
-                    </span>
-                    {qz.status === "published" ? <Badge tone="success">Đã giao</Badge> : <Badge>Nháp</Badge>}
-                    <Button size="sm" variant="ghost" onClick={() => setDraft({ id: qz.id, title: qz.title, questions: qz.questions, classIds: qz.classIds })}><Pencil /> Sửa</Button>
-                    <Button size="icon" variant="ghost" aria-label={`Xóa ${qz.title}`} onClick={() => { if (window.confirm(`Xóa bộ câu hỏi “${qz.title}”?`)) d.deleteTeacherQuiz(qz.id, user.id); }}><Trash2 /></Button>
-                  </li>
-                ))}
-              </ul>
-            )}
-            <Button onClick={() => setDraft({ title: `Kiểm tra nhanh – Bài ${lesson.no}. ${lesson.title}`, questions: [], classIds: [] })}><Plus /> Tạo bộ câu hỏi</Button>
-            <p className="text-xs text-muted">Học sinh của lớp được giao sẽ thấy bộ câu hỏi ở mục Luyện tập → Trắc nghiệm, làm được ở chế độ luyện tập hoặc kiểm tra tính giờ.</p>
-          </div>
-        ))}
-
-        {tab === "code" && (exercises.length === 0 ? <p className="text-sm text-muted">Bài này chưa có bài lập trình chấm tự động.</p> : (
+        {quizzes.length === 0 ? <p className="text-sm text-muted">Chưa có. Tạo bộ câu hỏi từ ngân hàng của bài hoặc tự soạn câu mới.</p> : (
           <ul className="space-y-2">
-            {exercises.map((e) => (
-              <li key={e.id} className="rounded-xl border border-line p-3">
-                <p className="font-semibold text-fg">{e.title} <Badge className="ml-1">{e.topic}</Badge></p>
-                <p className="mt-1 text-sm text-muted">{e.task}</p>
-                <p className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted">{e.tests.length} bộ test chấm tự động · học sinh làm ở Luyện tập → Lập trình Python <Button size="sm" variant="secondary" className="ml-auto" onClick={() => setAssign({ kind: "code", ref: e.id })}><Send /> Giao cho lớp</Button></p>
+            {quizzes.map((qz: TeacherQuiz) => (
+              <li key={qz.id} className="flex flex-wrap items-center gap-2 rounded-xl border border-line bg-surface p-3">
+                <span className="min-w-0 flex-1">
+                  <span className="block font-semibold text-fg">{qz.title}</span>
+                  <span className="block text-xs text-muted">{qz.questions.length} câu · {qz.status === "published" ? `đã giao ${qz.classIds.map(className).join(", ")}` : "bản nháp"}</span>
+                </span>
+                {qz.status === "published" ? <Badge tone="success">Đã giao</Badge> : <Badge>Nháp</Badge>}
+                <Button size="sm" variant="ghost" onClick={() => setDraft({ id: qz.id, title: qz.title, questions: qz.questions, classIds: qz.classIds })}><Pencil /> Sửa</Button>
+                <Button size="icon" variant="ghost" aria-label={`Xóa ${qz.title}`} onClick={() => { if (window.confirm(`Xóa bộ câu hỏi “${qz.title}”?`)) d.deleteTeacherQuiz(qz.id, user.id); }}><Trash2 /></Button>
               </li>
             ))}
           </ul>
-        ))}
-
-        {tab === "plan" && (
-          <div className="space-y-3 text-sm">
-            {id ? (
-              <div className="flex flex-wrap gap-2">
-                <Button asChild variant="secondary"><Link href={`/bai-hoc/${id}`}><BookOpen /> Xem bài học tương tác</Link></Button>
-                <Button asChild><Link href={`/teacher/lesson-planner/assistant?lesson=${id}`}><NotebookPen /> Soạn KHBD bài này</Link></Button>
-              </div>
-            ) : (
-              <>
-                <p className="text-muted">Bài này chưa có bài học tương tác trong EduNova. Thầy cô vẫn có thể tải KHBD của mình lên Trợ lý KHBD để phân tích, bổ sung năng lực số và gắn mô phỏng.</p>
-                <Button asChild><Link href="/teacher/lesson-planner/assistant"><NotebookPen /> Mở Trợ lý KHBD</Link></Button>
-              </>
-            )}
-          </div>
         )}
-      </DialogContent>
-      <AssignDialog open={!!assign} onOpenChange={(o) => !o && setAssign(undefined)} preset={assign} />
-    </Dialog>
+      </section>
+      {sets.length > 0 && (
+        <section>
+          <h3 className="mb-2 font-semibold text-fg">Bộ câu hỏi có sẵn của bài</h3>
+          <ul className="space-y-2">
+            {sets.map((s) => (
+              <li key={s.id} className="flex flex-wrap items-center gap-2 rounded-xl border border-line bg-surface p-3">
+                <span className="min-w-0 flex-1"><span className="block font-medium text-fg">{s.title}</span><span className="block text-xs text-muted">{s.questionIds.length} câu · {s.description}</span></span>
+                <Button size="sm" variant="secondary" onClick={() => setAssign({ kind: "quiz", ref: s.id })}><Send /> Giao</Button>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+      <AssignDialog open={!!assign} onOpenChange={(o) => !o && setAssign(undefined)} preset={assign} sgkRef={refId} />
+    </div>
+  );
+}
+
+/** Tab Bài lập trình của một bài (giáo viên): bài code chấm tự động liên quan, giao cho lớp. */
+export function LessonCodeTab({ refId }: { refId: string }) {
+  const { lesson } = useLessonData(refId);
+  const [assign, setAssign] = useState<AssignPreset | undefined>();
+  const exercises = lesson?.key ? CODING_EXERCISES.filter((e) => e.lessonKey === lesson.key) : [];
+  if (!exercises.length) return <p className="text-sm text-muted">Bài này chưa có bài lập trình chấm tự động.</p>;
+  return (
+    <>
+      <ul className="space-y-2">
+        {exercises.map((e) => (
+          <li key={e.id} className="flex flex-wrap items-start gap-3 rounded-xl border border-line bg-surface p-3">
+            <span className="min-w-0 flex-1 basis-64">
+              <span className="block font-semibold text-fg">{e.title} <Badge className="ml-1">{e.topic}</Badge></span>
+              <span className="mt-1 block text-sm text-muted">{e.task}</span>
+              <span className="mt-1 block text-xs text-muted">{e.tests.length} test chấm tự động</span>
+            </span>
+            <Button size="sm" variant="secondary" onClick={() => setAssign({ kind: "code", ref: e.id })}><Send /> Giao cho lớp</Button>
+          </li>
+        ))}
+      </ul>
+      <AssignDialog open={!!assign} onOpenChange={(o) => !o && setAssign(undefined)} preset={assign} sgkRef={refId} />
+    </>
   );
 }
