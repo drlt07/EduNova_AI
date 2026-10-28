@@ -8,7 +8,7 @@ import type { Assignment } from "@/lib/domain/types";
 import type { DemoData } from "@/lib/data/seed";
 import { CODING_EXERCISES } from "@/lib/data/coding-exercises";
 import { getLabBySlug } from "@/lib/data/labs";
-import { getQuestion, KIND_LABEL, PRACTICE_SETS, type PracticeQuestion } from "@/lib/data/practice";
+import { getQuestion, KIND_LABEL, setsForLesson, type PracticeQuestion } from "@/lib/data/practice";
 import { LessonCodeTab, LessonLabsTab, LessonQuizTab } from "@/components/courses/lesson-panel";
 import { sgkLessonId } from "@/lib/data/sgk-kntt";
 import { bookEntry, bookOf, itemKey, lessonChecks, lessonSimSlugs, neighbors, type BookEntry } from "@/lib/sgk/book";
@@ -47,7 +47,7 @@ export function lessonAssignables(d: DemoData, userId: string, e: BookEntry): As
   return [
     ...sims.map((ref) => ({ kind: "lab" as const, ref })),
     ...d.teacherQuizzes.filter((q) => q.ownerId === userId && q.sgkRef === e.ref).map((q) => ({ kind: "quiz" as const, ref: q.id })),
-    ...(e.lesson.key ? PRACTICE_SETS.filter((s) => s.lessonKey === e.lesson.key).map((s) => ({ kind: "quiz" as const, ref: s.id })) : []),
+    ...setsForLesson(e.ref, e.lesson.key).map((s) => ({ kind: "quiz" as const, ref: s.id })),
     ...(e.lesson.key ? CODING_EXERCISES.filter((x) => x.lessonKey === e.lesson.key).map((x) => ({ kind: "code" as const, ref: x.id })) : []),
   ];
 }
@@ -125,7 +125,7 @@ export function BookReader({ refId, role }: { refId: string; role: Role }) {
   const ask = (section: string) => tutor.open({ title: `${book.title} · Bài ${e.lesson.no}. ${e.lesson.title} — ${section}`, capability: teacher ? "guide" : "explain" });
   const allSims = [...lessonSimSlugs(e), ...d.lessonLabs.filter((l) => l.sgkRef === refId && (teacher ? l.ownerId === user.id : true)).map((l) => l.slug)].filter((x, i, arr) => arr.indexOf(x) === i);
   const myAssignments = teacher ? lessonAssignments(d, d.assignments.filter((a) => a.ownerId === user.id), user.id, e) : studentLessonTasks(d, user.id, e);
-  const quizCount = teacher ? (content ? lessonChecks(content).length : 0) + d.teacherQuizzes.filter((q) => q.ownerId === user.id && q.sgkRef === refId).length + (e.lesson.key ? PRACTICE_SETS.filter((x) => x.lessonKey === e.lesson.key).length : 0) : 0;
+  const quizCount = teacher ? (content ? lessonChecks(content).length : 0) + d.teacherQuizzes.filter((q) => q.ownerId === user.id && q.sgkRef === refId).length + setsForLesson(e.ref, e.lesson.key).length : 0;
   const codeCount = e.lesson.key ? CODING_EXERCISES.filter((x) => x.lessonKey === e.lesson.key).length : 0;
   const counts: Partial<Record<TabId, number>> = { "mo-phong": allSims.length, "cau-hoi": quizCount, "lap-trinh": codeCount, "nhiem-vu": myAssignments.length, "luyen-tap": studentPractice(d, user.id, e).length + codeCount };
   const extraLabs = d.lessonLabs.filter((l) => l.sgkRef === refId && (teacher ? l.ownerId === user.id : true)).map((l) => getLabBySlug(l.slug)).filter((l): l is NonNullable<typeof l> => !!l && !lessonSimSlugs(e).includes(l.slug));
@@ -301,7 +301,7 @@ function studentLessonTasks(d: DemoData, userId: string, e: BookEntry) {
 function studentPractice(d: DemoData, userId: string, e: BookEntry) {
   const classIds = studentClassIds(d, userId);
   const kinds = (ks: PracticeQuestion["kind"][]) => [...new Set(ks)].map((k) => KIND_LABEL[k]);
-  const sets = e.lesson.key ? PRACTICE_SETS.filter((s) => s.lessonKey === e.lesson.key).map((s) => ({ id: s.id, title: s.title, n: s.questionIds.length, mine: false, kinds: kinds(s.questionIds.map(getQuestion).filter((q): q is PracticeQuestion => !!q).map((q) => q.kind)) })) : [];
+  const sets = setsForLesson(e.ref, e.lesson.key).map((s) => ({ id: s.id, title: s.title, n: s.questionIds.length, mine: false, kinds: kinds(s.questionIds.map(getQuestion).filter((q): q is PracticeQuestion => !!q).map((q) => q.kind)) }));
   const tq = d.teacherQuizzes.filter((q) => q.sgkRef === e.ref && q.status === "published" && q.classIds.some((c) => classIds.includes(c))).map((q) => ({ id: q.id, title: q.title, n: q.questions.length, mine: true, kinds: kinds(q.questions.map((x) => x.kind)) }));
   return [...tq, ...sets];
 }

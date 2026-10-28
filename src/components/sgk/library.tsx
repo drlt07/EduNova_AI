@@ -7,7 +7,7 @@ import type { Grade } from "@/lib/domain/types";
 import { ALGO_IDS } from "@/lib/data/hsg";
 import { CODING_EXERCISES } from "@/lib/data/coding-exercises";
 import { getLabBySlug } from "@/lib/data/labs";
-import { PRACTICE_SETS } from "@/lib/data/practice";
+import { PRACTICE_SETS, setsForLesson } from "@/lib/data/practice";
 import { sgkLessonId } from "@/lib/data/sgk-kntt";
 import { BOOKS, bookEntry, bookLessons, bookOf, contentCount, lessonChecks, lessonSimSlugs, type BookEntry } from "@/lib/sgk/book";
 import { teacherClasses } from "@/lib/store/scoped";
@@ -192,7 +192,7 @@ function LessonPreview({ e, role }: { e: BookEntry; role: Role }) {
   const href = `${base(role)}/${e.ref}`;
   const sims = [...new Set([...lessonSimSlugs(e), ...d.lessonLabs.filter((l) => l.sgkRef === e.ref && (!teacher || l.ownerId === user.id)).map((l) => l.slug)])].map((s) => getLabBySlug(s)).filter((l): l is NonNullable<typeof l> => !!l);
   const checks = e.content ? lessonChecks(e.content).length : 0;
-  const quizzes = (e.lesson.key ? PRACTICE_SETS.filter((s) => s.lessonKey === e.lesson.key).length : 0) + d.teacherQuizzes.filter((q) => q.sgkRef === e.ref && (teacher ? q.ownerId === user.id : q.status === "published")).length;
+  const quizzes = setsForLesson(e.ref, e.lesson.key).length + d.teacherQuizzes.filter((q) => q.sgkRef === e.ref && (teacher ? q.ownerId === user.id : q.status === "published")).length;
   const code = e.lesson.key ? CODING_EXERCISES.filter((x) => x.lessonKey === e.lesson.key).length : 0;
   const tasks = teacher ? lessonAssignments(d, d.assignments.filter((a) => a.ownerId === user.id), user.id, e).length : 0;
   const progress = d.bookProgress.find((p) => p.userId === user.id && p.ref === e.ref);

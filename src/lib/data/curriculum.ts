@@ -206,8 +206,18 @@ export const DIFFICULTY_LABEL: Record<Lesson["difficulty"], string> = { "co-ban"
 export function getLesson(id: string) {
   return LESSONS.find((l) => l.id === id);
 }
-export function getObjective(id: string) {
-  return OBJECTIVES.find((x) => x.id === id);
+/** Nhãn cho mục tiêu tạm "SGK-<lớp>-<bài>" của câu hỏi soạn theo bài (đăng kí từ dữ liệu luyện tập). */
+const LESSON_OBJECTIVE_LABELS = new Map<string, string>();
+export function registerLessonObjectives(labels: Record<string, string>) {
+  for (const [k, v] of Object.entries(labels)) LESSON_OBJECTIVE_LABELS.set(k, v);
+}
+export function getObjective(id: string): Objective | undefined {
+  const o = OBJECTIVES.find((x) => x.id === id);
+  if (o) return o;
+  const label = LESSON_OBJECTIVE_LABELS.get(id);
+  if (!label) return undefined;
+  const [, g] = id.split("-");
+  return { id, code: id, grade: Number(g) as Grade, topicId: "", pathway: "chung", description: label, level: "hiểu", curriculumVerified: false };
 }
 export function getTextbook(id: TextbookId) {
   return TEXTBOOKS.find((t) => t.id === id)!;

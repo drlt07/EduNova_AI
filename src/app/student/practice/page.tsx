@@ -49,6 +49,10 @@ function PracticeHub() {
   const shown = rows.filter((r) => matchesQuery(q, r.e.title, r.e.task, r.e.topic) && (!topic || r.e.topic === topic) && (!diff || r.e.difficulty === diff) && (!status || r.st === status));
   const myClasses = studentClassIds(d, user.id);
   const assigned = d.teacherQuizzes.filter((tq) => tq.status === "published" && tq.classIds.some((c) => myClasses.includes(c)));
+  const [sgkGrade, setSgkGrade] = useState("10");
+  const generalSets = PRACTICE_SETS.filter((s) => !s.sgkRef);
+  const lessonSets = PRACTICE_SETS.filter((s) => s.sgkRef && String(s.grade) === sgkGrade)
+    .sort((a, b) => Number(a.sgkRef!.split("-")[1]) - Number(b.sgkRef!.split("-")[1]) || a.id.localeCompare(b.id));
   const setTab = (t: Tab) => router.replace(`${pathname}?muc=${t}`, { scroll: false });
 
   const tabs: { id: Tab; label: string; icon: React.ComponentType<{ className?: string }>; count: string }[] = [
@@ -168,7 +172,7 @@ function PracticeHub() {
           )}
           <p className="mb-4 flex flex-wrap gap-x-5 gap-y-1 text-xs text-muted">{MODES.map((m) => <span key={m.id} className="flex items-center gap-1.5"><m.icon className="size-3.5 text-cyan-fg" aria-hidden /><b className="text-fg">{m.label}</b>: {m.desc}</span>)}</p>
           <ul className="grid gap-4 lg:grid-cols-2">
-            {PRACTICE_SETS.map((s) => {
+            {generalSets.map((s) => {
               const attempts = d.practiceAttempts.filter((a) => a.studentId === user.id && a.setId === s.id).sort((a, b) => b.finishedAt.localeCompare(a.finishedAt));
               const last = attempts[0];
               const scored = last?.items.filter((i) => i.status !== "self") ?? [];
@@ -191,6 +195,31 @@ function PracticeHub() {
               );
             })}
           </ul>
+          <section aria-labelledby="lesson-sets-h" className="mt-8">
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+              <h2 id="lesson-sets-h" className="text-sm font-semibold uppercase tracking-wide text-muted">Theo từng bài học ({lessonSets.length} bộ)</h2>
+              <Select aria-label="Chọn lớp" value={sgkGrade} onChange={(e) => setSgkGrade(e.target.value)} className="w-auto">
+                {["10", "11", "12"].map((g) => <option key={g} value={g}>Tin học {g}</option>)}
+              </Select>
+            </div>
+            <ul className="divide-y divide-line overflow-hidden rounded-2xl border border-line bg-surface">
+              {lessonSets.map((s) => {
+                const tries = d.practiceAttempts.filter((a) => a.studentId === user.id && a.setId === s.id).length;
+                const sim = s.id.startsWith("thao-tac-");
+                return (
+                  <li key={s.id} className="flex flex-wrap items-center gap-3 px-4 py-3">
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-sm font-medium text-fg">{s.title}</span>
+                      <span className="text-xs text-muted">{s.questionIds.length} {sim ? "tình huống thao tác" : "câu trắc nghiệm"}{tries ? ` · đã làm ${tries} lần` : ""}</span>
+                    </span>
+                    {sim && <Badge tone="blue">Mô phỏng</Badge>}
+                    <Button asChild size="sm" variant="secondary"><Link href={`/student/practice/${s.id}?che-do=practice`}>Luyện tập</Link></Button>
+                    <Button asChild size="sm" variant="ghost"><Link href={`/student/practice/${s.id}?che-do=exam`}>Kiểm tra</Link></Button>
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
         </>
       )}
 

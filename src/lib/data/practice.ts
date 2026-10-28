@@ -1,6 +1,8 @@
 /** Ngân hàng câu hỏi luyện tập. Đáp án "dự đoán đầu ra" và "điền code" được tính bằng cách chạy chương trình thật. */
 import type { Grade } from "@/lib/domain/types";
 import { MORE_QUESTIONS, MORE_SETS } from "./practice-more";
+import { SGK_QUESTIONS, SGK_SETS } from "./practice-sgk";
+import type { ProcStep } from "./sgk-quiz/procedures";
 
 type Base = { id: string; objectiveId: string; prompt: string; explanation: string };
 export type PracticeQuestion =
@@ -23,7 +25,8 @@ export type Widget =
   | { type: "gate"; gate: "AND" | "OR" | "XOR" | "NAND" | "NOR" }
   | { type: "pump"; threshold: number; needWater: boolean; readings: { humidity: number; water: boolean }[] }
   | { type: "sqlrows"; query: string; columns: string[]; rows: string[][]; correct: number[] }
-  | { type: "flag"; parts: { text: string; suspicious: boolean }[] };
+  | { type: "flag"; parts: { text: string; suspicious: boolean }[] }
+  | { type: "procedure"; app: string; steps: ProcStep[] };
 
 export const KIND_LABEL: Record<PracticeQuestion["kind"], string> = {
   mcq: "Trắc nghiệm",
@@ -81,9 +84,11 @@ export interface PracticeSet {
   lessonKey: string;
   description: string;
   questionIds: string[];
+  /** Bộ soạn riêng cho một bài (vd "11-2"). */
+  sgkRef?: string;
 }
 
-export const QUESTIONS: PracticeQuestion[] = [...BASE_QUESTIONS, ...MORE_QUESTIONS];
+export const QUESTIONS: PracticeQuestion[] = [...BASE_QUESTIONS, ...MORE_QUESTIONS, ...SGK_QUESTIONS];
 
 const BASE_SETS: PracticeSet[] = [
   { id: "if-basic", title: "Câu lệnh rẽ nhánh if", grade: 10, lessonKey: "10-if", description: "Cú pháp if/else, dự đoán kết quả, tìm lỗi.", questionIds: ["p-if-1", "p-if-2", "p-if-3", "p-if-4", "p-if-5", "p-if-6", "p-if-7"] },
@@ -92,7 +97,12 @@ const BASE_SETS: PracticeSet[] = [
   { id: "binary", title: "Hệ nhị phân và cổng logic", grade: 10, lessonKey: "10-binary", description: "Bit, byte, chuyển đổi, cổng logic.", questionIds: ["p-bn-1", "p-bn-2", "p-bn-3"] },
 ];
 
-export const PRACTICE_SETS: PracticeSet[] = [...BASE_SETS, ...MORE_SETS];
+export const PRACTICE_SETS: PracticeSet[] = [...BASE_SETS, ...MORE_SETS, ...SGK_SETS];
+
+/** Bộ câu hỏi của một bài: bộ soạn riêng cho bài (sgkRef) trước, rồi các bộ theo chủ đề của bài học tương tác (key). */
+export function setsForLesson(ref: string, key?: string): PracticeSet[] {
+  return [...PRACTICE_SETS.filter((s) => s.sgkRef === ref), ...(key ? PRACTICE_SETS.filter((s) => !s.sgkRef && s.lessonKey === key) : [])];
+}
 
 /** Đáp án đúng của câu thao tác, viết thành chuỗi để so với thao tác của học sinh. */
 export function widgetExpected(w: Widget): string {
@@ -105,6 +115,7 @@ export function widgetExpected(w: Widget): string {
     case "pump": return w.readings.map((r) => (r.humidity < w.threshold && (!w.needWater || r.water) ? "1" : "0")).join("");
     case "sqlrows": return [...w.correct].sort((a, b) => a - b).join(",");
     case "flag": return w.parts.flatMap((p, i) => (p.suspicious ? [i] : [])).join(",");
+    case "procedure": return "xong";
   }
 }
 

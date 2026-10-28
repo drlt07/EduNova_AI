@@ -39,7 +39,7 @@ function Runner({ setId }: { setId: string }) {
   if (!set) return <ErrorState page title="Không tìm thấy bộ câu hỏi" action={<Button asChild variant="secondary"><Link href="/student/practice">Về danh sách</Link></Button>} />;
   // Bộ thích ứng lấy câu từ mọi bộ cùng bài học
   const pool = tq ? tq.questions : mode === "adaptive"
-    ? PRACTICE_SETS.filter((s) => s.lessonKey === set.lessonKey).flatMap((s) => s.questionIds).map(getQuestion).filter((q): q is PracticeQuestion => !!q)
+    ? (set.lessonKey ? PRACTICE_SETS.filter((s) => s.lessonKey === set.lessonKey) : [set]).flatMap((s) => s.questionIds).map(getQuestion).filter((q): q is PracticeQuestion => !!q)
     : set.questionIds.map(getQuestion).filter((q): q is PracticeQuestion => !!q);
   const passedLevels = d.gameProgress.find((g) => g.studentId === user.id && g.gameSlug === "smart-farm")?.passed ?? [];
   return (

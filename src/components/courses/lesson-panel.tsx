@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { CODING_EXERCISES } from "@/lib/data/coding-exercises";
 import { getLesson } from "@/lib/data/curriculum";
 import { LAB_TEMPLATES } from "@/lib/data/labs";
-import { KIND_LABEL, LEVEL_LABEL, levelOf, PRACTICE_SETS, getQuestion, type PracticeQuestion, type TeacherQuiz } from "@/lib/data/practice";
+import { KIND_LABEL, LEVEL_LABEL, levelOf, getQuestion, setsForLesson, type PracticeQuestion, type TeacherQuiz } from "@/lib/data/practice";
 import { findSgk, sgkLabs, sgkLessonId } from "@/lib/data/sgk-kntt";
 import { teacherClasses } from "@/lib/store/scoped";
 import { useSessionData } from "@/lib/store/use-role";
@@ -184,7 +184,7 @@ export function LessonQuizTab({ refId }: { refId: string }) {
   const [assign, setAssign] = useState<AssignPreset | undefined>();
   if (!found || !lesson) return null;
   const quizzes = d.teacherQuizzes.filter((q) => q.ownerId === user.id && q.sgkRef === refId);
-  const sets = lesson.key ? PRACTICE_SETS.filter((s) => s.lessonKey === lesson.key) : [];
+  const sets = setsForLesson(refId, lesson.key);
   const bank = [...new Set(sets.flatMap((s) => s.questionIds))].map(getQuestion).filter((q): q is PracticeQuestion => !!q && q.kind !== "sim");
   const objectiveId = (id && getLesson(id)?.objectiveIds[0]) || `SGK-${refId}`;
   const className = (cid: string) => d.classes.find((c) => c.id === cid)?.name ?? cid;

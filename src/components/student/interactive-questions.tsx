@@ -1,4 +1,5 @@
 "use client";
+import { useState } from "react";
 import { Droplets, Lightbulb, Power } from "lucide-react";
 import type { PracticeQuestion, Widget } from "@/lib/data/practice";
 import { shuffled, type Answer } from "@/lib/practice/grade";
@@ -72,6 +73,7 @@ export function WidgetQuestion({ q, answer, onAnswer, disabled }: Props<"interac
     case "pump": return <Pump w={w} value={a || "?".repeat(w.readings.length)} onChange={onAnswer} disabled={disabled} />;
     case "sqlrows": return <SqlRows w={w} value={a} onChange={onAnswer} disabled={disabled} />;
     case "flag": return <Flag w={w} value={a} onChange={onAnswer} disabled={disabled} />;
+    case "procedure": return <ProcedureSim key={q.id} w={w} value={a} onChange={onAnswer} disabled={disabled} />;
   }
 }
 
@@ -191,6 +193,70 @@ function Flag({ w, value, onChange, disabled }: W<"flag">) {
           </button>
         ))}
       </p>
+    </div>
+  );
+}
+
+/**
+ * Mô phỏng thao tác: cửa sổ giả lập, mỗi bước học sinh bấm đúng chỗ. Câu trả lời "xong:n" khi làm hết các bước (n là số lần bấm nhầm),
+ * "buoc:k:n" khi đang làm dở.
+ */
+function ProcedureSim({ w, value, onChange, disabled }: W<"procedure">) {
+  const [, stepStr, slipStr] = value.startsWith("buoc") ? value.split(":") : value.startsWith("xong") ? ["", String(w.steps.length), value.split(":")[1] ?? "0"] : ["", "0", "0"];
+  const step = Number(stepStr), slips = Number(slipStr);
+  const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  const [shake, setShake] = useState<string | null>(null);
+  const done = step >= w.steps.length;
+  const s = w.steps[Math.min(step, w.steps.length - 1)];
+  const click = (id: string) => {
+    if (disabled || done) return;
+    if (id === s.correct) {
+      const next = step + 1;
+      setMsg({ ok: true, text: s.done });
+      onChange(next >= w.steps.length ? `xong:${slips}` : `buoc:${next}:${slips}`);
+    } else {
+      setShake(id);
+      window.setTimeout(() => setShake(null), 400);
+      setMsg({ ok: false, text: s.items.find((x) => x.id === id)?.why ?? "Chưa đúng, thử chỗ khác." });
+      onChange(`buoc:${step}:${slips + 1}`);
+    }
+  };
+  const item = (x: (typeof s.items)[number], cls: string) => (
+    <button key={x.id} type="button" disabled={disabled || done} onClick={() => click(x.id)} className={cn(cls, "transition-all", shake === x.id && "animate-[pulse_0.4s] ring-2 ring-rose-400")}>
+      {x.icon && <span className="text-2xl leading-none" aria-hidden>{x.icon}</span>}
+      <span className="min-w-0"><span className="block font-medium">{x.label}</span>{x.sub && <span className="block text-[11px] text-slate-500">{x.sub}</span>}</span>
+    </button>
+  );
+  return (
+    <div className="space-y-3">
+      <ol className="flex flex-wrap gap-1" aria-label="Các bước">
+        {w.steps.map((_, i) => <li key={i} className={cn("h-1.5 w-8 rounded-full", i < step ? "bg-emerald-500" : i === step && !done ? "bg-brand" : "bg-line")} />)}
+      </ol>
+      {!done && <p className="text-sm font-semibold text-fg">Bước {step + 1}/{w.steps.length}: {s.ask}</p>}
+      <div className="overflow-hidden rounded-xl border border-slate-300 bg-white text-slate-900 shadow-sm dark:border-slate-600">
+        <div className="flex items-center gap-2 bg-slate-100 px-3 py-1.5 text-xs text-slate-600">
+          <span className="flex gap-1" aria-hidden><span className="size-2.5 rounded-full bg-rose-400" /><span className="size-2.5 rounded-full bg-amber-400" /><span className="size-2.5 rounded-full bg-emerald-400" /></span>
+          <span className="font-semibold">{w.app}</span><span className="text-slate-400">·</span><span className="truncate">{done ? "Hoàn thành" : s.title}</span>
+          {!done && s.path && <span className="ml-auto truncate rounded bg-white px-2 py-0.5 font-mono text-[11px]">{s.path}</span>}
+        </div>
+        <div className={cn("p-4", !done && "min-h-[190px]")}>
+          {done ? (
+            <ol className="space-y-1 text-sm">{w.steps.map((st, i) => <li key={i} className="flex gap-2"><span className="text-emerald-600">✓</span><span><b>{st.items.find((x) => x.id === st.correct)?.label}</b> <span className="text-slate-500">— {st.done}</span></span></li>)}</ol>
+          ) : s.layout === "desktop" ? (
+            <div className="grid grid-cols-2 gap-3 rounded-lg bg-gradient-to-br from-sky-600 to-indigo-700 p-4 sm:grid-cols-4">{s.items.map((x) => item(x, "flex flex-col items-center gap-1 rounded-lg p-2 text-center text-xs text-white hover:bg-white/15"))}</div>
+          ) : s.layout === "list" ? (
+            <div className="space-y-1">{s.items.map((x) => item(x, "flex w-full items-center gap-3 rounded-lg border border-slate-200 px-3 py-2 text-left text-sm hover:border-blue-400 hover:bg-blue-50"))}</div>
+          ) : s.layout === "menu" ? (
+            <div className="w-64 rounded-lg border border-slate-200 py-1 shadow-lg">{s.items.map((x) => item(x, "flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm hover:bg-blue-50"))}</div>
+          ) : s.layout === "tabs" ? (
+            <div><div className="flex gap-0.5 border-b border-slate-200">{s.items.map((x) => item(x, "rounded-t-lg border border-b-0 border-slate-200 bg-slate-50 px-3 py-1.5 text-sm hover:bg-white"))}</div><div className="h-24 rounded-b-lg border border-t-0 border-slate-200" /></div>
+          ) : (
+            <div className="space-y-2">{s.items.map((x) => item(x, "flex w-full items-center justify-between gap-3 rounded-lg border border-slate-200 px-3 py-2 text-left text-sm hover:border-blue-400"))}</div>
+          )}
+        </div>
+      </div>
+      {msg && <p role="status" className={cn("rounded-lg px-3 py-2 text-sm", msg.ok ? "bg-success/10 text-success-fg" : "bg-danger/10 text-danger-fg")}>{msg.ok ? "✓ " : "✗ "}{msg.text}</p>}
+      {(done || slips > 0) && <p className="text-xs text-muted">Số lần bấm nhầm: {slips}</p>}
     </div>
   );
 }

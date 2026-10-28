@@ -67,6 +67,11 @@ export function gradeQuestion(q: PracticeQuestion, answer: Answer, ctx: { passed
     }
     case "interactive": {
       const want = widgetExpected(q.widget);
+      if (q.widget.type === "procedure") {
+        const done = typeof answer === "string" && answer.startsWith("xong");
+        const slips = done ? Number(answer.split(":")[1] ?? 0) : 0;
+        return { status: done ? "correct" : "wrong", expected: interactiveText(q.widget, want), detail: done ? (slips ? `Hoàn thành, bấm nhầm ${slips} lần.` : "Hoàn thành, không bấm nhầm lần nào.") : "Chưa làm xong các bước." };
+      }
       return { status: answer === want ? "correct" : "wrong", expected: interactiveText(q.widget, want) };
     }
   }
@@ -79,6 +84,7 @@ function interactiveText(w: Extract<PracticeQuestion, { kind: "interactive" }>["
     case "pump": return w.readings.map((r, i) => `${r.humidity}%${r.water ? "" : " (bình cạn)"}: ${want[i] === "1" ? "bật" : "tắt"}`).join("; ");
     case "sqlrows": return w.correct.map((i) => w.rows[i][0]).join(", ");
     case "flag": return w.parts.filter((p) => p.suspicious).map((p) => `“${p.text.trim()}”`).join("; ");
+    case "procedure": return w.steps.map((s, i) => `${i + 1}. ${s.items.find((x) => x.id === s.correct)!.label}`).join(" → ");
   }
 }
 
