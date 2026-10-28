@@ -55,7 +55,7 @@ function ClassDetail() {
   if (!cls) return <EmptyState icon={Users} title="Không tìm thấy lớp" description="Lớp không tồn tại hoặc không do thầy cô phụ trách." action={<Button asChild><Link href="/teacher/classes">Về danh sách lớp</Link></Button>} />;
 
   const students = classStudents(d, cls.id);
-  const asg = d.assignments.filter((a) => a.classId === cls.id).sort((a, b) => b.publishedAt.localeCompare(a.publishedAt));
+  const asg = d.assignments.filter((a) => a.classId === cls.id && a.status !== "draft").sort((a, b) => b.publishedAt.localeCompare(a.publishedAt));
   const progress = teachingProgress(d, user.id, cls);
   const next = nextLesson(d, user.id, cls);
   const notes = classNotes(d, user.id).filter((n) => n.className === cls.name);

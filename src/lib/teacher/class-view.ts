@@ -62,7 +62,7 @@ export interface Weakness { label: string; why: string; ref?: string; objectiveI
 
 /** Hồ sơ một em trong lớp: kết quả từng nhiệm vụ, điểm mô phỏng, điều cần củng cố (kèm bài SGK để giao lại). */
 export function studentProfile(d: DemoData, studentId: string, classId: string) {
-  const asg = d.assignments.filter((a) => a.classId === classId);
+  const asg = d.assignments.filter((a) => a.classId === classId && a.status !== "draft");
   const tasks = asg.map((a) => ({ a, ...cellStatus(d, a, studentId) }));
   const labs = d.labResults.filter((r) => r.studentId === studentId).sort((x, y) => y.finishedAt.localeCompare(x.finishedAt));
   const weak: Weakness[] = [];

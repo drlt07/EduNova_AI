@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { CODING_EXERCISES } from "@/lib/data/coding-exercises";
 import { getLesson } from "@/lib/data/curriculum";
 import { LAB_TEMPLATES } from "@/lib/data/labs";
-import { KIND_LABEL, PRACTICE_SETS, getQuestion, type PracticeQuestion, type TeacherQuiz } from "@/lib/data/practice";
+import { KIND_LABEL, LEVEL_LABEL, levelOf, PRACTICE_SETS, getQuestion, type PracticeQuestion, type TeacherQuiz } from "@/lib/data/practice";
 import { findSgk, sgkLabs, sgkLessonId } from "@/lib/data/sgk-kntt";
 import { teacherClasses } from "@/lib/store/scoped";
 import { useSessionData } from "@/lib/store/use-role";
@@ -61,7 +61,7 @@ function QuizEditor({ draft, setDraft, bank, objectiveId, grade, onSave, onCance
             {draft.questions.map((x, i) => (
               <li key={x.id} className="flex items-start gap-2 rounded-lg border border-line px-3 py-2 text-sm">
                 <span className="font-mono text-xs text-muted">{i + 1}.</span>
-                <span className="min-w-0 flex-1"><Badge className="mr-1.5">{KIND_LABEL[x.kind]}</Badge>{x.prompt}</span>
+                <span className="min-w-0 flex-1"><Badge className="mr-1.5">{KIND_LABEL[x.kind]} · {LEVEL_LABEL[levelOf(x)]}</Badge>{x.prompt}</span>
                 <button type="button" aria-label="Bỏ câu này" onClick={() => setDraft({ ...draft, questions: draft.questions.filter((y) => y.id !== x.id) })} className="text-muted hover:text-danger-fg"><X className="size-4" /></button>
               </li>
             ))}
@@ -76,7 +76,7 @@ function QuizEditor({ draft, setDraft, bank, objectiveId, grade, onSave, onCance
             {bank.map((x) => (
               <li key={x.id} className="flex items-start gap-2 text-sm">
                 <Button size="sm" variant={inDraft.has(x.id) ? "ghost" : "secondary"} disabled={inDraft.has(x.id)} onClick={() => setDraft({ ...draft, questions: [...draft.questions, x] })} aria-label={`Thêm câu: ${x.prompt}`}>{inDraft.has(x.id) ? <CheckCircle2 /> : <Plus />}</Button>
-                <span className="min-w-0 flex-1 pt-1"><Badge className="mr-1.5">{KIND_LABEL[x.kind]}</Badge>{x.prompt}</span>
+                <span className="min-w-0 flex-1 pt-1"><Badge className="mr-1.5">{KIND_LABEL[x.kind]} · {LEVEL_LABEL[levelOf(x)]}</Badge>{x.prompt}</span>
               </li>
             ))}
           </ul>

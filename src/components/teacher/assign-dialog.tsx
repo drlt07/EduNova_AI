@@ -88,7 +88,7 @@ function AssignForm({ preset, sgkRef, suggest, classId, studentIds, onDone }: { 
   const shown = items.filter((i) => i.kind === kind && (!grades.length || i.grades.some((g) => grades.includes(g as 10 | 11 | 12))) && matchesQuery(q, i.title, i.meta));
   const dueOf = (c: (typeof classes)[number]) => (due === "custom" ? (custom ? new Date(custom) : undefined) : dueFor(due, c, now));
 
-  function submit() {
+  function submit(draft = false) {
     if (!pick) return toast.error("Chọn nội dung cần giao");
     if (!chosen.length) return toast.error("Chọn ít nhất một lớp");
     const missingDue = chosen.find((c) => { const t = dueOf(c); return !t || Number.isNaN(t.getTime()) || t.getTime() < Date.now() + 3_600_000; });
@@ -102,14 +102,17 @@ function AssignForm({ preset, sgkRef, suggest, classId, studentIds, onDone }: { 
       if (pick.kind === "activity") {
         const act = activities.find((a) => a.id === pick.ref);
         const cfg = act && d.labConfigs.find((x) => x.id === act.labConfigId);
-        d.createAssignment({ ...base, activityId: pick.ref, hintMode: cfg?.mode === "assessment" ? "off" : base.hintMode });
+        const id = d.createAssignment({ ...base, activityId: pick.ref, hintMode: cfg?.mode === "assessment" ? "off" : base.hintMode });
+        if (draft) d.updateAssignment(id, { status: "draft" });
       } else {
-        d.createAssignment({ ...base, activityId: "", task: { kind: pick.kind, ref: pick.ref } } satisfies Omit<Assignment, "id" | "publishedAt" | "status">);
+        const id = d.createAssignment({ ...base, activityId: "", task: { kind: pick.kind, ref: pick.ref } } satisfies Omit<Assignment, "id" | "publishedAt" | "status">);
+        if (draft) d.updateAssignment(id, { status: "draft" });
       }
       made++;
     }
     const tq = pick.kind === "quiz" && d.teacherQuizzes.find((x) => x.id === pick.ref);
-    if (tq && made) d.saveTeacherQuiz({ ...tq, status: "published", classIds: [...new Set([...tq.classIds, ...classIds])] });
+    if (tq && made && !draft) d.saveTeacherQuiz({ ...tq, status: "published", classIds: [...new Set([...tq.classIds, ...classIds])] });
+    if (made && draft) { toast.success("Đã lưu nháp. Học sinh chưa thấy cho đến khi thầy cô bấm Giao."); onDone(); return; }
     if (made) { toast.success(chosen.length === 1 && only?.length ? `Đã giao “${pick.title}” cho ${only.length} em` : `Đã giao “${pick.title}” cho ${made} lớp`); onDone(); }
   }
 
@@ -224,7 +227,8 @@ function AssignForm({ preset, sgkRef, suggest, classId, studentIds, onDone }: { 
           {firstDue && !Number.isNaN(firstDue.getTime()) && <p className="mt-1 flex items-center gap-1 text-xs text-muted"><CalendarClock className="size-3.5" aria-hidden /> Hạn {fmtDue(firstDue)}</p>}
           {pick && <p className="mt-2 text-xs text-muted">{pick.auto ? "Làm xong là có kết quả ngay, thầy cô không cần chấm." : "Nộp bài để thầy cô chấm theo tiêu chí."}{tutor ? "" : " Không dùng AI Gia sư."}</p>}
         </div>
-        <Button className="w-full" onClick={submit} disabled={!pick || !chosen.length || (chosen.length === 1 && !!only && only.length === 0)}><Send /> {chosen.length === 1 && only?.length ? `Giao cho ${only.length} em` : `Giao cho ${chosen.length || ""} lớp`}</Button>
+        <Button className="w-full" onClick={() => submit()} disabled={!pick || !chosen.length || (chosen.length === 1 && !!only && only.length === 0)}><Send /> {chosen.length === 1 && only?.length ? `Giao cho ${only.length} em` : `Giao cho ${chosen.length || ""} lớp`}</Button>
+        <Button className="w-full" variant="ghost" onClick={() => submit(true)} disabled={!pick || !chosen.length}>Lưu nháp, giao sau</Button>
       </aside>
     </div>
   );

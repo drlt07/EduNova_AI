@@ -47,7 +47,7 @@ const WEEKDAY = ["Chủ nhật", "Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Th
 export function classNotes(d: DemoData, teacherId: string, now = Date.now()): ClassNote[] {
   const out: ClassNote[] = [];
   const classes = teacherClasses(d, teacherId);
-  for (const a of teacherAssignments(d, teacherId)) {
+  for (const a of teacherAssignments(d, teacherId).filter((x) => x.status !== "draft")) {
     const klass = classes.find((c) => c.id === a.classId);
     if (!klass) continue;
     const students = assignedStudents(d, a);

@@ -23,6 +23,15 @@ export const KIND_LABEL: Record<PracticeQuestion["kind"], string> = {
   sim: "Thực hành mô phỏng",
 };
 
+/** Mức độ nhận thức theo dạng câu hỏi: nhận biết – thông hiểu – vận dụng. */
+export type CognitiveLevel = "biet" | "hieu" | "vandung";
+export const LEVEL_LABEL: Record<CognitiveLevel, string> = { biet: "Nhận biết", hieu: "Thông hiểu", vandung: "Vận dụng" };
+export function levelOf(q: Pick<PracticeQuestion, "kind">): CognitiveLevel {
+  if (q.kind === "mcq" || q.kind === "truefalse") return "biet";
+  if (q.kind === "predict" || q.kind === "order" || q.kind === "fillcode") return "hieu";
+  return "vandung";
+}
+
 export const QUESTIONS: PracticeQuestion[] = [
   { id: "p-if-1", kind: "mcq", objectiveId: "O10-F-02", prompt: "Dòng nào là câu lệnh if đúng cú pháp Python?", options: ["if (x = 5)", "if x == 5:", "if x == 5 then", "if x == 5 {"], correctIndex: 1, explanation: "Python dùng == để so sánh và kết thúc dòng if bằng dấu hai chấm." },
   { id: "p-if-2", kind: "predict", objectiveId: "O10-F-02", prompt: "Chương trình in ra gì?", code: "a = 8\nb = 12\nif a > b:\n    print(a)\nelse:\n    print(b)", explanation: "8 > 12 là False nên nhánh else được thực hiện." },

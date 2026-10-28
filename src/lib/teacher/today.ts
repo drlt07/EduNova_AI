@@ -61,7 +61,7 @@ export interface Todo {
 export function todos(d: DemoData, teacherId: string, now: Date): Todo[] {
   const out: Todo[] = [];
   const t = now.getTime();
-  for (const a of teacherAssignments(d, teacherId)) {
+  for (const a of teacherAssignments(d, teacherId).filter((x) => x.status !== "draft")) {
     const cls = d.classes.find((c) => c.id === a.classId);
     if (!cls) continue;
     const students = assignedStudents(d, a);
@@ -93,7 +93,7 @@ export interface ClassHealth { cls: ClassRoom; students: number; doneRate: numbe
 export function classHealth(d: DemoData, teacherId: string): ClassHealth[] {
   return teacherClasses(d, teacherId).map((cls) => {
     const students = classStudents(d, cls.id);
-    const asg = teacherAssignments(d, teacherId).filter((a) => a.classId === cls.id);
+    const asg = teacherAssignments(d, teacherId).filter((a) => a.classId === cls.id && a.status !== "draft");
     let expected = 0, done = 0;
     for (const a of asg) for (const u of students) { expected++; if (a.task ? taskOutcome(d, u.id, a).done : d.submissions.some((s) => s.assignmentId === a.id && s.studentId === u.id)) done++; }
     const labs = d.labResults.filter((r) => students.some((u) => u.id === r.studentId));
