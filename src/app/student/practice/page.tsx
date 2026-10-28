@@ -1,229 +1,143 @@
 "use client";
 import Link from "next/link";
 import { Suspense, useMemo, useState } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { ArrowRight, CheckCircle2, CircleDashed, ClipboardCheck, Code2, Dumbbell, Globe, ListChecks, Search, Shuffle, Terminal, Timer } from "lucide-react";
+import { CalendarClock, CheckCircle2, ClipboardList, Code2, Dumbbell, FlaskConical, Globe, ListChecks, Lock, MousePointerClick, Terminal } from "lucide-react";
 import { CODING_EXERCISES } from "@/lib/data/coding-exercises";
 import { DIFFICULTY_LABEL } from "@/lib/data/curriculum";
-import { PRACTICE_SETS, KIND_LABEL, getQuestion } from "@/lib/data/practice";
-import type { Difficulty } from "@/lib/domain/types";
-import { useSessionData } from "@/lib/store/use-role";
+import { PRACTICE_SETS, getQuestion } from "@/lib/data/practice";
+import { findSgk, sgkRefForKey } from "@/lib/data/sgk-kntt";
+import { codeKey, setKey } from "@/lib/access/unlocks";
+import { useAccess } from "@/lib/access/use-access";
+import { MISSION_STATUS_LABEL, studentMissions } from "@/lib/store/student";
 import { studentClassIds } from "@/lib/store/scoped";
-import { findSgk } from "@/lib/data/sgk-kntt";
-import { cn, formatDate, matchesQuery } from "@/lib/utils";
+import { useSessionData } from "@/lib/store/use-role";
+import { cn, relativeDays } from "@/lib/utils";
 import { SectionHead } from "@/components/layout/section-head";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input, Select } from "@/components/ui/form";
 import { PageSkeleton } from "@/components/ui/feedback";
 
-const DIFF_TONE: Record<Difficulty, string> = { "co-ban": "text-success-fg", "trung-binh": "text-warning-fg", "nang-cao": "text-danger-fg" };
-const DIFF_BAR: Record<Difficulty, string> = { "co-ban": "bg-success", "trung-binh": "bg-warning", "nang-cao": "bg-danger" };
-const MODES = [
-  { id: "practice", label: "Luyện tập", icon: ClipboardCheck, desc: "xem giải thích ngay" },
-  { id: "adaptive", label: "Thích ứng", icon: Shuffle, desc: "câu sau theo phần còn yếu" },
-  { id: "exam", label: "Kiểm tra", icon: Timer, desc: "tính giờ, khóa gia sư" },
-] as const;
-type Tab = "code" | "quiz";
+type Kind = "quiz" | "proc" | "code" | "teacher" | "mission";
+type Status = "new" | "doing" | "done";
+interface Tile { id: string; kind: Kind; title: string; sub: string; href: string; status: Status; result?: string; group: string; due?: string }
 
-/** Luyện tập kiểu trang chấm code: bảng bài có trạng thái, độ khó, lần nộp gần nhất, bộ lọc; trắc nghiệm và thực hành khác ở tab riêng. */
+const KIND: Record<Kind, { label: string; icon: React.ComponentType<{ className?: string }>; bg: string }> = {
+  quiz: { label: "Trắc nghiệm", icon: ListChecks, bg: "from-[#2563eb] to-[#06b6d4]" },
+  proc: { label: "Trắc nghiệm + thao tác", icon: MousePointerClick, bg: "from-[#0d9488] to-[#22c55e]" },
+  code: { label: "Lập trình Python", icon: Code2, bg: "from-[#1e293b] to-[#475569]" },
+  teacher: { label: "Thầy cô soạn", icon: ClipboardList, bg: "from-[#7c3aed] to-[#db2777]" },
+  mission: { label: "Nhiệm vụ", icon: FlaskConical, bg: "from-[#ea580c] to-[#f59e0b]" },
+};
+const STATUS: Record<Status, { label: string; cls: string }> = {
+  new: { label: "Chưa làm", cls: "bg-white/90 text-slate-700" },
+  doing: { label: "Đang làm", cls: "bg-amber-300 text-amber-950" },
+  done: { label: "Đã xong", cls: "bg-emerald-300 text-emerald-950" },
+};
+const FILTERS: [Status | "all", string][] = [["all", "Tất cả"], ["new", "Chưa làm"], ["doing", "Đang làm"], ["done", "Đã xong"]];
+
+const groupName = (ref?: string) => { const f = ref ? findSgk(ref) : undefined; return f ? `Tin ${f.grade} · Bài ${f.lesson.no}. ${f.lesson.title}` : "Bài tập khác"; };
+const groupOrder = (g: string) => { const m = g.match(/Tin (\d+) · Bài (\d+)/); return m ? Number(m[1]) * 100 + Number(m[2]) : -1; };
+
+/** Luyện tập: lưới ô bài tập thầy cô đã mở hoặc giao; bấm một ô là vào làm. */
 function PracticeHub() {
   const { d, user } = useSessionData();
-  const params = useSearchParams();
-  const router = useRouter();
-  const pathname = usePathname();
-  const tab = (["code", "quiz"].includes(params.get("muc") ?? "") ? params.get("muc") : "code") as Tab;
-  const [q, setQ] = useState("");
-  const [topic, setTopic] = useState("");
-  const [diff, setDiff] = useState("");
-  const [status, setStatus] = useState("");
+  const access = useAccess();
+  const [filter, setFilter] = useState<Status | "all">("all");
 
-  const rows = useMemo(() => CODING_EXERCISES.map((e, i) => {
-    const w = d.codeWorks.find((c) => c.studentId === user.id && c.exerciseId === e.id);
-    const st = w?.lastRun ? (w.lastRun.passed === w.lastRun.total && w.lastRun.total > 0 ? "solved" : "tried") : w ? "tried" : "new";
-    return { e, no: i + 1, w, st };
-  }), [d.codeWorks, user.id]);
-  const solved = rows.filter((r) => r.st === "solved").length;
-  const nextUp = rows.find((r) => r.st === "tried") ?? rows.find((r) => r.st === "new");
-  const topics = [...new Set(CODING_EXERCISES.map((e) => e.topic))];
-  const shown = rows.filter((r) => matchesQuery(q, r.e.title, r.e.task, r.e.topic) && (!topic || r.e.topic === topic) && (!diff || r.e.difficulty === diff) && (!status || r.st === status));
-  const myClasses = studentClassIds(d, user.id);
-  const assigned = d.teacherQuizzes.filter((tq) => tq.status === "published" && tq.classIds.some((c) => myClasses.includes(c)));
-  const [sgkGrade, setSgkGrade] = useState("10");
-  const generalSets = PRACTICE_SETS.filter((s) => !s.sgkRef);
-  const lessonSets = PRACTICE_SETS.filter((s) => s.sgkRef && String(s.grade) === sgkGrade)
-    .sort((a, b) => Number(a.sgkRef!.split("-")[1]) - Number(b.sgkRef!.split("-")[1]) || a.id.localeCompare(b.id));
-  const setTab = (t: Tab) => router.replace(`${pathname}?muc=${t}`, { scroll: false });
+  const { missions, tiles, locked } = useMemo(() => {
+    const mine = studentClassIds(d, user.id);
+    const lastAttempt = (id: string) => d.practiceAttempts.filter((a) => a.studentId === user.id && a.setId === id).sort((a, b) => b.finishedAt.localeCompare(a.finishedAt))[0];
+    const quizTile = (id: string, title: string, n: number, kind: Kind, group: string): Tile => {
+      const last = lastAttempt(id);
+      const scored = last?.items.filter((i) => i.status !== "self") ?? [];
+      const ok = scored.filter((i) => i.status === "correct").length;
+      return { id, kind, title, sub: `${n} câu`, href: `/student/practice/${id}?che-do=practice`, status: !last ? "new" : ok / Math.max(1, scored.length) >= 0.8 ? "done" : "doing", result: last ? `${ok}/${scored.length} câu đúng` : undefined, group };
+    };
+    const missions: Tile[] = studentMissions(d, user.id).filter((m) => m.status !== "closed").map((m) => ({
+      id: m.assignment.id, kind: m.assignment.task?.kind === "code" ? "code" : m.assignment.task?.kind === "quiz" ? "quiz" : "mission", title: m.assignment.title, sub: MISSION_STATUS_LABEL[m.status].label,
+      href: `/student/missions/${m.assignment.id}`, status: ["submitted", "graded"].includes(m.status) ? "done" : m.status === "not_started" ? "new" : "doing", group: "", due: m.assignment.dueAt,
+    }));
+    const teacher = d.teacherQuizzes.filter((q) => q.status === "published" && q.classIds.some((c) => mine.includes(c))).map((q) => quizTile(q.id, q.title, q.questions.length, "teacher", groupName(q.sgkRef)));
+    const sets = PRACTICE_SETS.filter((s) => access.can(setKey(s.id))).map((s) => {
+      const proc = s.questionIds.some((x) => getQuestion(x)?.kind === "interactive");
+      return quizTile(s.id, s.sgkRef ? "Luyện tập cả bài" : s.title, s.questionIds.length, proc ? "proc" : "quiz", groupName(s.sgkRef ?? sgkRefForKey(s.lessonKey)));
+    });
+    const code = CODING_EXERCISES.filter((e) => access.can(codeKey(e.id))).map((e): Tile => {
+      const w = d.codeWorks.find((c) => c.studentId === user.id && c.exerciseId === e.id);
+      const solved = !!w?.lastRun && w.lastRun.total > 0 && w.lastRun.passed === w.lastRun.total;
+      return { id: e.id, kind: "code", title: e.title, sub: `${e.topic} · ${DIFFICULTY_LABEL[e.difficulty]}`, href: `/student/code?bai=${e.id}`, status: solved ? "done" : w ? "doing" : "new", result: w?.lastRun ? `${w.lastRun.passed}/${w.lastRun.total} test đạt` : undefined, group: groupName(sgkRefForKey(e.lessonKey)) };
+    });
+    const locked = PRACTICE_SETS.filter((s) => !access.can(setKey(s.id))).length + CODING_EXERCISES.filter((e) => !access.can(codeKey(e.id))).length;
+    return { missions, tiles: [...teacher, ...sets, ...code], locked };
+  }, [d, user.id, access]);
 
-  const tabs: { id: Tab; label: string; icon: React.ComponentType<{ className?: string }>; count: string }[] = [
-    { id: "code", label: "Lập trình Python", icon: Code2, count: `${solved}/${CODING_EXERCISES.length}` },
-    { id: "quiz", label: "Trắc nghiệm", icon: ListChecks, count: String(PRACTICE_SETS.length + assigned.length) },
-  ];
+  const all = [...missions, ...tiles];
+  const done = all.filter((t) => t.status === "done").length;
+  const pass = (t: Tile) => filter === "all" || t.status === filter;
+  // Bài mới mở (bài sau trong sách) lên trước
+  const groups = [...new Set(tiles.filter(pass).map((t) => t.group))].sort((a, b) => groupOrder(b) - groupOrder(a));
+  const shownMissions = missions.filter(pass);
 
   return (
     <>
-      <SectionHead icon={Dumbbell} title="Luyện tập" subtitle="Viết code được chấm tự động và làm trắc nghiệm theo bài. Mô phỏng nằm trong từng bài học và mục Tình huống mô phỏng." actions={<><Button asChild variant="secondary"><Link href="/student/code?bai=tu-do"><Terminal /> Sân chơi Python</Link></Button><Button asChild variant="ghost"><Link href="/student/code?che-do=web"><Globe /> HTML/CSS</Link></Button></>} />
-      <nav aria-label="Loại luyện tập" className="mb-5 overflow-x-auto">
-        <ul className="flex w-max gap-1 rounded-2xl border border-line bg-surface p-1">
-          {tabs.map((t) => (
-            <li key={t.id}>
-              <button type="button" aria-pressed={tab === t.id} onClick={() => setTab(t.id)} className={cn("flex items-center gap-2 rounded-xl px-3.5 py-2 text-sm font-medium transition-colors", tab === t.id ? "bg-brand text-brand-ink" : "text-muted hover:bg-surface-2 hover:text-fg")}>
-                <t.icon className="size-4" aria-hidden /> {t.label} <span className={cn("rounded-full px-1.5 text-xs font-bold", tab === t.id ? "bg-white/20" : "bg-surface-2")}>{t.count}</span>
-              </button>
-            </li>
-          ))}
-        </ul>
-      </nav>
+      <SectionHead icon={Dumbbell} title="Luyện tập" subtitle="Bài tập thầy cô đã mở cho lớp em. Bấm vào một ô để bắt đầu." actions={<><Button asChild variant="secondary"><Link href="/student/code?bai=tu-do"><Terminal /> Sân chơi Python</Link></Button><Button asChild variant="ghost"><Link href="/student/code?che-do=web"><Globe /> HTML/CSS</Link></Button></>} />
 
-      {tab === "code" && (
-        <>
-          <div className="mb-4 grid gap-3 md:grid-cols-[minmax(0,1fr)_auto]">
-            <div className="rounded-2xl border border-line bg-surface p-4">
-              <div className="flex items-baseline justify-between"><p className="text-sm font-semibold text-fg">Đã giải {solved}/{CODING_EXERCISES.length} bài</p><p className="text-xs text-muted">theo độ khó</p></div>
-              <div className="mt-2 grid grid-cols-3 gap-3">
-                {(["co-ban", "trung-binh", "nang-cao"] as Difficulty[]).map((k) => {
-                  const all = rows.filter((r) => r.e.difficulty === k);
-                  const ok = all.filter((r) => r.st === "solved").length;
-                  return (
-                    <div key={k}>
-                      <p className={cn("text-xs font-semibold", DIFF_TONE[k])}>{DIFFICULTY_LABEL[k]} <span className="text-muted">{ok}/{all.length}</span></p>
-                      <div className="mt-1 h-2 overflow-hidden rounded-full bg-surface-2"><div className={cn("h-full", DIFF_BAR[k])} style={{ width: `${all.length ? (ok / all.length) * 100 : 0}%` }} /></div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-            {nextUp && (
-              <Link href={`/student/code?bai=${nextUp.e.id}`} className="group flex items-center gap-3 rounded-2xl border border-cyan/40 bg-gradient-to-br from-cyan/15 to-violet/10 p-4 transition-colors hover:border-cyan">
-                <span className="min-w-0">
-                  <span className="block text-xs font-semibold uppercase tracking-wide text-cyan-fg">{nextUp.st === "tried" ? "Làm tiếp" : "Bài nên làm tiếp"}</span>
-                  <span className="block font-semibold text-fg">{nextUp.e.title}</span>
-                  <span className="block text-xs text-muted">{nextUp.e.topic} · {DIFFICULTY_LABEL[nextUp.e.difficulty]}</span>
-                </span>
-                <ArrowRight className="size-5 shrink-0 text-cyan-fg transition-transform group-hover:translate-x-0.5" aria-hidden />
-              </Link>
-            )}
-          </div>
+      <section className="mb-6 flex flex-wrap items-center gap-4 rounded-2xl border border-line bg-gradient-to-r from-brand/10 via-cyan/5 to-emerald-500/10 p-4">
+        <div className="min-w-0 flex-1 basis-60">
+          <p className="font-semibold text-fg">Em đã xong {done}/{all.length} bài tập</p>
+          <div className="mt-2 h-2.5 max-w-md overflow-hidden rounded-full bg-surface-2"><div className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-cyan-500" style={{ width: `${all.length ? (done / all.length) * 100 : 0}%` }} /></div>
+        </div>
+        <div className="flex flex-wrap gap-1 rounded-xl bg-surface p-1 text-sm shadow-sm" role="group" aria-label="Lọc theo trạng thái">
+          {FILTERS.map(([f, l]) => {
+            const n = f === "all" ? all.length : all.filter((t) => t.status === f).length;
+            return <button key={f} type="button" aria-pressed={filter === f} onClick={() => setFilter(f)} className={cn("rounded-lg px-3 py-1.5 font-medium", filter === f ? "bg-brand text-brand-ink" : "text-muted hover:text-fg")}>{l} <span className="text-xs opacity-80">{n}</span></button>;
+          })}
+        </div>
+      </section>
 
-          <div className="mb-3 flex flex-col gap-2 rounded-2xl border border-line bg-surface p-3 md:flex-row md:items-center">
-            <label className="relative min-w-0 flex-1">
-              <span className="sr-only">Tìm bài</span>
-              <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted" aria-hidden />
-              <Input className="pl-9" placeholder="Tìm bài theo tên, chủ đề…" value={q} onChange={(e) => setQ(e.target.value)} />
-            </label>
-            <div className="flex flex-wrap gap-2">
-              <Select aria-label="Chủ đề" className="w-40" value={topic} onChange={(e) => setTopic(e.target.value)}><option value="">Mọi chủ đề</option>{topics.map((t) => <option key={t}>{t}</option>)}</Select>
-              <Select aria-label="Độ khó" className="w-36" value={diff} onChange={(e) => setDiff(e.target.value)}><option value="">Mọi độ khó</option>{(["co-ban", "trung-binh", "nang-cao"] as Difficulty[]).map((k) => <option key={k} value={k}>{DIFFICULTY_LABEL[k]}</option>)}</Select>
-              <Select aria-label="Trạng thái" className="w-36" value={status} onChange={(e) => setStatus(e.target.value)}><option value="">Mọi trạng thái</option><option value="solved">Đã giải</option><option value="tried">Đang làm</option><option value="new">Chưa làm</option></Select>
-            </div>
-          </div>
-          <p className="mb-2 text-sm text-muted" aria-live="polite">{shown.length} bài</p>
-          <div className="relative overflow-x-auto rounded-2xl border border-line bg-surface">
-            <table className="w-full min-w-[640px] text-sm">
-              <thead className="border-b border-line text-left text-xs text-muted">
-                <tr><th className="w-12 px-4 py-2.5 font-medium">TT</th><th className="px-2 py-2.5 font-medium">Bài</th><th className="px-2 py-2.5 font-medium">Chủ đề</th><th className="px-2 py-2.5 font-medium">Độ khó</th><th className="px-2 py-2.5 font-medium">Lần nộp gần nhất</th><th className="px-4 py-2.5"><span className="sr-only">Thao tác</span></th></tr>
-              </thead>
-              <tbody>
-                {shown.map(({ e, no, w, st }) => (
-                  <tr key={e.id} className="border-b border-line/60 last:border-0 hover:bg-surface-2/50">
-                    <td className="px-4 py-3">
-                      {st === "solved" ? <CheckCircle2 className="size-5 text-success-fg" aria-label="Đã giải" /> : st === "tried" ? <CircleDashed className="size-5 text-warning-fg" aria-label="Đang làm" /> : <span className="font-mono text-xs text-muted">{no}</span>}
-                    </td>
-                    <td className="px-2 py-3">
-                      <Link href={`/student/code?bai=${e.id}`} className="font-semibold text-fg hover:text-cyan-fg">{e.title}</Link>
-                      <p className="line-clamp-1 max-w-md text-xs text-muted">{e.task}</p>
-                    </td>
-                    <td className="px-2 py-3"><Badge>{e.topic}</Badge></td>
-                    <td className={cn("px-2 py-3 text-xs font-semibold", DIFF_TONE[e.difficulty])}>{DIFFICULTY_LABEL[e.difficulty]}</td>
-                    <td className="px-2 py-3 text-xs text-muted">{w?.lastRun ? <><b className={st === "solved" ? "text-success-fg" : "text-warning-fg"}>{w.lastRun.passed}/{w.lastRun.total} test</b> · {formatDate(w.lastRun.at)}</> : "—"}</td>
-                    <td className="px-4 py-3 text-right"><Button asChild size="sm" variant={st === "solved" ? "ghost" : "secondary"}><Link href={`/student/code?bai=${e.id}`}>{st === "solved" ? "Xem lại" : st === "tried" ? "Làm tiếp" : "Giải bài"}</Link></Button></td>
-                  </tr>
-                ))}
-                {shown.length === 0 && <tr><td colSpan={6} className="px-4 py-8 text-center text-sm text-muted">Không có bài phù hợp bộ lọc.</td></tr>}
-              </tbody>
-            </table>
-          </div>
-        </>
+      {shownMissions.length > 0 && (
+        <section aria-labelledby="giao-h" className="mb-8">
+          <h2 id="giao-h" className="mb-3 flex items-center gap-2 text-lg font-bold text-fg"><CalendarClock className="size-5 text-orange-500" aria-hidden /> Thầy cô giao, có hạn nộp</h2>
+          <TileGrid tiles={shownMissions} />
+        </section>
       )}
 
-      {tab === "quiz" && (
-        <>
-          {assigned.length > 0 && (
-            <section aria-labelledby="assigned-h" className="mb-6">
-              <h2 id="assigned-h" className="mb-2 text-sm font-semibold uppercase tracking-wide text-violet-fg">Thầy cô giao</h2>
-              <ul className="grid gap-3 lg:grid-cols-2">
-                {assigned.map((tq) => {
-                  const ref = findSgk(tq.sgkRef);
-                  const done = d.practiceAttempts.filter((a) => a.studentId === user.id && a.setId === tq.id);
-                  return (
-                    <li key={tq.id} className="flex flex-col rounded-2xl border border-violet/40 bg-gradient-to-br from-violet/10 to-transparent p-4">
-                      <p className="text-xs text-muted">{d.users.find((u) => u.id === tq.ownerId)?.name} · {ref ? `Tin ${ref.grade} – Bài ${ref.lesson.no}. ${ref.lesson.title}` : tq.sgkRef}</p>
-                      <h3 className="mt-1 font-semibold text-fg">{tq.title}</h3>
-                      <p className="text-xs text-muted">{tq.questions.length} câu{done.length ? ` · em đã làm ${done.length} lần` : " · chưa làm"}</p>
-                      <div className="mt-3 flex gap-2">
-                        <Button asChild size="sm"><Link href={`/student/practice/${tq.id}?che-do=practice`}>Luyện tập</Link></Button>
-                        <Button asChild size="sm" variant="secondary"><Link href={`/student/practice/${tq.id}?che-do=exam`}>Kiểm tra</Link></Button>
-                      </div>
-                    </li>
-                  );
-                })}
-              </ul>
-            </section>
-          )}
-          <p className="mb-4 flex flex-wrap gap-x-5 gap-y-1 text-xs text-muted">{MODES.map((m) => <span key={m.id} className="flex items-center gap-1.5"><m.icon className="size-3.5 text-cyan-fg" aria-hidden /><b className="text-fg">{m.label}</b>: {m.desc}</span>)}</p>
-          <ul className="grid gap-4 lg:grid-cols-2">
-            {generalSets.map((s) => {
-              const attempts = d.practiceAttempts.filter((a) => a.studentId === user.id && a.setId === s.id).sort((a, b) => b.finishedAt.localeCompare(a.finishedAt));
-              const last = attempts[0];
-              const scored = last?.items.filter((i) => i.status !== "self") ?? [];
-              const kinds = [...new Set(s.questionIds.map((qid) => getQuestion(qid)?.kind).filter(Boolean))];
-              return (
-                <li key={s.id} className="flex flex-col rounded-2xl border border-line bg-surface p-5">
-                  <div className="flex flex-wrap gap-1.5"><Badge tone="blue">Lớp {s.grade}</Badge><Badge>{s.questionIds.length} câu</Badge></div>
-                  <h3 className="mt-2 font-semibold text-fg">{s.title}</h3>
-                  <p className="text-sm text-muted">{s.description}</p>
-                  <p className="mt-2 text-xs text-muted">Dạng câu: {kinds.map((k) => KIND_LABEL[k!]).join(", ")}</p>
-                  {last && <p className="mt-2 text-sm text-fg">Lần gần nhất ({formatDate(last.finishedAt)}): <b>{scored.filter((i) => i.status === "correct").length}/{scored.length}</b> câu đúng · {attempts.length} lần làm</p>}
-                  <div className="mt-auto flex flex-wrap gap-2 pt-4">
-                    {MODES.map((m, i) => (
-                      <Button key={m.id} asChild size="sm" variant={i === 0 ? "primary" : "secondary"}>
-                        <Link href={`/student/practice/${s.id}?che-do=${m.id}`} data-testid={`practice-${s.id}-${m.id}`}>{m.label}</Link>
-                      </Button>
-                    ))}
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
-          <section aria-labelledby="lesson-sets-h" className="mt-8">
-            <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-              <h2 id="lesson-sets-h" className="text-sm font-semibold uppercase tracking-wide text-muted">Theo từng bài học ({lessonSets.length} bộ)</h2>
-              <Select aria-label="Chọn lớp" value={sgkGrade} onChange={(e) => setSgkGrade(e.target.value)} className="w-auto">
-                {["10", "11", "12"].map((g) => <option key={g} value={g}>Tin học {g}</option>)}
-              </Select>
-            </div>
-            <ul className="divide-y divide-line overflow-hidden rounded-2xl border border-line bg-surface">
-              {lessonSets.map((s) => {
-                const tries = d.practiceAttempts.filter((a) => a.studentId === user.id && a.setId === s.id).length;
-                const sim = s.id.startsWith("thao-tac-");
-                return (
-                  <li key={s.id} className="flex flex-wrap items-center gap-3 px-4 py-3">
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate text-sm font-medium text-fg">{s.title}</span>
-                      <span className="text-xs text-muted">{s.questionIds.length} {sim ? "tình huống thao tác" : "câu trắc nghiệm"}{tries ? ` · đã làm ${tries} lần` : ""}</span>
-                    </span>
-                    {sim && <Badge tone="blue">Mô phỏng</Badge>}
-                    <Button asChild size="sm" variant="secondary"><Link href={`/student/practice/${s.id}?che-do=practice`}>Luyện tập</Link></Button>
-                    <Button asChild size="sm" variant="ghost"><Link href={`/student/practice/${s.id}?che-do=exam`}>Kiểm tra</Link></Button>
-                  </li>
-                );
-              })}
-            </ul>
-          </section>
-        </>
-      )}
+      {groups.map((g) => (
+        <section key={g} aria-label={g} className="mb-8">
+          <h2 className="mb-3 text-sm font-bold uppercase tracking-wide text-muted">{g}</h2>
+          <TileGrid tiles={tiles.filter((t) => t.group === g && pass(t))} />
+        </section>
+      ))}
 
+      {all.length === 0 && <p className="rounded-2xl border border-dashed border-line p-8 text-center text-muted">Thầy cô chưa mở bài tập nào cho lớp em.</p>}
+      {locked > 0 && filter === "all" && (
+        <p className="flex items-center gap-2 rounded-2xl border border-dashed border-line bg-surface px-4 py-3 text-sm text-muted"><Lock className="size-4" aria-hidden /> Còn {locked} bài tập thầy cô chưa mở. Bài mới sẽ hiện ở đây khi lớp học tới.</p>
+      )}
     </>
+  );
+}
+
+function TileGrid({ tiles }: { tiles: Tile[] }) {
+  return (
+    <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6">
+      {tiles.map((t) => {
+        const K = KIND[t.kind];
+        const S = STATUS[t.status];
+        return (
+          <li key={`${t.kind}-${t.id}`} className="min-w-0">
+            <Link href={t.href} data-testid={`tile-${t.id}`} className={cn("group relative flex aspect-square flex-col overflow-hidden rounded-2xl bg-gradient-to-br p-3.5 text-white shadow-md transition-all hover:-translate-y-1 hover:shadow-xl focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand/40 sm:p-4", K.bg)}>
+              <K.icon aria-hidden className="pointer-events-none absolute -bottom-4 -right-4 size-24 opacity-15 transition-transform group-hover:scale-110" />
+              <span className="flex items-start justify-between gap-2">
+                <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-white/20"><K.icon className="size-5" aria-hidden /></span>
+                <span className={cn("whitespace-nowrap rounded-full px-2 py-0.5 text-[11px] font-bold", S.cls)}>{t.status === "done" && <CheckCircle2 className="mr-0.5 inline size-3" aria-hidden />}{S.label}</span>
+              </span>
+              <span className="mt-3 text-[11px] font-semibold uppercase tracking-wide text-white/75">{K.label}</span>
+              <span className="line-clamp-3 text-sm font-bold leading-snug sm:text-base">{t.title}</span>
+              <span className="relative mt-auto text-xs text-white/90">{t.result ?? t.sub}{t.due ? ` · hạn ${relativeDays(t.due)}` : ""}</span>
+            </Link>
+          </li>
+        );
+      })}
+    </ul>
   );
 }
 

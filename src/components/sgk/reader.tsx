@@ -25,18 +25,22 @@ import { TutorScope, useTutor } from "@/components/tutor/tutor-provider";
 import { Block, Rich, type BlockCtx } from "./blocks";
 import { Presenter } from "./presenter";
 import { LessonSims } from "@/components/lessons/lesson-sims";
+import { UnlockChips } from "@/components/teacher/unlock-chips";
+import { codeKey, lessonKey, setKey } from "@/lib/access/unlocks";
+import { useAccess } from "@/lib/access/use-access";
 
 type Role = "teacher" | "student";
 type TabId = "noi-dung" | "mo-phong" | "cau-hoi" | "lap-trinh" | "khbd" | "nhiem-vu" | "luyen-tap";
-const TAB_META: Record<TabId, { label: string; icon: React.ComponentType<{ className?: string }> }> = {
-  "noi-dung": { label: "Nội dung", icon: FileText },
-  "mo-phong": { label: "Mô phỏng", icon: FlaskConical },
-  "cau-hoi": { label: "Câu hỏi luyện tập", icon: ListChecks },
-  "lap-trinh": { label: "Bài lập trình", icon: Code2 },
-  "luyen-tap": { label: "Luyện tập", icon: ListChecks },
-  khbd: { label: "KHBD", icon: NotebookPen },
-  "nhiem-vu": { label: "Nhiệm vụ & kết quả", icon: ClipboardList },
+const TAB_META: Record<TabId, { label: string; icon: React.ComponentType<{ className?: string }>; on: string }> = {
+  "noi-dung": { label: "Nội dung", icon: FileText, on: "bg-blue-600 text-white shadow-blue-600/30" },
+  "mo-phong": { label: "Mô phỏng", icon: FlaskConical, on: "bg-violet-600 text-white shadow-violet-600/30" },
+  "cau-hoi": { label: "Câu hỏi luyện tập", icon: ListChecks, on: "bg-emerald-600 text-white shadow-emerald-600/30" },
+  "lap-trinh": { label: "Bài lập trình", icon: Code2, on: "bg-slate-800 text-white shadow-slate-800/30" },
+  "luyen-tap": { label: "Luyện tập", icon: ListChecks, on: "bg-emerald-600 text-white shadow-emerald-600/30" },
+  khbd: { label: "KHBD", icon: NotebookPen, on: "bg-amber-500 text-white shadow-amber-500/30" },
+  "nhiem-vu": { label: "Nhiệm vụ & kết quả", icon: ClipboardList, on: "bg-rose-500 text-white shadow-rose-500/30" },
 };
+const GRADE_BG: Record<number, string> = { 10: "from-[#2563eb] to-[#06b6d4]", 11: "from-[#4f46e5] to-[#7c3aed]", 12: "from-[#7c3aed] to-[#db2777]" };
 const TEACHER_TABS: TabId[] = ["noi-dung", "mo-phong", "cau-hoi", "lap-trinh", "khbd", "nhiem-vu"];
 const STUDENT_TABS: TabId[] = ["noi-dung", "mo-phong", "luyen-tap", "nhiem-vu"];
 const base = (role: Role) => (role === "teacher" ? "/teacher/sgk" : "/student/sgk");
@@ -99,6 +103,7 @@ function Notes({ refId, sectionId }: { refId: string; sectionId: string }) {
 export function BookReader({ refId, role }: { refId: string; role: Role }) {
   const { d, user } = useSessionData();
   const tutor = useTutor();
+  const access = useAccess();
   const e = bookEntry(refId);
   const [present, setPresent] = useState(false);
   const [assign, setAssign] = useState<AssignPreset | null | undefined>(undefined);
@@ -117,6 +122,7 @@ export function BookReader({ refId, role }: { refId: string; role: Role }) {
   if (!e) return <EmptyState icon={BookOpen} title="Không tìm thấy bài" action={<Button asChild><Link href={base(role)}>Về Khóa học</Link></Button>} />;
   const teacher = role === "teacher";
   const book = bookOf(e.grade);
+  if (!teacher && !access.can(lessonKey(refId))) return <LockedLesson e={e} />;
   const { prev, next } = neighbors(refId);
   const progress = d.bookProgress.find((p) => p.userId === user.id && p.ref === refId);
   const picks = new Set(d.bookPicks.filter((p) => p.userId === user.id && p.key.startsWith(`${refId}#`)).map((p) => p.key));
@@ -127,7 +133,7 @@ export function BookReader({ refId, role }: { refId: string; role: Role }) {
   const myAssignments = teacher ? lessonAssignments(d, d.assignments.filter((a) => a.ownerId === user.id), user.id, e) : studentLessonTasks(d, user.id, e);
   const quizCount = teacher ? (content ? lessonChecks(content).length : 0) + d.teacherQuizzes.filter((q) => q.ownerId === user.id && q.sgkRef === refId).length + setsForLesson(e.ref, e.lesson.key).length : 0;
   const codeCount = e.lesson.key ? CODING_EXERCISES.filter((x) => x.lessonKey === e.lesson.key).length : 0;
-  const counts: Partial<Record<TabId, number>> = { "mo-phong": allSims.length, "cau-hoi": quizCount, "lap-trinh": codeCount, "nhiem-vu": myAssignments.length, "luyen-tap": studentPractice(d, user.id, e).length + codeCount };
+  const counts: Partial<Record<TabId, number>> = { "mo-phong": allSims.length, "cau-hoi": quizCount, "lap-trinh": codeCount, "nhiem-vu": myAssignments.length, "luyen-tap": studentPractice(d, user.id, e, access.can).length + studentCode(e, access.can).length };
   const extraLabs = d.lessonLabs.filter((l) => l.sgkRef === refId && (teacher ? l.ownerId === user.id : true)).map((l) => getLabBySlug(l.slug)).filter((l): l is NonNullable<typeof l> => !!l && !lessonSimSlugs(e).includes(l.slug));
 
   return (
@@ -139,11 +145,14 @@ export function BookReader({ refId, role }: { refId: string; role: Role }) {
         <span className="font-medium text-fg">Bài {e.lesson.no}</span>
       </nav>
 
-      <header>
-        <div className="flex flex-wrap items-end gap-3">
+      <header className="relative overflow-hidden rounded-3xl border border-line bg-gradient-to-br from-brand/10 via-cyan/5 to-violet-500/10 p-5">
+        <div aria-hidden className="pointer-events-none absolute -right-10 -top-16 size-56 rounded-full bg-cyan/15 blur-3xl" />
+        <div className="relative flex flex-wrap items-center gap-4">
+          <span className={cn("grid size-16 shrink-0 place-items-center rounded-2xl bg-gradient-to-br text-white shadow-lg", GRADE_BG[e.grade])}><span className="text-center leading-none"><span className="block text-[10px] font-semibold uppercase opacity-80">Bài</span><span className="text-2xl font-extrabold">{e.lesson.no}</span></span></span>
           <div className="min-w-0 flex-1 basis-72">
-            <p className="text-sm font-medium text-muted">{book.title} · Chủ đề {e.topic.no}{content ? ` · ${content.periods} tiết` : ""}</p>
-            <h1 className="mt-1 text-3xl font-bold tracking-tight text-fg">Bài {e.lesson.no}. {e.lesson.title}</h1>
+            <p className="text-sm font-medium text-muted">{book.title} · Chủ đề {e.topic.no}. {e.topic.title}{content ? ` · ${content.periods} tiết` : ""}</p>
+            <h1 className="mt-0.5 text-2xl font-bold tracking-tight text-fg sm:text-3xl">{e.lesson.title}</h1>
+            {teacher ? <><TaughtStrip e={e} /><OpenStrip e={e} /></> : content && <ReadStrip read={progress?.read.length ?? 0} total={content.sections.length} />}
           </div>
           <span className="flex flex-wrap gap-2">
             {teacher ? (
@@ -152,23 +161,23 @@ export function BookReader({ refId, role }: { refId: string; role: Role }) {
                 <Button size="sm" onClick={() => setAssign(null)}><Send /> Giao nhiệm vụ</Button>
               </>
             ) : (
-              <Button size="sm" variant="secondary" onClick={() => ask("cả bài")}><Bot /> Hỏi AI Gia sư</Button>
+              <Button size="sm" variant="violet" onClick={() => ask("cả bài")}><Bot /> Hỏi AI Gia sư</Button>
             )}
           </span>
         </div>
-        {teacher ? <TaughtStrip e={e} /> : content && <ReadStrip read={progress?.read.length ?? 0} total={content.sections.length} />}
       </header>
 
-      <nav aria-label="Các phần của bài" className="sticky top-16 z-10 -mx-4 mt-4 overflow-x-auto border-b border-line bg-bg/95 px-4 backdrop-blur sm:mx-0 sm:px-0">
-        <ul className="flex w-max gap-1">
+      <nav aria-label="Các phần của bài" className="sticky top-16 z-10 -mx-4 mt-4 overflow-x-auto bg-bg/95 px-4 py-2 backdrop-blur sm:mx-0 sm:px-0">
+        <ul className="flex w-max gap-1.5 rounded-2xl border border-line bg-surface p-1.5 shadow-sm">
           {tabs.map((t) => {
             const M = TAB_META[t];
             const n = counts[t];
+            const on = tab === t;
             return (
               <li key={t}>
-                <button type="button" ref={tab === t ? (el) => el?.scrollIntoView({ block: "nearest", inline: "nearest" }) : undefined} aria-current={tab === t ? "page" : undefined} onClick={() => setTab(t)} className={cn("-mb-px flex items-center gap-1.5 border-b-2 px-3 py-2.5 text-sm font-medium transition-colors", tab === t ? "border-brand text-fg" : "border-transparent text-muted hover:text-fg")}>
+                <button type="button" ref={on ? (el) => el?.scrollIntoView({ block: "nearest", inline: "nearest" }) : undefined} aria-current={on ? "page" : undefined} onClick={() => setTab(t)} className={cn("flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-sm font-semibold transition-all", on ? cn("shadow-md", M.on) : "text-muted hover:bg-surface-2 hover:text-fg")}>
                   <M.icon className="size-4" aria-hidden /> {M.label}
-                  {n !== undefined && <span className={cn("rounded-full px-1.5 text-xs tabular-nums", n ? "bg-surface-2 text-fg" : "text-muted")}>{n}</span>}
+                  {n !== undefined && <span className={cn("rounded-full px-1.5 text-xs tabular-nums", on ? "bg-white/25" : n ? "bg-surface-2 text-fg" : "text-muted")}>{n}</span>}
                 </button>
               </li>
             );
@@ -188,9 +197,11 @@ export function BookReader({ refId, role }: { refId: string; role: Role }) {
                 const cur = r === refId;
                 return (
                   <li key={l.no}>
-                    <Link href={`${base(role)}/${r}`} aria-current={cur ? "page" : undefined} className={cn("block rounded-lg px-2 py-1.5 leading-snug", cur ? "bg-fg text-bg" : "text-fg/80 hover:bg-surface-2")}>Bài {l.no}. {l.title}</Link>
+                    {!teacher && !access.can(lessonKey(r)) ? (
+                      <span title="Thầy cô chưa mở bài này" className="flex items-start gap-1.5 rounded-lg px-2 py-1.5 leading-snug text-muted/70"><Lock className="mt-0.5 size-3.5 shrink-0" aria-label="đang khóa" />Bài {l.no}. {l.title}</span>
+                    ) : <Link href={`${base(role)}/${r}`} aria-current={cur ? "page" : undefined} className={cn("block rounded-lg px-2 py-1.5 leading-snug", cur ? "bg-brand font-semibold text-brand-ink shadow-sm shadow-brand/30" : "text-fg/80 hover:bg-surface-2")}>Bài {l.no}. {l.title}</Link>}
                     {cur && content && (
-                      <ul className="my-1 ml-2 space-y-0.5 border-l border-line pl-2">
+                      <ul className="my-1 ml-2 space-y-0.5 border-l-2 border-brand/30 pl-2">
                         {content.sections.map((s, i) => (
                           <li key={s.id}><a href={`#muc-${s.id}`} className="flex items-center gap-1.5 rounded px-1 py-0.5 text-xs text-muted hover:text-fg">{progress?.read.includes(s.id) ? <CheckCircle2 className="size-3 shrink-0 text-success-fg" aria-label="đã đọc" /> : <Circle className="size-3 shrink-0" aria-hidden />}{i + 1}. {s.title}</a></li>
                         ))}
@@ -209,13 +220,14 @@ export function BookReader({ refId, role }: { refId: string; role: Role }) {
           {teacher && picks.size > 0 && <PickedStrip e={e} picks={picks} onPresent={content ? () => setPresent(true) : undefined} />}
           {content ? (
             <>
-              <section className="rounded-2xl border border-line bg-surface p-4">
-                <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-muted"><Target className="size-4" aria-hidden /> Yêu cầu cần đạt</h2>
-                <ol className="mt-2 list-decimal space-y-1 pl-5 text-sm text-fg">{content.objectives.map((o) => <li key={o}>{o}</li>)}</ol>
+              <section className="rounded-2xl border border-blue-500/25 bg-blue-500/5 p-4">
+                <h2 className="flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-blue-700 dark:text-blue-300"><Target className="size-4" aria-hidden /> Yêu cầu cần đạt</h2>
+                <ol className="mt-3 space-y-2 text-sm text-fg">{content.objectives.map((o, i) => <li key={o} className="flex gap-2.5"><span className="grid size-6 shrink-0 place-items-center rounded-full bg-blue-600 text-xs font-bold text-white">{i + 1}</span><span className="pt-0.5">{o}</span></li>)}</ol>
               </section>
-              <section className="mt-4 rounded-2xl bg-gradient-to-br from-warning/10 to-transparent p-4">
-                <h2 className="text-sm font-semibold uppercase tracking-wide text-warning-fg">Khởi động</h2>
-                <p className="mt-1 text-lg leading-relaxed text-fg"><Rich text={content.warmUp} /></p>
+              <section className="mt-4 flex gap-3 rounded-2xl border border-amber-400/30 bg-gradient-to-br from-amber-400/15 to-orange-400/5 p-4">
+                <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-amber-500 text-lg text-white" aria-hidden>💡</span>
+                <div><h2 className="text-sm font-bold uppercase tracking-wide text-amber-700 dark:text-amber-300">Khởi động</h2>
+                <p className="mt-1 text-lg leading-relaxed text-fg"><Rich text={content.warmUp} /></p></div>
               </section>
 
               {content.sections.map((s, i) => {
@@ -224,7 +236,7 @@ export function BookReader({ refId, role }: { refId: string; role: Role }) {
                 return (
                   <section key={s.id} id={`muc-${s.id}`} className="scroll-mt-32 border-b border-line py-6">
                     <div className="flex flex-wrap items-start gap-2">
-                      <h2 className="min-w-0 basis-full text-xl font-bold text-fg sm:basis-auto sm:flex-1"><span className="mr-2 text-cyan-fg">{i + 1}.</span>{s.title}</h2>
+                      <h2 className="flex min-w-0 basis-full items-center gap-2.5 text-xl font-bold text-fg sm:basis-auto sm:flex-1"><span className={cn("grid size-8 shrink-0 place-items-center rounded-xl bg-gradient-to-br text-sm font-extrabold text-white", GRADE_BG[e.grade])}>{i + 1}</span>{s.title}{progress?.read.includes(s.id) && <CheckCircle2 className="size-4 text-success-fg" aria-label="đã đọc" />}</h2>
                       {teacher && <Button size="sm" variant="ghost" aria-pressed={picked} onClick={() => d.toggleBookPick(user.id, k)}><Star className={cn(picked && "fill-warning text-warning")} /> {picked ? "Đã chọn dạy" : "Chọn để dạy"}</Button>}
                       <Button size="sm" variant="ghost" onClick={() => ask(s.title)}><Bot /> {teacher ? "Gợi ý cách dạy" : "Hỏi AI về mục này"}</Button>
                     </div>
@@ -235,19 +247,21 @@ export function BookReader({ refId, role }: { refId: string; role: Role }) {
               })}
 
               <section className="py-6">
-                <h2 className="text-xl font-bold text-fg">Luyện tập</h2>
+                <h2 className="flex items-center gap-2 text-xl font-bold text-fg"><ListChecks className="size-5 text-emerald-600" aria-hidden /> Luyện tập</h2>
                 <ol className="mt-3 space-y-3">
                   {content.practice.map((p, i) => (
-                    <li key={i} className="rounded-xl border border-line p-4">
+                    <li key={i} className="rounded-xl border border-emerald-500/25 bg-emerald-500/5 p-4">
                       <p className="text-fg"><span className="font-semibold">Bài {i + 1}.</span> <Rich text={p.task} /></p>
                       {p.hint && <details className="mt-2 text-sm" open={teacher}><summary className="cursor-pointer font-medium text-cyan-fg">Gợi ý</summary><p className="mt-1 text-fg"><Rich text={p.hint} /></p></details>}
                       {p.answer && <details className="mt-2 text-sm" open={teacher}><summary className="cursor-pointer font-medium text-cyan-fg">{teacher ? "Đáp án" : "Xem lời giải"}</summary><pre className="mt-1 overflow-x-auto whitespace-pre-wrap rounded-lg bg-surface-2 p-3 font-mono text-xs text-fg">{p.answer}</pre></details>}
                     </li>
                   ))}
                 </ol>
-                <h2 className="mt-6 text-xl font-bold text-fg">Vận dụng</h2>
-                <p className="mt-2 leading-7 text-fg/90"><Rich text={content.apply} /></p>
-                <div className="mt-6 rounded-2xl border border-cyan/40 bg-cyan/5 p-4">
+                <div className="mt-6 rounded-2xl border border-violet-500/25 bg-violet-500/5 p-4">
+                  <h2 className="text-lg font-bold text-violet-700 dark:text-violet-300">Vận dụng</h2>
+                  <p className="mt-1 leading-7 text-fg/90"><Rich text={content.apply} /></p>
+                </div>
+                <div className="mt-4 rounded-2xl border border-cyan/40 bg-gradient-to-br from-cyan/10 to-transparent p-4">
                   <h2 className="font-semibold text-fg">Ghi nhớ</h2>
                   <ul className="mt-2 space-y-1.5 text-sm text-fg">{content.remember.map((r) => <li key={r} className="flex gap-2"><CheckCircle2 className="mt-0.5 size-4 shrink-0 text-cyan-fg" aria-hidden /><Rich text={r} /></li>)}</ul>
                 </div>
@@ -267,7 +281,7 @@ export function BookReader({ refId, role }: { refId: string; role: Role }) {
 
           <nav className="mt-4 flex flex-wrap justify-between gap-3 border-t border-line pt-4" aria-label="Bài trước và bài sau">
             {prev ? <Link href={`${base(role)}/${prev.ref}`} className="group flex max-w-[48%] items-center gap-2 text-sm text-muted hover:text-fg"><ArrowLeft className="size-4 shrink-0" aria-hidden /><span><span className="block text-xs">Bài trước</span><span className="font-medium text-fg">Bài {prev.lesson.no}. {prev.lesson.title}</span></span></Link> : <span />}
-            {next && <Link href={`${base(role)}/${next.ref}`} className="group ml-auto flex max-w-[48%] items-center gap-2 text-right text-sm text-muted hover:text-fg"><span><span className="block text-xs">Bài sau</span><span className="font-medium text-fg">Bài {next.lesson.no}. {next.lesson.title}</span></span><ArrowRight className="size-4 shrink-0" aria-hidden /></Link>}
+            {next && (teacher || access.can(lessonKey(next.ref))) && <Link href={`${base(role)}/${next.ref}`} className="group ml-auto flex max-w-[48%] items-center gap-2 text-right text-sm text-muted hover:text-fg"><span><span className="block text-xs">Bài sau</span><span className="font-medium text-fg">Bài {next.lesson.no}. {next.lesson.title}</span></span><ArrowRight className="size-4 shrink-0" aria-hidden /></Link>}
           </nav>
         </article>
       </div>
@@ -298,12 +312,36 @@ function studentLessonTasks(d: DemoData, userId: string, e: BookEntry) {
 }
 
 /** Bộ câu hỏi học sinh làm được ở bài này: bộ có sẵn của bài và bộ thầy cô đã giao lớp em. */
-function studentPractice(d: DemoData, userId: string, e: BookEntry) {
+function studentPractice(d: DemoData, userId: string, e: BookEntry, can: (key: string) => boolean) {
   const classIds = studentClassIds(d, userId);
   const kinds = (ks: PracticeQuestion["kind"][]) => [...new Set(ks)].map((k) => KIND_LABEL[k]);
-  const sets = setsForLesson(e.ref, e.lesson.key).map((s) => ({ id: s.id, title: s.title, n: s.questionIds.length, mine: false, kinds: kinds(s.questionIds.map(getQuestion).filter((q): q is PracticeQuestion => !!q).map((q) => q.kind)) }));
+  const sets = setsForLesson(e.ref, e.lesson.key).filter((s) => can(setKey(s.id))).map((s) => ({ id: s.id, title: s.title, n: s.questionIds.length, mine: false, kinds: kinds(s.questionIds.map(getQuestion).filter((q): q is PracticeQuestion => !!q).map((q) => q.kind)) }));
   const tq = d.teacherQuizzes.filter((q) => q.sgkRef === e.ref && q.status === "published" && q.classIds.some((c) => classIds.includes(c))).map((q) => ({ id: q.id, title: q.title, n: q.questions.length, mine: true, kinds: kinds(q.questions.map((x) => x.kind)) }));
   return [...tq, ...sets];
+}
+
+function studentCode(e: BookEntry, can: (key: string) => boolean) {
+  return e.lesson.key ? CODING_EXERCISES.filter((x) => x.lessonKey === e.lesson.key && can(codeKey(x.id))) : [];
+}
+
+/** Bài thầy cô chưa mở cho lớp em. */
+function LockedLesson({ e }: { e: BookEntry }) {
+  return (
+    <EmptyState icon={Lock} title={`Bài ${e.lesson.no}. ${e.lesson.title} chưa được mở`} description="Thầy cô sẽ mở bài khi lớp học tới. Trong lúc chờ, em ôn lại các bài đã mở nhé." action={<Button asChild><Link href={`/student/sgk?lop=${e.grade}`}>Về mục lục khóa học</Link></Button>} />
+  );
+}
+
+/** Giáo viên mở bài, luyện tập, lập trình của bài này cho từng lớp. */
+function OpenStrip({ e }: { e: BookEntry }) {
+  const { d, user } = useSessionData();
+  const classes = teacherClasses(d, user.id).filter((c) => c.grade === e.grade);
+  if (!classes.length) return null;
+  return (
+    <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
+      <span className="text-muted">Mở cho học sinh:</span>
+      {classes.map((c) => <UnlockChips key={c.id} classId={c.id} refId={e.ref} lessonKey={e.lesson.key} label={c.name} />)}
+    </div>
+  );
 }
 
 function sectionLabel(d: DemoData, e: BookEntry, k: string) {
@@ -337,8 +375,8 @@ function TaughtStrip({ e }: { e: BookEntry }) {
 function ReadStrip({ read, total }: { read: number; total: number }) {
   return (
     <div className="mt-3 flex items-center gap-3 text-sm">
-      <span className="text-muted">Em đã đọc {read}/{total} mục</span>
-      <div className="h-1.5 w-40 rounded-full bg-surface-2"><div className="h-full rounded-full bg-success" style={{ width: `${(read / total) * 100}%` }} /></div>
+      <div className="h-2 w-44 overflow-hidden rounded-full border border-line bg-surface"><div className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-cyan-500" style={{ width: `${(read / total) * 100}%` }} /></div>
+      <span className="font-medium text-fg">Đã đọc {read}/{total} mục{read === total ? " 🎉" : ""}</span>
     </div>
   );
 }
@@ -455,9 +493,11 @@ function StudentTasks({ e }: { e: BookEntry }) {
 
 function StudentPracticeTab({ e }: { e: BookEntry }) {
   const { d, user } = useSessionData();
-  const sets = studentPractice(d, user.id, e);
-  const code = e.lesson.key ? CODING_EXERCISES.filter((x) => x.lessonKey === e.lesson.key) : [];
-  if (!sets.length && !code.length) return <p className="text-sm text-muted">Bài này chưa có bộ câu hỏi hay bài lập trình riêng. Câu hỏi củng cố nằm ngay trong phần Nội dung.</p>;
+  const access = useAccess();
+  const sets = studentPractice(d, user.id, e, access.can);
+  const code = studentCode(e, access.can);
+  const locked = setsForLesson(e.ref, e.lesson.key).filter((s) => !access.can(setKey(s.id))).length + (e.lesson.key ? CODING_EXERCISES.filter((x) => x.lessonKey === e.lesson.key && !access.can(codeKey(x.id))).length : 0);
+  if (!sets.length && !code.length) return locked ? <EmptyState icon={Lock} title="Phần luyện tập chưa mở" description={`Bài có ${locked} bộ luyện tập / bài lập trình. Thầy cô sẽ mở khi lớp học xong phần lí thuyết.`} /> : <p className="text-sm text-muted">Bài này chưa có bộ câu hỏi hay bài lập trình riêng. Câu hỏi củng cố nằm ngay trong phần Nội dung.</p>;
   return (
     <div className="space-y-6">
       {sets.length > 0 && (

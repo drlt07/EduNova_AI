@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { Suspense, useState } from "react";
 import { useParams, usePathname, useRouter, useSearchParams } from "next/navigation";
-import { ArrowLeft, CheckCircle2, Copy, FlaskConical, MonitorPlay, Pencil, RefreshCw, Send, Trash2, UserMinus, UserPlus, Users } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Lock, LockOpen, Copy, FlaskConical, MonitorPlay, Pencil, RefreshCw, Send, Trash2, UserMinus, UserPlus, Users } from "lucide-react";
 import { toast } from "sonner";
 import { classNotes } from "@/lib/analytics/class-notes";
 import { objectiveMastery } from "@/lib/analytics/compute";
@@ -23,8 +23,10 @@ import { lessonAssignables } from "@/components/sgk/reader";
 import { AssignDialog, type AssignPreset } from "@/components/teacher/assign-dialog";
 import { ClassFormDialog } from "@/components/teacher/class-form-dialog";
 import { ClassInsights } from "@/components/teacher/dashboard-panels";
+import { UnlockChips } from "@/components/teacher/unlock-chips";
+import { classUnlocks, gradeLessons, lessonItems, lessonKey, nextLockedLesson, setKey, codeKey } from "@/lib/access/unlocks";
 
-const TABS = [["tong-quan", "Tổng quan"], ["bai-hoc", "Bài học"], ["nhiem-vu", "Nhiệm vụ"], ["hoc-sinh", "Học sinh"], ["ket-qua", "Kết quả"]] as const;
+const TABS = [["tong-quan", "Tổng quan"], ["bai-hoc", "Bài học & mở bài"], ["nhiem-vu", "Nhiệm vụ"], ["hoc-sinh", "Học sinh"], ["ket-qua", "Kết quả"]] as const;
 type Tab = (typeof TABS)[number][0];
 const CELL_STYLE: Record<CellStatus, string> = {
   "not-joined": "bg-surface-2 text-muted",
@@ -37,6 +39,36 @@ const CELL_STYLE: Record<CellStatus, string> = {
 const CELL_SHORT: Record<CellStatus, string> = { "not-joined": "chưa vào lớp", "not-assigned": "—", done: "xong", working: "đang làm", late: "quá hạn", todo: "chưa nộp" };
 
 interface AssignState { preset?: AssignPreset; ref?: string; suggest?: AssignPreset[]; studentIds?: string[]; title?: string }
+
+/** Thanh mở bài: bao nhiêu bài học sinh đang thấy, mở bài tiếp theo bằng một lần bấm. */
+function OpenBar({ classId, grade }: { classId: string; grade: 10 | 11 | 12 }) {
+  const { d, user } = useSessionData();
+  const open = classUnlocks(d, classId);
+  const all = gradeLessons(grade);
+  const lessons = all.filter((x) => open.has(lessonKey(x.ref))).length;
+  const practice = all.filter((x) => { const it = lessonItems(x.ref, x.lesson.key); return it.sets.length > 0 && it.sets.every((s) => open.has(setKey(s.id))); }).length;
+  const next = nextLockedLesson(d, classId, grade);
+  const openNext = (withPractice: boolean) => {
+    if (!next) return;
+    const it = lessonItems(next.ref, next.lesson.key);
+    d.setUnlocked(user.id, classId, [lessonKey(next.ref), ...(withPractice ? [...it.sets.map((s) => setKey(s.id)), ...it.code.map((c) => codeKey(c.id))] : [])], true);
+    toast.success(`Đã mở Bài ${next.lesson.no}${withPractice ? " kèm luyện tập" : ""} cho lớp`);
+  };
+  return (
+    <section className="flex flex-wrap items-center gap-4 rounded-2xl border border-brand/30 bg-gradient-to-r from-brand/10 via-cyan/5 to-transparent p-4">
+      <div className="min-w-0 flex-1 basis-64">
+        <p className="font-semibold text-fg">Học sinh chỉ thấy phần thầy cô đã mở</p>
+        <p className="text-sm text-muted">Đang mở <b className="text-fg">{lessons}/{all.length}</b> bài học · <b className="text-fg">{practice}</b> bộ luyện tập. Bấm các nút <Lock className="inline size-3.5" aria-label="khóa" /> ở từng bài để mở hoặc khóa riêng nội dung, luyện tập, lập trình.</p>
+      </div>
+      {next ? (
+        <span className="flex flex-wrap gap-2">
+          <Button size="sm" onClick={() => openNext(false)} data-testid="open-next"><LockOpen /> Mở Bài {next.lesson.no}</Button>
+          <Button size="sm" variant="secondary" onClick={() => openNext(true)}>Mở kèm luyện tập</Button>
+        </span>
+      ) : <span className="text-sm font-semibold text-success-fg">Đã mở hết bài</span>}
+    </section>
+  );
+}
 
 function ClassDetail() {
   const { id } = useParams<{ id: string }>();
@@ -134,6 +166,7 @@ function ClassDetail() {
 
       {tab === "bai-hoc" && (
         <div className="space-y-6">
+          <OpenBar classId={cls.id} grade={cls.grade} />
           {[...new Map(bookLessons(cls.grade).map((e) => [e.topic.no, e.topic])).values()].map((t) => (
             <section key={t.no}>
               <h2 className="border-b-2 border-fg pb-1 font-bold text-fg">Chủ đề {t.no}. {t.title}</h2>
@@ -154,6 +187,7 @@ function ClassDetail() {
                         {lessonSimSlugs(e).length > 0 && <span className="inline-flex items-center gap-1"><FlaskConical className="size-3.5" aria-hidden /> {lessonSimSlugs(e).length}</span>}
                         {given.length > 0 && <span className="rounded bg-cyan/15 px-1.5 font-semibold text-cyan-fg">{given.length} nhiệm vụ</span>}
                       </span>
+                      <UnlockChips classId={cls.id} refId={e.ref} lessonKey={e.lesson.key} compact />
                       {items.length > 0 && <Button size="sm" variant="ghost" onClick={() => assignFromLesson(e.ref)}><Send /> Giao</Button>}
                     </li>
                   );

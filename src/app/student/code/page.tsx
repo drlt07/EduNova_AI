@@ -2,12 +2,14 @@
 import Link from "next/link";
 import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { ArrowLeft, FolderOpen } from "lucide-react";
+import { ArrowLeft, FolderOpen, Lock } from "lucide-react";
 import { toast } from "sonner";
 import { CODING_EXERCISES, getExercise } from "@/lib/data/coding-exercises";
 import { useSessionData } from "@/lib/store/use-role";
 import { Button } from "@/components/ui/button";
-import { PageSkeleton } from "@/components/ui/feedback";
+import { EmptyState, PageSkeleton } from "@/components/ui/feedback";
+import { codeKey } from "@/lib/access/unlocks";
+import { useAccess } from "@/lib/access/use-access";
 import { PageHeader } from "@/components/ui/misc";
 import { PythonWorkspace, type WorkspaceEvent } from "@/components/code/python-workspace";
 import { ProblemWorkspace } from "@/components/code/problem-workspace";
@@ -64,6 +66,7 @@ function Problem({ id }: { id: string }) {
 
 function CodingLab() {
   const { d, user } = useSessionData();
+  const access = useAccess();
   const params = useSearchParams();
   if (params.get("che-do") === "web") {
     return (
@@ -74,7 +77,8 @@ function CodingLab() {
       </>
     );
   }
-  const id = params.get("bai") ?? CODING_EXERCISES[0].id;
+  const id = params.get("bai") ?? CODING_EXERCISES.find((x) => access.can(codeKey(x.id)))?.id ?? FREE;
+  if (id !== FREE && !access.can(codeKey(getExercise(id)?.id ?? id))) return <EmptyState icon={Lock} title="Bài lập trình chưa được mở" description="Thầy cô sẽ mở bài này khi lớp học tới. Em vẫn viết thử code tự do trong Sân chơi Python." action={<Button asChild><Link href={`/student/code?bai=${FREE}`}>Mở Sân chơi Python</Link></Button>} />;
   return id === FREE ? <Playground /> : <Problem id={id} />;
 }
 

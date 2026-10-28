@@ -43,6 +43,7 @@ import type {
 import { compileRule, gardenTestCases, runRule, runTests } from "@/lib/sim/smart-garden";
 import { SEED_CLASSES, SEED_ENROLLMENTS, SEED_USERS } from "./people";
 import { seedCourses } from "./courses-seed";
+import { codeKey, gradeLessons, lessonItems, lessonKey, setKey, type Unlock } from "@/lib/access/unlocks";
 
 /** Dữ liệu demo: lượt hỏi AI Gia sư của lớp 10A1 (chỉ dữ liệu tổng hợp, không có nội dung tin nhắn). */
 function seedTutorEvents(at: (days: number, hours?: number) => string): TutorEvent[] {
@@ -106,6 +107,8 @@ export interface DemoData {
   bookProgress: BookProgress[];
   taughtLessons: TaughtLesson[];
   lessonLabs: LessonLabLink[];
+  /** Nội dung giáo viên đã mở cho từng lớp (bài, bộ luyện tập, bài lập trình). */
+  unlocks: Unlock[];
 }
 
 export const SEED_RUBRIC_CRITERIA = (prefix: string) => [
@@ -146,6 +149,16 @@ export const SEED_RUBRIC_CRITERIA = (prefix: string) => [
     ],
   },
 ];
+
+/** Lớp mẫu đã học được một phần chương trình: mở các bài đầu, luyện tập của các bài đã dạy. */
+function seedUnlocks(at: string): Unlock[] {
+  const plan: [string, 10 | 11 | 12, number, number][] = [["c-10a1", 10, 20, 19], ["c-11a2", 11, 3, 2], ["c-12a3", 12, 3, 1]];
+  return plan.flatMap(([classId, grade, lessons, practice]) => gradeLessons(grade).slice(0, lessons).flatMap((x, i) => {
+    const keys = [lessonKey(x.ref)];
+    if (i < practice) { const it = lessonItems(x.ref, x.lesson.key); keys.push(...it.sets.map((s) => setKey(s.id)), ...it.code.map((c) => codeKey(c.id))); }
+    return keys.map((key) => ({ classId, key, by: "t1", at }));
+  })).filter((u, i, arr) => arr.findIndex((v) => v.classId === u.classId && v.key === u.key) === i);
+}
 
 export function buildSeed(now: Date = new Date()): DemoData {
   const at = (days: number, hours = 0) => new Date(now.getTime() + days * 86_400_000 + hours * 3_600_000).toISOString();
@@ -412,6 +425,7 @@ export function buildSeed(now: Date = new Date()): DemoData {
       { id: "lr-seed-4", studentId: "s9", labSlug: "inside-computer-3d", score: 8.5, mistakes: 3, seconds: 720, finishedAt: at(-3) },
     ],
     lessonLabs: [],
+    unlocks: seedUnlocks(at(-20)),
     classes: SEED_CLASSES,
     enrollments: SEED_ENROLLMENTS,
     lessonPlans: [ifPlan, dbPlan, t2Plan],

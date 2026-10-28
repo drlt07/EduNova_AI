@@ -143,6 +143,8 @@ interface Actions {
   toggleBookPick: (userId: string, key: string) => void;
   markBookRead: (userId: string, ref: string, sectionId: string) => void;
   toggleTaught: (teacherId: string, classId: string, ref: string) => void;
+  /** Mở hoặc khóa một loạt nội dung cho lớp. */
+  setUnlocked: (by: string, classId: string, keys: string[], open: boolean) => void;
   deleteTeacherQuiz: (id: string, ownerId: string) => void;
   toggleLessonLab: (ownerId: string, sgkRef: string, slug: string) => void;
   saveCode: (studentId: string, exerciseId: string, code: string, versionNote?: string) => void;
@@ -496,6 +498,11 @@ export const useApp = create<AppState>()(
             if (cur && cur.last === sectionId && cur.read.includes(sectionId)) return {};
             const next = { userId, ref, read: [...new Set([...(cur?.read ?? []), sectionId])], last: sectionId, at: now() };
             return { bookProgress: [next, ...s.bookProgress.filter((p) => p !== cur)] };
+          }),
+        setUnlocked: (by, classId, keys, open) =>
+          set((s) => {
+            const rest = s.unlocks.filter((u) => !(u.classId === classId && keys.includes(u.key)));
+            return { unlocks: open ? [...rest, ...keys.map((key) => ({ classId, key, by, at: now() }))] : rest };
           }),
         toggleTaught: (teacherId, classId, ref) =>
           set((s) => ({ taughtLessons: s.taughtLessons.some((t) => t.teacherId === teacherId && t.classId === classId && t.ref === ref) ? s.taughtLessons.filter((t) => !(t.teacherId === teacherId && t.classId === classId && t.ref === ref)) : [...s.taughtLessons, { teacherId, classId, ref, at: now() }] })),

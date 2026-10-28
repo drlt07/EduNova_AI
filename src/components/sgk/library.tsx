@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ArrowLeft, ArrowRight, BookMarked, BookOpen, Library, CheckCircle2, ClipboardList, Code2, FileText, FlaskConical, ListChecks, NotebookPen, Play, Send } from "lucide-react";
+import { ArrowLeft, ArrowRight, BookMarked, BookOpen, Library, CheckCircle2, ClipboardList, Code2, FileText, FlaskConical, ListChecks, Lock, NotebookPen, Play, Send } from "lucide-react";
 import type { Grade } from "@/lib/domain/types";
 import { ALGO_IDS } from "@/lib/data/hsg";
 import { CODING_EXERCISES } from "@/lib/data/coding-exercises";
@@ -18,6 +18,8 @@ import { AlgoThumb } from "@/components/algo/hsg-catalog";
 import { LabArt } from "@/components/labs/lab-art";
 import { AssignDialog, type AssignPreset } from "@/components/teacher/assign-dialog";
 import { lessonAssignables, lessonAssignments } from "./reader";
+import { lessonKey } from "@/lib/access/unlocks";
+import { useAccess } from "@/lib/access/use-access";
 
 type Role = "teacher" | "student";
 const base = (role: Role) => (role === "teacher" ? "/teacher/sgk" : "/student/sgk");
@@ -113,6 +115,7 @@ function Shelf({ role }: { role: Role }) {
 
 function BookToc({ grade, role }: { grade: Grade; role: Role }) {
   const { d, user } = useSessionData();
+  const access = useAccess();
   const router = useRouter();
   const params = useSearchParams();
   const teacher = role === "teacher";
@@ -122,7 +125,9 @@ function BookToc({ grade, role }: { grade: Grade; role: Role }) {
   const topics = [...new Map(lessons.map((l) => [l.topic.no, l.topic])).values()];
   // Bài đang xem nhanh: theo URL, nếu không thì bài đọc gần nhất của khối, rồi bài đầu tiên có nội dung số.
   const lastHere = d.bookProgress.filter((p) => p.userId === user.id && p.ref.startsWith(`${grade}-`)).sort((a, b) => b.at.localeCompare(a.at))[0]?.ref;
-  const sel = lessons.find((l) => l.ref === params.get("bai")) ?? lessons.find((l) => l.ref === lastHere) ?? lessons.find((l) => l.content) ?? lessons[0];
+  const isOpen = (ref: string) => teacher || access.can(lessonKey(ref));
+  const opened = lessons.filter((l) => isOpen(l.ref));
+  const sel = lessons.find((l) => l.ref === params.get("bai")) ?? lessons.find((l) => l.ref === lastHere) ?? opened.filter((l) => l.content).at(-1) ?? opened[0] ?? lessons[0];
   const pick = (ref: string) => router.replace(`${base(role)}?lop=${grade}&bai=${ref}`, { scroll: false });
   return (
     <div>
@@ -131,7 +136,7 @@ function BookToc({ grade, role }: { grade: Grade; role: Role }) {
         <div className="min-w-0 flex-1 basis-64">
           <Link href={base(role)} className="inline-flex items-center gap-1 text-sm font-medium text-muted hover:text-fg"><ArrowLeft className="size-4" aria-hidden /> Tất cả khóa học</Link>
           <h1 className="mt-1 text-3xl font-bold tracking-tight text-fg">{book.title}</h1>
-          <p className="text-sm text-muted">{book.subtitle} · {topics.length} chủ đề · {lessons.length} bài · {contentCount(grade)} bài có nội dung</p>
+          <p className="text-sm text-muted">{book.subtitle} · {topics.length} chủ đề · {lessons.length} bài · {teacher ? `${contentCount(grade)} bài có nội dung` : <b className="text-fg">thầy cô đã mở {opened.length} bài</b>}</p>
         </div>
         <nav aria-label="Chọn khối" className="flex gap-1 rounded-xl border border-line bg-surface p-1">
           {BOOKS.map((b) => <Link key={b.grade} href={`${base(role)}?lop=${b.grade}`} aria-current={b.grade === grade ? "page" : undefined} className={cn("rounded-lg px-3 py-1.5 text-sm font-medium", b.grade === grade ? "bg-brand text-brand-ink" : "text-muted hover:text-fg")}>Lớp {b.grade}</Link>)}
@@ -151,6 +156,15 @@ function BookToc({ grade, role }: { grade: Grade; role: Role }) {
                   const cur = l.ref === sel?.ref;
                   const taught = teacher && classes.filter((c) => d.taughtLessons.some((x) => x.teacherId === user.id && x.classId === c.id && x.ref === l.ref));
                   const read = !teacher && d.bookProgress.find((p) => p.userId === user.id && p.ref === l.ref);
+                  if (!isOpen(l.ref)) return (
+                    <li key={l.ref}>
+                      <button type="button" onClick={() => pick(l.ref)} aria-current={cur ? "true" : undefined} className={cn("flex w-full items-baseline gap-2 rounded-xl border px-3 py-2 text-left", cur ? "border-line bg-surface-2" : "border-transparent")}>
+                        <span className="w-12 shrink-0 text-xs font-semibold tabular-nums text-muted/70">Bài {l.lesson.no}</span>
+                        <span className="min-w-0 flex-1 text-sm text-muted/80">{l.lesson.title}</span>
+                        <Lock className="size-3.5 shrink-0 self-center text-muted/70" aria-label="chưa mở" />
+                      </button>
+                    </li>
+                  );
                   return (
                     <li key={l.ref}>
                       <Link
@@ -187,8 +201,16 @@ function BookToc({ grade, role }: { grade: Grade; role: Role }) {
 /** Xem nhanh một bài ngay trong mục lục: yêu cầu cần đạt, mô phỏng nổi bật, những gì có trong bài, các mục. */
 function LessonPreview({ e, role }: { e: BookEntry; role: Role }) {
   const { d, user } = useSessionData();
+  const access = useAccess();
   const [assign, setAssign] = useState<AssignPreset | null | undefined>(undefined);
   const teacher = role === "teacher";
+  if (!teacher && !access.can(lessonKey(e.ref))) return (
+    <article className="grid place-items-center rounded-2xl border border-dashed border-line bg-surface p-10 text-center">
+      <span className="grid size-14 place-items-center rounded-2xl bg-surface-2"><Lock className="size-6 text-muted" aria-hidden /></span>
+      <h2 className="mt-3 text-xl font-bold text-fg">Bài {e.lesson.no}. {e.lesson.title}</h2>
+      <p className="mt-1 max-w-sm text-sm text-muted">Thầy cô chưa mở bài này cho lớp em. Bài sẽ hiện ra khi lớp học tới.</p>
+    </article>
+  );
   const href = `${base(role)}/${e.ref}`;
   const sims = [...new Set([...lessonSimSlugs(e), ...d.lessonLabs.filter((l) => l.sgkRef === e.ref && (!teacher || l.ownerId === user.id)).map((l) => l.slug)])].map((s) => getLabBySlug(s)).filter((l): l is NonNullable<typeof l> => !!l);
   const checks = e.content ? lessonChecks(e.content).length : 0;

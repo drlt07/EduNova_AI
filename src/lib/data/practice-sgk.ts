@@ -38,10 +38,12 @@ registerLessonObjectives(Object.fromEntries([...Object.keys(ALL), ...PROCEDURES.
 
 export const SGK_QUESTIONS: PracticeQuestion[] = [...Object.values(MCQ).flat(), ...PROC_Q];
 
-export const SGK_SETS: PracticeSet[] = [
-  ...Object.entries(MCQ).map(([ref, qs]) => ({ id: `bai-${ref}`, title: `Trắc nghiệm ${lessonName(ref)}`, grade: Number(ref.split("-")[0]) as Grade, lessonKey: "", sgkRef: ref, description: `${qs.length} câu trắc nghiệm theo nội dung bài.`, questionIds: qs.map((q) => q.id) })),
-  ...[...new Set(PROCEDURES.map((p) => p.ref))].map((ref) => {
-    const ps = PROCEDURES.filter((p) => p.ref === ref);
-    return { id: `thao-tac-${ref}`, title: `Thao tác mô phỏng ${lessonName(ref)}`, grade: Number(ref.split("-")[0]) as Grade, lessonKey: "", sgkRef: ref, description: ps.map((p) => p.prompt.split(".")[0]).join("; ") + ".", questionIds: ps.map((p) => p.id) };
-  }),
-];
+/** Mỗi bài một bộ: 10 câu trắc nghiệm, cộng thêm câu thao tác mô phỏng nếu là bài thực hành. */
+export const SGK_SETS: PracticeSet[] = Object.entries(MCQ).map(([ref, qs]) => {
+  const ps = PROC_Q.filter((p) => p.objectiveId === sgkObjective(ref));
+  return {
+    id: `bai-${ref}`, title: `Luyện tập ${lessonName(ref)}`, grade: Number(ref.split("-")[0]) as Grade, lessonKey: "", sgkRef: ref,
+    description: `${qs.length} câu trắc nghiệm${ps.length ? ` + ${ps.length} câu thao tác mô phỏng` : ""} theo nội dung bài.`,
+    questionIds: [...qs, ...ps].map((q) => q.id),
+  };
+});

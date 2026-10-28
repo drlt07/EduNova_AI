@@ -19,7 +19,7 @@ describe("câu hỏi luyện tập theo từng bài", () => {
   it("mỗi câu có 4 phương án khác nhau, đáp án hợp lệ, có giải thích", () => {
     for (const ref of refs) for (const id of setsForLesson(ref).find((s) => s.id === `bai-${ref}`)!.questionIds) {
       const q = getQuestion(id)!;
-      expect(q.kind).toBe("mcq");
+      expect(["mcq", "interactive"]).toContain(q.kind);
       if (q.kind !== "mcq") continue;
       expect(new Set(q.options).size, id).toBe(q.options.length);
       expect(q.correctIndex, id).toBeGreaterThanOrEqual(0);
@@ -43,6 +43,6 @@ describe("câu hỏi luyện tập theo từng bài", () => {
     expect(q.kind === "interactive" && widgetExpected(q.widget)).toBe("xong");
     expect(gradeQuestion(q, "xong:2").status).toBe("correct");
     expect(gradeQuestion(q, "buoc:3:0").status).toBe("wrong");
-    expect(setsForLesson("11-2").map((s) => s.id)).toContain("thao-tac-11-2");
+    expect(setsForLesson("11-2")[0].questionIds).toContain("proc-11-2-check");
   });
 });

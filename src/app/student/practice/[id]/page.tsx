@@ -3,10 +3,13 @@ import Link from "next/link";
 import { Suspense, useEffect, useRef, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
-import { ArrowLeft, ArrowRight, Bot, CheckCircle2, Clock, Lock, RotateCcw, XCircle } from "lucide-react";
+import { ArrowLeft, ArrowRight, BookOpen, Bot, CheckCircle2, Clock, Lock, RotateCcw, Target, XCircle } from "lucide-react";
 import { toast } from "sonner";
+import { setKey } from "@/lib/access/unlocks";
+import { useAccess } from "@/lib/access/use-access";
 import { KIND_LABEL, PRACTICE_SETS, getQuestion, getSet, type PracticeQuestion } from "@/lib/data/practice";
 import { LESSONS, getObjective } from "@/lib/data/curriculum";
+import { findSgk } from "@/lib/data/sgk-kntt";
 import { gradeQuestion, pickNext, type Answer, type GradeResult } from "@/lib/practice/grade";
 import { studentBook } from "@/lib/store/student-insights";
 import { useSessionData } from "@/lib/store/use-role";
@@ -14,7 +17,7 @@ import { studentClassIds } from "@/lib/store/scoped";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { ErrorState, PageSkeleton } from "@/components/ui/feedback";
 import { PageHeader } from "@/components/ui/misc";
 import { AnimatedBar, Celebrate } from "@/components/motion";
@@ -36,10 +39,12 @@ function Runner({ setId }: { setId: string }) {
   const tq = d.teacherQuizzes.find((q) => q.id === setId && q.status === "published" && q.classIds.some((c) => studentClassIds(d, user.id).includes(c)));
   const set = getSet(setId) ?? (tq ? { id: tq.id, title: tq.title, grade: tq.grade, lessonKey: "", description: "", questionIds: tq.questions.map((q) => q.id) } : undefined);
   const [run, setRun] = useState(0);
+  const access = useAccess();
+  if (set && !tq && !access.can(setKey(set.id))) return <ErrorState page title="Bộ luyện tập chưa được mở" description="Thầy cô sẽ mở bộ này khi lớp học tới bài. Em làm các bộ đã mở trong trang Luyện tập nhé." action={<Button asChild variant="secondary"><Link href="/student/practice">Về danh sách</Link></Button>} />;
   if (!set) return <ErrorState page title="Không tìm thấy bộ câu hỏi" action={<Button asChild variant="secondary"><Link href="/student/practice">Về danh sách</Link></Button>} />;
   // Bộ thích ứng lấy câu từ mọi bộ cùng bài học
   const pool = tq ? tq.questions : mode === "adaptive"
-    ? (set.lessonKey ? PRACTICE_SETS.filter((s) => s.lessonKey === set.lessonKey) : [set]).flatMap((s) => s.questionIds).map(getQuestion).filter((q): q is PracticeQuestion => !!q)
+    ? (set.lessonKey ? PRACTICE_SETS.filter((s) => s.lessonKey === set.lessonKey && access.can(setKey(s.id))) : [set]).flatMap((s) => s.questionIds).map(getQuestion).filter((q): q is PracticeQuestion => !!q)
     : set.questionIds.map(getQuestion).filter((q): q is PracticeQuestion => !!q);
   const passedLevels = d.gameProgress.find((g) => g.studentId === user.id && g.gameSlug === "smart-farm")?.passed ?? [];
   return (
@@ -119,7 +124,7 @@ function Session({ setId, mode, pool, passedLevels, onRestart }: { setId: string
   );
 
   const warn = lock.warning && <LockWarning leaves={lock.leaves} onResume={lock.resume} />;
-  if (finished) return <>{warn}<Result order={order} answers={answers} graded={graded} onRestart={onRestart} /></>;
+  if (finished) return <>{warn}<Result setId={setId} order={order} answers={answers} graded={graded} onRestart={onRestart} /></>;
   if (!started) return <LockStart title={getSet(setId)?.title ?? "Bộ câu hỏi"} count={mode === "adaptive" ? Math.min(ADAPTIVE_LEN, pool.length) : pool.length} onStart={() => setStarted(true)} />;
 
   const q = order[idx];
@@ -227,67 +232,136 @@ function Feedback({ q, g }: { q: PracticeQuestion; g: GradeResult }) {
   );
 }
 
-function Result({ order, answers, graded, onRestart }: { order: PracticeQuestion[]; answers: Record<string, Answer>; graded: Record<string, GradeResult>; onRestart: () => void }) {
+/** Câu trả lời của em, viết lại cho dễ đọc (phương án thay vì số thứ tự). */
+function answerText(q: PracticeQuestion, a: Answer): string {
+  if (a === null || a === undefined || a === "") return "(bỏ trống)";
+  if (q.kind === "mcq" && typeof a === "number") return q.options[a] ?? String(a);
+  if (q.kind === "truefalse") return a === true || a === "true" ? "Đúng" : "Sai";
+  if (q.kind === "multi" && Array.isArray(a)) return (a as number[]).map((k) => q.options[k]).join("; ") || "(bỏ trống)";
+  if (q.kind === "finderror" && typeof a === "number") return `Dòng ${a}`;
+  if (q.kind === "interactive" && typeof a === "string" && a.startsWith("xong")) return `Hoàn thành thao tác${a.split(":")[1] && a.split(":")[1] !== "0" ? ` (bấm nhầm ${a.split(":")[1]} lần)` : " không bấm nhầm"}`;
+  if (q.kind === "interactive" && typeof a === "string" && a.startsWith("buoc")) return `Dừng ở bước ${Number(a.split(":")[1]) + 1}`;
+  return toText(a);
+}
+
+const VERDICT = [
+  { min: 80, label: "Xuất sắc!", text: "Em nắm chắc bài này.", ring: "#10b981", bg: "from-emerald-500/15 via-teal-500/10", chip: "bg-emerald-500 text-white" },
+  { min: 50, label: "Khá tốt", text: "Còn vài chỗ cần xem lại.", ring: "#f59e0b", bg: "from-amber-500/15 via-orange-500/10", chip: "bg-amber-500 text-white" },
+  { min: 0, label: "Cần ôn thêm", text: "Đọc lại bài rồi làm lại nhé, em sẽ tiến bộ nhanh.", ring: "#f43f5e", bg: "from-rose-500/15 via-pink-500/10", chip: "bg-rose-500 text-white" },
+];
+type Filter = "all" | "wrong" | "correct";
+
+function ScoreRing({ pct, color }: { pct: number; color: string }) {
+  const r = 52, c = 2 * Math.PI * r;
+  return (
+    <svg viewBox="0 0 128 128" className="size-32 shrink-0" data-testid="practice-score" role="img" aria-label={`Điểm ${pct}%`}>
+      <circle cx="64" cy="64" r={r} fill="none" stroke="currentColor" strokeWidth="12" className="text-surface-2" />
+      <motion.circle cx="64" cy="64" r={r} fill="none" stroke={color} strokeWidth="12" strokeLinecap="round" transform="rotate(-90 64 64)" strokeDasharray={c} initial={{ strokeDashoffset: c }} animate={{ strokeDashoffset: c * (1 - pct / 100) }} transition={{ duration: 0.9, ease: "easeOut" }} />
+      <text x="64" y="62" textAnchor="middle" className="fill-fg text-[28px] font-extrabold">{pct}%</text>
+      <text x="64" y="82" textAnchor="middle" className="fill-muted text-[11px]">mức đạt</text>
+    </svg>
+  );
+}
+
+function Result({ setId, order, answers, graded, onRestart }: { setId: string; order: PracticeQuestion[]; answers: Record<string, Answer>; graded: Record<string, GradeResult>; onRestart: () => void }) {
   const { d, user } = useSessionData();
+  const [filter, setFilter] = useState<Filter>("all");
   const scored = order.filter((q) => graded[q.id].status !== "self");
   const correct = scored.filter((q) => graded[q.id].status === "correct").length;
+  const wrong = scored.length - correct;
+  const self = order.length - scored.length;
   const pctScore = scored.length ? Math.round((correct / scored.length) * 100) : 0;
+  const v = VERDICT.find((x) => pctScore >= x.min)!;
   const byObj = new Map<string, { ok: number; n: number }>();
   for (const q of scored) {
     const c = byObj.get(q.objectiveId) ?? { ok: 0, n: 0 };
     byObj.set(q.objectiveId, { ok: c.ok + (graded[q.id].status === "correct" ? 1 : 0), n: c.n + 1 });
   }
-  const rows = [...byObj.entries()].map(([o, v]) => ({ o, rate: Math.round((v.ok / v.n) * 100), ...v })).sort((a, b) => a.rate - b.rate);
+  const rows = [...byObj.entries()].map(([o, x]) => ({ o, rate: Math.round((x.ok / x.n) * 100), ...x })).sort((a, b) => a.rate - b.rate);
   const weakest = rows.find((r) => r.rate < 80);
   const { book } = studentBook(d, user.id);
-  const lesson = weakest && LESSONS.find((l) => l.textbookId === book && l.objectiveIds.includes(weakest.o));
+  const sgk = getSet(setId)?.sgkRef;
+  const sgkEntry = sgk ? findSgk(sgk) : undefined;
+  const lesson = !sgk && weakest ? LESSONS.find((l) => l.textbookId === book && l.objectiveIds.includes(weakest.o)) : undefined;
+  const review = sgkEntry ? { href: `/student/sgk/${sgk}`, label: `Đọc lại Bài ${sgkEntry.lesson.no}` } : lesson ? { href: `/student/learning/${lesson.id}`, label: `Ôn bài “${lesson.title}”` } : null;
+  const shown = order.map((q, i) => ({ q, i })).filter(({ q }) => filter === "all" || (filter === "wrong" ? graded[q.id].status === "wrong" : graded[q.id].status === "correct"));
+  const tone = (q: PracticeQuestion) => graded[q.id].status === "correct" ? "bg-emerald-500 text-white" : graded[q.id].status === "wrong" ? "bg-rose-500 text-white" : "bg-slate-300 text-slate-700";
   return (
     <div className="space-y-5">
       <Celebrate show={pctScore >= 80} />
-      <Card>
-        <CardContent className="flex flex-wrap items-center gap-6 pt-5">
-          <motion.div initial={{ scale: 0.6, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: "spring", stiffness: 200 }} className="grid size-28 place-items-center rounded-full border-8 border-cyan/30 bg-cyan/10 text-3xl font-bold text-fg" data-testid="practice-score">
-            {pctScore}%
-          </motion.div>
-          <div className="min-w-0 flex-1">
-            <h2 className="text-xl font-semibold text-fg">{correct}/{scored.length} câu được chấm tự động đúng</h2>
-            {order.length > scored.length && <p className="text-sm text-muted">{order.length - scored.length} câu tự luận em tự đánh giá, không tính vào điểm.</p>}
-            <p className="mt-2 text-sm text-fg">
-              {weakest ? <>Nên ôn lại: <b>{getObjective(weakest.o)?.description}</b>.</> : "Em đã nắm tốt các mục tiêu trong bộ câu này."}
-            </p>
-            <div className="mt-3 flex flex-wrap gap-2">
-              <Button onClick={onRestart}><RotateCcw className="size-4" /> Làm lại</Button>
-              {lesson && <Button asChild variant="secondary"><Link href={`/student/learning/${lesson.id}`}>Ôn bài “{lesson.title}”</Link></Button>}
-              <Button asChild variant="ghost"><Link href="/student/progress">Xem tiến độ</Link></Button>
+      <section className={cn("overflow-hidden rounded-3xl border border-line bg-gradient-to-br to-transparent p-6", v.bg)}>
+        <div className="flex flex-wrap items-center gap-6">
+          <ScoreRing pct={pctScore} color={v.ring} />
+          <div className="min-w-0 flex-1 basis-72">
+            <span className={cn("inline-block rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wide", v.chip)}>{v.label}</span>
+            <h2 className="mt-2 text-2xl font-bold text-fg">Em làm đúng {correct}/{scored.length} câu</h2>
+            <p className="text-sm text-muted">{v.text}{self ? ` ${self} câu tự luận em tự đánh giá, không tính điểm.` : ""}</p>
+            <div className="mt-4 grid max-w-md grid-cols-3 gap-2">
+              <div className="rounded-2xl bg-emerald-500/15 px-3 py-2"><p className="text-2xl font-extrabold text-emerald-700 dark:text-emerald-300">{correct}</p><p className="text-xs font-medium text-emerald-800/80 dark:text-emerald-200/80">câu đúng</p></div>
+              <div className="rounded-2xl bg-rose-500/15 px-3 py-2"><p className="text-2xl font-extrabold text-rose-700 dark:text-rose-300">{wrong}</p><p className="text-xs font-medium text-rose-800/80 dark:text-rose-200/80">câu sai</p></div>
+              <div className="rounded-2xl bg-slate-500/10 px-3 py-2"><p className="text-2xl font-extrabold text-fg">{self}</p><p className="text-xs font-medium text-muted">tự đánh giá</p></div>
             </div>
           </div>
-        </CardContent>
-      </Card>
-      <Card>
-        <CardHeader><CardTitle as="h2">Kết quả theo mục tiêu</CardTitle></CardHeader>
-        <CardContent className="space-y-3">
-          {rows.map((r) => (
-            <div key={r.o}>
-              <p className="flex justify-between gap-2 text-sm text-fg"><span>{getObjective(r.o)?.description}</span><span className="shrink-0 font-semibold">{r.ok}/{r.n}</span></p>
-              <AnimatedBar value={r.rate} tone={r.rate >= 80 ? "success" : r.rate >= 50 ? "cyan" : "warning"} label={`Mức đạt ${r.rate}%`} className="mt-1" />
-            </div>
-          ))}
-        </CardContent>
-      </Card>
-      <Card>
-        <CardHeader><CardTitle as="h2">Xem lại từng câu</CardTitle></CardHeader>
-        <CardContent>
-          <ol className="space-y-3">
-            {order.map((q, i) => (
-              <li key={q.id} className="rounded-xl border border-line p-3">
-                <p className="text-sm font-medium text-fg">Câu {i + 1}. {q.prompt}</p>
-                <p className="mt-1 text-xs text-muted">Em trả lời: {toText(answers[q.id] ?? null) || "(bỏ trống)"}</p>
-                <div className="mt-2"><Feedback q={q} g={graded[q.id]} /></div>
-              </li>
+          <div className="flex flex-col gap-2">
+            <Button onClick={onRestart}><RotateCcw className="size-4" /> Làm lại</Button>
+            {review && <Button asChild variant="secondary"><Link href={review.href}><BookOpen className="size-4" /> {review.label}</Link></Button>}
+            <Button asChild variant="ghost"><Link href="/student/practice">Bộ khác</Link></Button>
+          </div>
+        </div>
+        <ol className="mt-5 flex flex-wrap gap-1.5" aria-label="Bản đồ câu">
+          {order.map((q, i) => <li key={q.id}><a href={`#cau-${i + 1}`} title={KIND_LABEL[q.kind]} className={cn("grid size-8 place-items-center rounded-lg text-xs font-bold shadow-sm transition-transform hover:scale-110", tone(q))}>{i + 1}</a></li>)}
+        </ol>
+      </section>
+
+      {weakest && (
+        <section className="flex flex-wrap items-center gap-3 rounded-2xl border border-amber-400/40 bg-amber-400/10 p-4">
+          <Target className="size-5 shrink-0 text-amber-600" aria-hidden />
+          <p className="min-w-0 flex-1 text-sm text-fg">Nên ôn lại: <b>{getObjective(weakest.o)?.description}</b> <span className="text-muted">(đúng {weakest.ok}/{weakest.n})</span></p>
+          {review && <Button asChild size="sm" variant="secondary"><Link href={review.href}>{review.label} <ArrowRight className="size-4" /></Link></Button>}
+        </section>
+      )}
+
+      {rows.length > 1 && (
+        <section className="rounded-2xl border border-line bg-surface p-5">
+          <h2 className="mb-3 font-semibold text-fg">Kết quả theo mục tiêu</h2>
+          <div className="space-y-3">
+            {rows.map((r) => (
+              <div key={r.o}>
+                <p className="flex justify-between gap-2 text-sm text-fg"><span>{getObjective(r.o)?.description}</span><span className="shrink-0 font-semibold">{r.ok}/{r.n}</span></p>
+                <AnimatedBar value={r.rate} tone={r.rate >= 80 ? "success" : r.rate >= 50 ? "cyan" : "warning"} label={`Mức đạt ${r.rate}%`} className="mt-1" />
+              </div>
             ))}
-          </ol>
-        </CardContent>
-      </Card>
+          </div>
+        </section>
+      )}
+
+      <section className="rounded-2xl border border-line bg-surface p-5">
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+          <h2 className="font-semibold text-fg">Xem lại từng câu</h2>
+          <div className="flex gap-1 rounded-xl bg-surface-2 p-1 text-sm" role="group" aria-label="Lọc câu">
+            {([["all", `Tất cả ${order.length}`], ["wrong", `Câu sai ${wrong}`], ["correct", `Câu đúng ${correct}`]] as [Filter, string][]).map(([f, l]) => (
+              <button key={f} type="button" aria-pressed={filter === f} onClick={() => setFilter(f)} className={cn("rounded-lg px-3 py-1 font-medium", filter === f ? "bg-surface text-fg shadow-sm" : "text-muted hover:text-fg")}>{l}</button>
+            ))}
+          </div>
+        </div>
+        <ol className="space-y-3">
+          {shown.map(({ q, i }) => {
+            const g = graded[q.id];
+            return (
+              <li key={q.id} id={`cau-${i + 1}`} className={cn("scroll-mt-24 rounded-2xl border-l-4 bg-surface-2/50 p-4", g.status === "correct" ? "border-emerald-500" : g.status === "wrong" ? "border-rose-500" : "border-slate-400")}>
+                <div className="flex flex-wrap items-start gap-2">
+                  <span className={cn("grid size-7 shrink-0 place-items-center rounded-lg text-xs font-bold", tone(q))}>{i + 1}</span>
+                  <p className="min-w-0 flex-1 font-medium text-fg">{q.prompt}</p>
+                  <Badge>{KIND_LABEL[q.kind]}</Badge>
+                </div>
+                <p className="mt-2 text-sm"><span className="text-muted">Em trả lời: </span><span className={cn("font-medium", g.status === "wrong" ? "text-rose-700 line-through decoration-rose-400/60 dark:text-rose-300" : "text-fg")}>{answerText(q, answers[q.id] ?? null)}</span></p>
+                <div className="mt-2"><Feedback q={q} g={g} /></div>
+              </li>
+            );
+          })}
+          {shown.length === 0 && <li className="py-6 text-center text-sm text-muted">{filter === "wrong" ? "Không có câu sai. Tuyệt!" : "Chưa có câu đúng."}</li>}
+        </ol>
+      </section>
     </div>
   );
 }
