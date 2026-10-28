@@ -5,11 +5,14 @@ import { Menu, Settings, ShieldAlert, UserRound, X } from "lucide-react";
 import { useState } from "react";
 import type { Role } from "@/lib/domain/types";
 import { useCurrentUser, useHydrated } from "@/lib/store/hooks";
+import { useApp } from "@/lib/store/app-store";
+import { teacherClasses } from "@/lib/store/scoped";
+import { todos } from "@/lib/teacher/today";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { PageSkeleton } from "@/components/ui/feedback";
 import { Logo } from "./logo";
-import { NAV, ROLE_HOME, ROLE_LABEL } from "./nav-config";
+import { NAV, ROLE_HOME, ROLE_LABEL, type NavItem } from "./nav-config";
 import { RoleSwitcher } from "./role-switcher";
 import { AUTH_MODE } from "@/lib/supabase/config";
 import { NotificationBell, PrefsApplier, SearchPalette } from "@/components/student/top-bar";
@@ -19,27 +22,41 @@ import { ThemeToggle } from "./theme-toggle";
 
 function SidebarNav({ role, onNavigate }: { role: Role; onNavigate?: () => void }) {
   const pathname = usePathname();
+  const d = useApp();
+  const user = useCurrentUser();
+  const count = (k: NonNullable<NavItem["badge"]>) => {
+    if (!user || user.role !== "teacher") return 0;
+    return k === "classes" ? teacherClasses(d, user.id).length : todos(d, user.id, new Date()).length;
+  };
+  const groups = [...new Set(NAV[role].map((i) => i.group ?? ""))];
   return (
     <nav aria-label={`Điều hướng ${ROLE_LABEL[role]}`} className="flex flex-col gap-0.5">
-      {NAV[role].map((item) => {
-        const under = (h: string) => pathname === h || pathname.startsWith(h + "/");
-        const active = item.href === "/" ? pathname === "/" : pathname === item.href || (item.href !== "/admin" && pathname.startsWith(item.href + "/")) || (item.match?.some(under) ?? false);
-        return (
-          <Link
-            key={item.href}
-            href={item.href}
-            onClick={onNavigate}
-            aria-current={active ? "page" : undefined}
-            className={cn(
-              "group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-muted transition-colors hover:bg-surface-2 hover:text-fg",
-              active && "bg-brand/10 font-semibold text-fg",
-            )}
-          >
-            <item.icon className={cn("size-[18px] shrink-0", active ? "text-cyan-fg" : "text-muted group-hover:text-fg")} />
-            {item.label}
-          </Link>
-        );
-      })}
+      {groups.map((g) => (
+        <div key={g} className={cn("flex flex-col gap-0.5", g && "mt-4 border-t border-line pt-3")}>
+          {g && <p className="px-3 pb-1 text-[11px] font-semibold uppercase tracking-wide text-muted">{g}</p>}
+          {NAV[role].filter((i) => (i.group ?? "") === g).map((item) => {
+            const under = (h: string) => pathname === h || pathname.startsWith(h + "/");
+            const active = item.href === "/" ? pathname === "/" : pathname === item.href || (item.href !== "/admin" && pathname.startsWith(item.href + "/")) || (item.match?.some(under) ?? false);
+            const n = item.badge ? count(item.badge) : 0;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={onNavigate}
+                aria-current={active ? "page" : undefined}
+                className={cn(
+                  "group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-muted transition-colors hover:bg-surface-2 hover:text-fg",
+                  active && "bg-brand/10 font-semibold text-fg",
+                )}
+              >
+                <item.icon className={cn("size-[18px] shrink-0", active ? "text-cyan-fg" : "text-muted group-hover:text-fg")} />
+                <span className="min-w-0 flex-1 truncate">{item.label}</span>
+                {n > 0 && <span className={cn("rounded-full px-1.5 text-xs font-semibold tabular-nums", item.badge === "todos" ? "bg-brand text-brand-ink" : "bg-surface-2 text-muted")} aria-label={item.badge === "todos" ? `${n} việc cần làm` : `${n} lớp`}>{n}</span>}
+              </Link>
+            );
+          })}
+        </div>
+      ))}
     </nav>
   );
 }

@@ -5,6 +5,9 @@ import {
   Bot,
   ClipboardCheck,
   Dumbbell,
+  FlaskConical,
+  Library,
+  Trophy,
   Gamepad2,
   GraduationCap,
   Home,
@@ -20,18 +23,24 @@ export interface NavItem {
   icon: React.ComponentType<{ className?: string }>;
   /** Đường dẫn trang con cũng tính là đang ở mục này */
   match?: string[];
+  /** Nhóm trong thanh bên; mục không có nhóm thuộc nhóm đầu */
+  group?: string;
+  /** Số đếm trực tiếp cạnh nhãn */
+  badge?: "classes" | "todos";
 }
 
 export const NAV: Record<Role, NavItem[]> = {
-  // Trang chủ chung + 6 chức năng của giáo viên. Kho mô phỏng, học liệu, ngân hàng câu hỏi là tài nguyên dùng chung,
-  // mở từ Khóa học hoặc Bài tập & Đánh giá (match) chứ không phải mục menu riêng.
+  // 6 chức năng chính của giáo viên, rồi nhóm kho dùng chung (học liệu, mô phỏng, chuyên đề HSG).
   teacher: [
     { href: "/teacher/dashboard", label: "Hôm nay", icon: Home },
-    { href: "/teacher/classes", label: "Lớp học của tôi", icon: Users },
-    { href: "/teacher/sgk", label: "Sách giáo khoa số", icon: BookMarked, match: ["/teacher/courses", "/teacher/labs", "/teacher/library", "/labs", "/curriculum", "/explore", "/bai-hoc", "/thuat-toan"] },
-    { href: "/teacher/assignments", label: "Bài tập & Đánh giá", icon: ClipboardCheck, match: ["/teacher/assessment", "/teacher/activity-builder", "/teacher/resources"] },
+    { href: "/teacher/classes", label: "Lớp học của tôi", icon: Users, badge: "classes" },
+    { href: "/teacher/sgk", label: "Sách giáo khoa số", icon: BookMarked, match: ["/teacher/courses", "/curriculum", "/explore", "/bai-hoc"] },
+    { href: "/teacher/assignments", label: "Bài tập & Đánh giá", icon: ClipboardCheck, badge: "todos", match: ["/teacher/assessment", "/teacher/activity-builder"] },
     { href: "/teacher/analytics", label: "Kết quả học tập", icon: BarChart3 },
     { href: "/teacher/lesson-planner", label: "Trợ lý KHBD AI", icon: NotebookPen },
+    { href: "/teacher/library", label: "Thư viện học liệu", icon: Library, group: "Kho dùng chung", match: ["/teacher/resources"] },
+    { href: "/teacher/labs", label: "Kho mô phỏng", icon: FlaskConical, group: "Kho dùng chung", match: ["/labs"] },
+    { href: "/thuat-toan", label: "Chuyên đề HSG", icon: Trophy, group: "Kho dùng chung" },
   ],
   // 5 chức năng của học sinh (Trang chủ = trang giới thiệu chung); trang con (match) vẫn đánh dấu đúng mục cha. Kết quả học tập nằm ở Trang cá nhân.
   student: [

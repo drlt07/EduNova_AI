@@ -64,7 +64,14 @@ function ClassDetail() {
 
   return (
     <>
-      <Link href="/teacher/classes" className="mb-3 inline-flex items-center gap-1 text-sm font-medium text-muted hover:text-fg"><ArrowLeft className="size-4" aria-hidden /> Lớp học của tôi</Link>
+      <nav aria-label="Chuyển lớp" className="mb-4 flex flex-wrap items-center gap-2">
+        <Link href="/teacher/classes" className="mr-1 inline-flex items-center gap-1 text-sm font-medium text-muted hover:text-fg"><ArrowLeft className="size-4" aria-hidden /> Lớp học của tôi</Link>
+        {teacherClasses(d, user.id).map((c) => (
+          <Link key={c.id} href={`/teacher/classes/${c.id}${tab === "tong-quan" ? "" : `?tab=${tab}`}`} aria-current={c.id === cls.id ? "page" : undefined} className={cn("inline-flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-sm font-semibold transition-colors", c.id === cls.id ? "border-brand bg-brand text-brand-ink" : "border-line bg-surface text-fg hover:border-cyan/40")}>
+            {c.name}<span className={cn("rounded-full px-1.5 text-xs tabular-nums", c.id === cls.id ? "bg-white/20" : "bg-surface-2 text-muted")}>{classStudents(d, c.id).length}</span>
+          </Link>
+        ))}
+      </nav>
       <header className="mb-5 flex flex-wrap items-start gap-4">
         <BookCover grade={cls.grade} className="h-24 w-auto shrink-0" />
         <div className="min-w-0 flex-1">
