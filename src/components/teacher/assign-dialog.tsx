@@ -40,19 +40,19 @@ const DUE: { id: DueChoice; label: string }[] = [
  * Giao nhiệm vụ trong một hộp thoại: chọn nội dung có sẵn (mô phỏng, câu hỏi, bài code), chọn một hay nhiều lớp,
  * hạn nộp tính theo thời khóa biểu từng lớp, lời dặn, và xem trước thẻ học sinh sẽ thấy.
  */
-export function AssignDialog({ open, onOpenChange, preset }: { open: boolean; onOpenChange: (o: boolean) => void; preset?: AssignPreset }) {
+export function AssignDialog({ open, onOpenChange, preset, sgkRef, suggest }: { open: boolean; onOpenChange: (o: boolean) => void; preset?: AssignPreset; sgkRef?: string; suggest?: AssignPreset[] }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       {open && (
         <DialogContent title="Giao nhiệm vụ" description="Chọn nội dung, lớp và hạn nộp. Mô phỏng, câu hỏi và bài code được máy chấm, thầy cô xem kết quả ngay." className="max-w-3xl">
-          <AssignForm key={preset ? `${preset.kind}:${preset.ref}` : "new"} preset={preset} onDone={() => onOpenChange(false)} />
+          <AssignForm key={preset ? `${preset.kind}:${preset.ref}` : "new"} preset={preset} sgkRef={sgkRef} suggest={suggest} onDone={() => onOpenChange(false)} />
         </DialogContent>
       )}
     </Dialog>
   );
 }
 
-function AssignForm({ preset, onDone }: { preset?: AssignPreset; onDone: () => void }) {
+function AssignForm({ preset, sgkRef, suggest, onDone }: { preset?: AssignPreset; sgkRef?: string; suggest?: AssignPreset[]; onDone: () => void }) {
   const { d, user } = useSessionData();
   const classes = teacherClasses(d, user.id);
   const activities = d.activities.filter((a) => a.ownerId === user.id && a.status === "published");
@@ -64,6 +64,7 @@ function AssignForm({ preset, onDone }: { preset?: AssignPreset; onDone: () => v
     ...activities.map((a) => ({ kind: "activity" as const, ref: a.id, title: a.title, grades: [d.lessonPlans.find((p) => p.id === a.lessonPlanId)?.grade ?? 10], meta: "Chấm theo tiêu chí, thầy cô chấm tay", auto: false })),
   ];
 
+  const suggested = (suggest ?? []).flatMap((s) => items.filter((i) => i.kind === s.kind && i.ref === s.ref));
   const presetItem = preset && items.find((i) => i.kind === preset.kind && i.ref === preset.ref);
   const [kind, setKind] = useState<Kind>(preset?.kind ?? "lab");
   const [pick, setPick] = useState<Item | undefined>(presetItem);
@@ -93,7 +94,7 @@ function AssignForm({ preset, onDone }: { preset?: AssignPreset; onDone: () => v
     for (const c of chosen) {
       const dup = d.assignments.some((a) => a.classId === c.id && a.status === "open" && (pick.kind === "activity" ? a.activityId === pick.ref : a.task?.kind === pick.kind && a.task.ref === pick.ref));
       if (dup) { toast.warning(`${c.name} đã có nhiệm vụ này đang mở, bỏ qua`); continue; }
-      const base = { ownerId: user.id, classId: c.id, title: pick.title, dueAt: dueOf(c)!.toISOString(), hintMode: (tutor ? "guided" : "off") as HintMode, ...(note.trim() ? { note: note.trim() } : {}) };
+      const base = { ownerId: user.id, ...(sgkRef ? { sgkRef } : {}), classId: c.id, title: pick.title, dueAt: dueOf(c)!.toISOString(), hintMode: (tutor ? "guided" : "off") as HintMode, ...(note.trim() ? { note: note.trim() } : {}) };
       if (pick.kind === "activity") {
         const act = activities.find((a) => a.id === pick.ref);
         const cfg = act && d.labConfigs.find((x) => x.id === act.labConfigId);
@@ -121,6 +122,18 @@ function AssignForm({ preset, onDone }: { preset?: AssignPreset; onDone: () => v
               </button>
             ))}
           </div>
+          {suggested.length > 0 && (
+            <div className="mb-2 rounded-xl bg-cyan/5 p-2">
+              <p className="mb-1.5 text-xs font-semibold text-cyan-fg">Có trong bài này</p>
+              <div className="flex flex-wrap gap-1.5">
+                {suggested.map((i) => (
+                  <button key={`${i.kind}:${i.ref}`} type="button" onClick={() => { setKind(i.kind); setPick(i); }} aria-pressed={pick?.kind === i.kind && pick.ref === i.ref} className={cn("rounded-lg border px-2.5 py-1 text-xs font-medium", pick?.kind === i.kind && pick.ref === i.ref ? "border-cyan bg-cyan/15 text-fg" : "border-line bg-surface text-fg hover:border-cyan/40")}>
+                    {KINDS.find((k) => k.id === i.kind)?.label}: {i.title}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
           <label className="relative block">
             <span className="sr-only">Tìm nội dung</span>
             <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted" aria-hidden />

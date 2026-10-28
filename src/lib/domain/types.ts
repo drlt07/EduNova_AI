@@ -270,6 +270,8 @@ export interface Assignment {
   task?: { kind: "lab" | "quiz" | "code"; ref: string };
   /** Lời dặn của thầy cô, học sinh thấy trên thẻ nhiệm vụ. */
   note?: string;
+  /** Bài SGK mà nhiệm vụ này thuộc về, vd "10-19". */
+  sgkRef?: string;
 }
 
 export interface ClassRoom {

@@ -13,6 +13,9 @@ import Curriculum from "@/app/(public)/curriculum/page";
 import Labs from "@/app/(public)/labs/page";
 import LabDetailPage from "@/app/(public)/labs/[slug]/page";
 import Hsg from "@/app/(public)/thuat-toan/page";
+import TSgk from "@/app/teacher/sgk/page";
+import SSgk from "@/app/student/sgk/page";
+import { BookReader } from "@/components/sgk/reader";
 import { AlgoPage } from "@/components/algo/algo-page";
 import About from "@/app/(public)/about/page";
 import Guide from "@/app/(public)/huong-dan/page";
@@ -115,6 +118,8 @@ const ROUTES: Route[] = [
   r("/login", "public", C(Login)),
   r("/register", "public", C(Register)),
   r("/teacher(?:/dashboard)?", "teacher", C(TDashboard)),
+  r("/teacher/sgk", "teacher", C(TSgk)),
+  r("/teacher/sgk/:ref", "teacher", (p) => <BookReader key={p.ref} refId={p.ref} role="teacher" />),
   r("/teacher/courses", "teacher", C(TCourses)),
   r("/teacher/courses/:id", "teacher", (p) => <TCourse key={p.id} />),
   r("/teacher/lesson-planner", "teacher", C(TPlanner)),
@@ -130,6 +135,8 @@ const ROUTES: Route[] = [
   r("/teacher/library", "teacher", C(TLibrary)),
   r("/teacher/settings", "teacher", C(TSettings)),
   r("/student(?:/dashboard)?", "student", C(SDashboard)),
+  r("/student/sgk", "student", C(SSgk)),
+  r("/student/sgk/:ref", "student", (p) => <BookReader key={p.ref} refId={p.ref} role="student" />),
   r("/student/courses", "student", C(SCourses)),
   r("/student/courses/:id", "student", (p) => <SCourse key={p.id} />),
   r("/student/learning", "student", C(SLearning)),

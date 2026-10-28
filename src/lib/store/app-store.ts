@@ -5,6 +5,7 @@
  * Chữ ký hành động được thiết kế để thay bằng Supabase ở giai đoạn tích hợp.
  */
 import type { LabResult } from "@/lib/sim/lab-score";
+import type { BookNote } from "@/lib/sgk/types";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import { AUTH_MODE } from "@/lib/supabase/config";
@@ -132,6 +133,11 @@ interface Actions {
   /** Lưu (tạo mới nếu chưa có id) bộ câu hỏi của giáo viên cho một bài SGK. */
   saveTeacherQuiz: (q: Omit<TeacherQuiz, "id" | "updatedAt"> & { id?: string }) => string;
   recordLabResult: (r: Omit<LabResult, "id" | "finishedAt">) => void;
+  addBookNote: (n: Omit<BookNote, "id" | "at">) => void;
+  deleteBookNote: (id: string, userId: string) => void;
+  toggleBookPick: (userId: string, key: string) => void;
+  markBookRead: (userId: string, ref: string, sectionId: string) => void;
+  toggleTaught: (teacherId: string, classId: string, ref: string) => void;
   deleteTeacherQuiz: (id: string, ownerId: string) => void;
   toggleLessonLab: (ownerId: string, sgkRef: string, slug: string) => void;
   saveCode: (studentId: string, exerciseId: string, code: string, versionNote?: string) => void;
@@ -476,6 +482,18 @@ export const useApp = create<AppState>()(
           set((s) => ({ teacherQuizzes: [{ ...q, id, updatedAt: now() }, ...s.teacherQuizzes.filter((x) => x.id !== id)] }));
           return id;
         },
+        addBookNote: (n) => set((s) => ({ bookNotes: [{ ...n, id: uid("bn"), at: now() }, ...s.bookNotes] })),
+        deleteBookNote: (id, userId) => set((s) => ({ bookNotes: s.bookNotes.filter((n) => !(n.id === id && n.userId === userId)) })),
+        toggleBookPick: (userId, key) => set((s) => ({ bookPicks: s.bookPicks.some((p) => p.userId === userId && p.key === key) ? s.bookPicks.filter((p) => !(p.userId === userId && p.key === key)) : [...s.bookPicks, { userId, key }] })),
+        markBookRead: (userId, ref, sectionId) =>
+          set((s) => {
+            const cur = s.bookProgress.find((p) => p.userId === userId && p.ref === ref);
+            if (cur && cur.last === sectionId && cur.read.includes(sectionId)) return {};
+            const next = { userId, ref, read: [...new Set([...(cur?.read ?? []), sectionId])], last: sectionId, at: now() };
+            return { bookProgress: [next, ...s.bookProgress.filter((p) => p !== cur)] };
+          }),
+        toggleTaught: (teacherId, classId, ref) =>
+          set((s) => ({ taughtLessons: s.taughtLessons.some((t) => t.teacherId === teacherId && t.classId === classId && t.ref === ref) ? s.taughtLessons.filter((t) => !(t.teacherId === teacherId && t.classId === classId && t.ref === ref)) : [...s.taughtLessons, { teacherId, classId, ref, at: now() }] })),
         recordLabResult: (r) => set((s) => ({ labResults: [{ ...r, id: uid("lr"), finishedAt: now() }, ...s.labResults].slice(0, 5000) })),
         deleteTeacherQuiz: (id, ownerId) => set((s) => ({ teacherQuizzes: s.teacherQuizzes.filter((x) => !(x.id === id && x.ownerId === ownerId)) })),
         toggleLessonLab: (ownerId, sgkRef, slug) =>

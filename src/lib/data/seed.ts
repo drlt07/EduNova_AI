@@ -4,6 +4,7 @@
  * dữ liệu demo, không phải chứng cứ triển khai thật.
  */
 import type { LabResult } from "@/lib/sim/lab-score";
+import type { BookNote, BookProgress, TaughtLesson } from "@/lib/sgk/types";
 import type { LessonLabLink, TeacherQuiz } from "./practice";
 import type {
   ActivityDraft,
@@ -92,6 +93,11 @@ export interface DemoData {
   tutorEvents: TutorEvent[];
   teacherQuizzes: TeacherQuiz[];
   labResults: LabResult[];
+  bookNotes: BookNote[];
+  /** Mục giáo viên chọn để dùng khi dạy: itemKey(ref, sectionId) hoặc "ref#sim:slug". */
+  bookPicks: { userId: string; key: string }[];
+  bookProgress: BookProgress[];
+  taughtLessons: TaughtLesson[];
   lessonLabs: LessonLabLink[];
 }
 
@@ -388,6 +394,10 @@ export function buildSeed(now: Date = new Date()): DemoData {
     courseProgress: [],
     tutorEvents: seedTutorEvents(at),
     teacherQuizzes: [],
+    bookNotes: [],
+    bookPicks: [],
+    bookProgress: [{ userId: "t1", ref: "10-19", read: ["dieu-kien", "if-else"], last: "if-else", at: at(-1) }],
+    taughtLessons: [{ teacherId: "t1", classId: "c-10a1", ref: "10-17", at: at(-6) }, { teacherId: "t1", classId: "c-10a1", ref: "10-18", at: at(-3) }, { teacherId: "t1", classId: "c-11a2", ref: "11-1", at: at(-5) }],
     labResults: [
       { id: "lr-seed-1", studentId: "s9", labSlug: "os-explorer", score: 9.5, mistakes: 1, seconds: 540, finishedAt: at(-1, 3) },
       { id: "lr-seed-2", studentId: "s10", labSlug: "os-explorer", score: 6, mistakes: 8, seconds: 900, finishedAt: at(-1, 4) },
