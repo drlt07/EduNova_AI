@@ -160,3 +160,121 @@ export function shortReport(d: D, teacherId: string, s: Scope): string[] {
   for (const g of groups) lines.push(`${g.title}: ${g.students.map((x) => x.student.name).join(", ")}.`);
   return lines;
 }
+
+export type InsightAction =
+  | { kind: "remedy"; label: string; studentIds: string[]; ref?: string }
+  | { kind: "link"; label: string; href: string }
+  | { kind: "drill"; label: string; metric: "complete" | "submit" | "graded" }
+  | { kind: "plan"; label: string; lessonId: string; note: string };
+
+export interface Insight {
+  id: string;
+  /** risk: cần xử lý ngay; watch: theo dõi; good: điểm sáng, tận dụng được */
+  tone: "risk" | "watch" | "good";
+  title: string;
+  evidence: string;
+  /** Nguyên nhân có thể / gợi ý cách làm, viết như lời đồng nghiệp */
+  advice?: string;
+  actions: InsightAction[];
+}
+
+const firstNames = (us: User[], max = 4) => {
+  const n = us.map((u) => u.name);
+  return n.length <= max ? n.join(", ") : `${n.slice(0, max).join(", ")} và ${n.length - max} em khác`;
+};
+
+/**
+ * Chẩn đoán: đọc chéo các số liệu (yêu cầu cần đạt, lỗi kiểm thử, nhiệm vụ, mô phỏng, chấm bài) thành vài nhận định
+ * xếp theo mức cần xử lý, mỗi nhận định có bằng chứng và hành động bấm được ngay.
+ */
+export function insights(d: D, teacherId: string, s: Scope): Insight[] {
+  const out: Insight[] = [];
+  const m = metrics(d, teacherId, s);
+  const objs = objectiveRows(d, teacherId, s);
+  const errs = errorRows(d, teacherId, s);
+  const groups = supportGroups(d, teacherId, s);
+  const rows = completionRows(d, teacherId, s);
+
+  // 1. Yêu cầu cần đạt yếu nhất, nối với lỗi kiểm thử cùng bài
+  const weakObj = objs.find((o) => o.mastery < 70);
+  if (weakObj) {
+    const weak = weakObj.students.filter((x) => x.pct < 70).map((x) => x.student);
+    const err = errs.find((e) => e.sgk?.ref === weakObj.lessonRef) ?? errs[0];
+    const lesson = LESSONS.find((l) => l.textbookId === "kntt" && l.objectiveIds.includes(weakObj.objectiveId));
+    const peers = weakObj.students.filter((x) => x.pct >= 85).map((x) => x.student);
+    out.push({
+      id: `obj-${weakObj.objectiveId}`, tone: "risk",
+      title: `Chưa vững: ${weakObj.description.replace(/\.$/, "")}`,
+      evidence: `Đạt ${weakObj.mastery}% · ${weak.length}/${weakObj.samples} em dưới 70%: ${firstNames(weak)}${weakObj.lessonTitle ? ` · ${weakObj.lessonTitle}` : ""}`,
+      advice: [
+        err && `Lỗi gặp nhiều nhất là ${err.label.toLowerCase()} (${err.students.length} bài)${err.sgk ? `, đúng phần ${err.sgk.title}` : ""}.`,
+        peers.length ? `Có thể nhờ ${firstNames(peers, 2)} (đạt từ 85%) kèm bạn trong tiết sau.` : "Nên chữa một bài mẫu trên bảng trước khi cho làm lại.",
+      ].filter(Boolean).join(" "),
+      actions: [
+        { kind: "remedy", label: `Giao củng cố ${weak.length} em`, studentIds: weak.map((u) => u.id), ref: weakObj.lessonRef },
+        ...(err?.sgk ? [{ kind: "link" as const, label: "Mở mục SGK để chữa", href: `/teacher/sgk/${err.sgk.ref}#muc-${err.sgk.section}` }] : []),
+        ...(lesson ? [{ kind: "plan" as const, label: "Ghi vào KHBD", lessonId: lesson.id, note: `Lớp chưa vững “${weakObj.description}” (${weakObj.mastery}%). ${err ? `Chữa lỗi ${err.label.toLowerCase()}. ` : ""}${peers.length ? `Ghép cặp: ${peers.map((u) => u.name).join(", ")} kèm bạn.` : ""}`.trim() }] : []),
+      ],
+    });
+  }
+
+  // 2. Em cần quan tâm riêng: xuất hiện ở từ hai nhóm hỗ trợ trở lên
+  const count = new Map<string, { u: User; why: string[] }>();
+  for (const g of groups) for (const x of g.students) {
+    const cur = count.get(x.student.id) ?? { u: x.student, why: [] };
+    cur.why.push(g.title.toLowerCase());
+    count.set(x.student.id, cur);
+  }
+  const several = [...count.values()].filter((x) => x.why.length >= 2);
+  if (several.length) out.push({
+    id: "multi", tone: "risk",
+    title: `${several.length} em gặp khó ở nhiều mặt cùng lúc`,
+    evidence: several.map((x) => `${x.u.name}: ${x.why.join(" + ")}`).join(" · "),
+    advice: "Các em này nên được gặp riêng 5 phút: hỏi khó ở đâu trước khi giao thêm bài.",
+    actions: [{ kind: "remedy", label: "Giao bài nhẹ để bắt nhịp", studentIds: several.map((x) => x.u.id) }],
+  });
+
+  // 3. Nhiệm vụ chưa hoàn thành
+  const missing = groups.find((g) => g.id === "missing");
+  if (missing && m.complete.value < 90) out.push({
+    id: "missing", tone: m.complete.value < 70 ? "risk" : "watch",
+    title: `Hoàn thành nhiệm vụ ${m.complete.value}%`,
+    evidence: `${rows.filter((r) => r.state === "missing").length} lượt chưa xong · ${firstNames(missing.students.map((x) => x.student))}`,
+    advice: "Nếu nhiều em cùng bỏ một nhiệm vụ, có thể hạn quá gấp hoặc đề chưa rõ.",
+    actions: [{ kind: "drill", label: "Xem từng lượt", metric: "complete" }, { kind: "remedy", label: "Giao lại cho các em", studentIds: missing.students.map((x) => x.student.id) }],
+  });
+
+  // 4. Bài chờ chấm
+  const pending = rows.filter((r) => r.state === "submitted").length;
+  if (pending) out.push({ id: "grading", tone: "watch", title: `Còn ${pending} bài chờ thầy cô chấm`, evidence: `Đã chấm ${m.graded.of} bài đã nộp. Mức đạt yêu cầu cần đạt chỉ tính bài đã chấm.`, actions: [{ kind: "link", label: "Chấm ngay", href: "/teacher/assessment" }] });
+
+  // 5. Mô phỏng: điểm thấp, bài AI cần duyệt
+  const ids = new Set(scopeStudents(d, teacherId, s).map((u) => u.id));
+  const review = d.labResults.filter((r) => ids.has(r.studentId) && r.grade?.needsReview && !r.review);
+  const lab = groups.find((g) => g.id === "lab");
+  if (lab || review.length) out.push({
+    id: "lab", tone: "watch",
+    title: lab ? `${lab.students.length} em điểm mô phỏng dưới 7` : `${review.length} bài mô phỏng AI chấm cần xem lại`,
+    evidence: [lab && lab.students.map((x) => `${x.student.name} (${x.note})`).join(", "), review.length && `${review.length} bài AI chưa chắc chắn ở phần giải thích`].filter(Boolean).join(" · "),
+    advice: "Cho làm lại mô phỏng sau khi chữa lỗi thường nâng điểm rõ: lần làm lại là bằng chứng tiến bộ tốt.",
+    actions: [...(review.length ? [{ kind: "link" as const, label: "Duyệt bài AI chấm", href: "/teacher/assignments#duyet-mo-phong" }] : []), ...(lab ? [{ kind: "remedy" as const, label: "Giao làm lại", studentIds: lab.students.map((x) => x.student.id) }] : [])],
+  });
+
+  // 6. Điểm sáng
+  const strong = objs.filter((o) => o.mastery >= 85);
+  const retry = labRetries(d, teacherId, s);
+  if (strong.length || (retry && retry.after > retry.before)) out.push({
+    id: "good", tone: "good",
+    title: strong.length ? `Đã vững: ${strong[0].description.replace(/\.$/, "")}` : "Làm lại mô phỏng có tiến bộ",
+    evidence: [strong.length && `${strong.map((o) => `${o.mastery}%`).join(", ")} ở ${strong.length} yêu cầu`, retry && retry.after > retry.before && `mô phỏng làm lại: ${fmtScore(retry.before)} → ${fmtScore(retry.after)} (${retry.pairs} lượt)`].filter(Boolean).join(" · "),
+    advice: "Có thể rút ngắn phần ôn ở tiết sau để dành thời gian cho phần chưa vững.",
+    actions: [],
+  });
+  return out;
+}
+
+/** Bản chữ của chẩn đoán, để dán vào sổ hay nhóm chuyên môn. */
+export function insightsText(list: Insight[], scopeName: string): string {
+  const tag = { risk: "[Cần xử lý]", watch: "[Theo dõi]", good: "[Điểm sáng]" } as const;
+  return [`Báo cáo ${scopeName}`, ...list.map((i) => `${tag[i.tone]} ${i.title}. ${i.evidence}.${i.advice ? ` ${i.advice}` : ""}`)].join("\n");
+}

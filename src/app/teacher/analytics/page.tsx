@@ -1,11 +1,11 @@
 "use client";
 import Link from "next/link";
 import { Suspense, useMemo, useState } from "react";
-import { useSearchParams } from "next/navigation";
-import { BookOpen, CheckCheck, Copy, Download, Info, Lightbulb, Send, X } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { AlertTriangle, ArrowRight, BookOpen, CheckCheck, Copy, Download, Eye, Info, Lightbulb, ListChecks, NotebookPen, Send, Sparkles, ThumbsUp, X } from "lucide-react";
 import { toast } from "sonner";
 import { exportAssessmentsCsv, refinementInput, type RefinementSuggestion } from "@/lib/analytics/compute";
-import { completionRows, errorRows, labRetries, METRIC_HELP, metrics, objectiveRows, shortReport, supportGroups, type Row } from "@/lib/analytics/report";
+import { completionRows, errorRows, insights, insightsText, labRetries, METRIC_HELP, metrics, objectiveRows, supportGroups, type Insight, type Row } from "@/lib/analytics/report";
 import { beforeAfter } from "@/lib/analytics/compute";
 import { callAgent } from "@/lib/ai/client";
 import { bookEntry } from "@/lib/sgk/book";
@@ -23,11 +23,17 @@ import { AssignDialog, type AssignPreset } from "@/components/teacher/assign-dia
 import { lessonAssignables } from "@/components/sgk/reader";
 
 type MetricKey = "complete" | "submit" | "graded";
+const TONE: Record<Insight["tone"], { label: string; icon: React.ComponentType<{ className?: string }>; text: string; border: string }> = {
+  risk: { label: "Cần xử lý", icon: AlertTriangle, text: "text-[#fda4af]", border: "border-[#fb7185]/40" },
+  watch: { label: "Theo dõi", icon: Eye, text: "text-[#fcd34d]", border: "border-[#fbbf24]/30" },
+  good: { label: "Điểm sáng", icon: ThumbsUp, text: "text-[#6ee7b7]", border: "border-[#34d399]/30" },
+};
 const ROW_STATE: Record<Row["state"], { label: string; cls: string }> = { done: { label: "xong", cls: "bg-success/15 text-success-fg" }, submitted: { label: "chờ chấm", cls: "bg-violet/15 text-violet-fg" }, missing: { label: "chưa xong", cls: "bg-warning/15 text-warning-fg" } };
 
 function Report() {
   const { d, user } = useSessionData();
   const params = useSearchParams();
+  const router = useRouter();
   const classes = teacherClasses(d, user.id);
   const [classId, setClassId] = useState(classes.some((c) => c.id === params.get("class")) ? params.get("class")! : "");
   const [drill, setDrill] = useState<MetricKey | null>(null);
@@ -36,7 +42,7 @@ function Report() {
   const s = { classId: classId || undefined };
   const r = useMemo(() => ({
     m: metrics(d, user.id, s), objs: objectiveRows(d, user.id, s), errs: errorRows(d, user.id, s), groups: supportGroups(d, user.id, s),
-    retry: labRetries(d, user.id, s), ba: beforeAfter(d, user.id, s), report: shortReport(d, user.id, s), rows: completionRows(d, user.id, s),
+    retry: labRetries(d, user.id, s), ba: beforeAfter(d, user.id, s), ins: insights(d, user.id, s), rows: completionRows(d, user.id, s),
   }), [d, user.id, classId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const [suggestions, setSuggestions] = useState<RefinementSuggestion[] | null>(null);
@@ -73,12 +79,23 @@ function Report() {
     setDecided((v) => ({ ...v, [x.id]: decision }));
   }
 
-  const KPIS: { key: MetricKey | "mastery"; label: string; value: string; of?: string }[] = [
-    { key: "complete", label: "Hoàn thành nhiệm vụ", value: `${r.m.complete.value}%`, of: `${r.m.complete.of} lượt` },
-    { key: "submit", label: "Nộp bài (chấm tay)", value: `${r.m.submit.value}%`, of: `${r.m.submit.of} lượt` },
-    { key: "graded", label: "Đã chấm", value: `${r.m.graded.value}%`, of: `${r.m.graded.of} bài` },
-    { key: "mastery", label: "Đạt yêu cầu cần đạt", value: r.objs.length ? `${Math.round(r.objs.reduce((a, o) => a + o.mastery, 0) / r.objs.length)}%` : "—", of: `${r.objs.length} yêu cầu` },
+  const mastery = r.objs.length ? Math.round(r.objs.reduce((a, o) => a + o.mastery, 0) / r.objs.length) : undefined;
+  const KPIS: { key: MetricKey | "mastery"; label: string; value: string; pct?: number; of?: string }[] = [
+    { key: "complete", label: "Hoàn thành nhiệm vụ", value: `${r.m.complete.value}%`, pct: r.m.complete.value, of: `${r.m.complete.of} lượt` },
+    { key: "submit", label: "Nộp bài (chấm tay)", value: `${r.m.submit.value}%`, pct: r.m.submit.value, of: `${r.m.submit.of} lượt` },
+    { key: "graded", label: "Đã chấm", value: `${r.m.graded.value}%`, pct: r.m.graded.value, of: `${r.m.graded.of} bài` },
+    { key: "mastery", label: "Đạt yêu cầu cần đạt", value: mastery === undefined ? "—" : `${mastery}%`, pct: mastery, of: `${r.objs.length} yêu cầu` },
   ];
+  const scopeName = classId ? `lớp ${classes.find((c) => c.id === classId)?.name}` : "các lớp";
+  const reportText = insightsText(r.ins, scopeName);
+  /** Ghi nhận định vào KHBD của bài (phiên bản mới); chưa có KHBD thì mở trợ lý soạn. */
+  const toPlan = (lessonId: string, note: string) => {
+    const plan = d.lessonPlans.find((p) => p.ownerId === user.id && p.lessonId === lessonId);
+    if (!plan) { toast.info("Bài này chưa có KHBD, mở Trợ lý KHBD để soạn"); router.push(`/teacher/lesson-planner/assistant?lesson=${lessonId}`); return; }
+    d.updateLessonPlan(plan.id, { notes: `${plan.notes}\n[Từ báo cáo kết quả] ${note}`.trim() });
+    d.saveLessonPlanVersion(plan.id, "Điều chỉnh từ báo cáo kết quả", user.id);
+    toast.success(`Đã ghi vào KHBD “${plan.title}” thành phiên bản mới`);
+  };
   const drillRows = drill === "complete" ? r.rows : drill === "submit" ? r.rows.filter((x) => x.detail === "đã chấm" || x.detail === "chờ chấm" || (x.state === "missing" && !x.detail)) : drill === "graded" ? r.rows.filter((x) => x.state === "submitted" || x.detail === "đã chấm") : [];
 
   return (
@@ -97,27 +114,66 @@ function Report() {
         </div>
       </div>
 
-      <section className="mb-6 rounded-2xl border border-line bg-surface p-5" aria-labelledby="tt-h">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2 id="tt-h" className="text-lg font-bold text-fg">Báo cáo ngắn</h2>
+      <section className="mb-6 overflow-hidden rounded-3xl bg-[#0f172a] p-5 text-white shadow-lg shadow-slate-900/10 sm:p-6" aria-labelledby="cd-h">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="flex items-start gap-3">
+            <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-[#06b6d4] to-[#2563eb]"><Sparkles className="size-5" aria-hidden /></span>
+            <div>
+              <h2 id="cd-h" className="text-lg font-bold">Chẩn đoán {scopeName}</h2>
+              <p className="text-sm text-slate-300">Đọc chéo yêu cầu cần đạt, lỗi kiểm thử, nhiệm vụ và mô phỏng; việc cần xử lý xếp trước.</p>
+            </div>
+          </div>
           <span className="flex gap-1.5">
-            <Button size="sm" variant="ghost" onClick={async () => { try { await navigator.clipboard.writeText(r.report.join("\n")); toast.success("Đã sao chép báo cáo"); } catch { toast.error("Trình duyệt chặn sao chép"); } }}><Copy /> Sao chép</Button>
-            <Button size="sm" variant="ghost" onClick={() => downloadText(`bao-cao-ngan-${classId || "cac-lop"}.txt`, r.report.join("\n"))}><Download /> Tải về</Button>
+            <button type="button" className="inline-flex h-8 items-center gap-1.5 rounded-lg px-3 text-xs font-semibold text-slate-200 hover:bg-white/10" onClick={async () => { try { await navigator.clipboard.writeText(reportText); toast.success("Đã sao chép báo cáo"); } catch { toast.error("Trình duyệt chặn sao chép"); } }}><Copy className="size-4" aria-hidden /> Sao chép</button>
+            <button type="button" className="inline-flex h-8 items-center gap-1.5 rounded-lg px-3 text-xs font-semibold text-slate-200 hover:bg-white/10" onClick={() => downloadText(`bao-cao-${classId || "cac-lop"}.txt`, reportText)}><Download className="size-4" aria-hidden /> Tải về</button>
           </span>
         </div>
-        <ul className="mt-2 space-y-1.5 text-fg">{r.report.map((l) => <li key={l} className="flex gap-2"><span className="mt-2.5 size-1.5 shrink-0 rounded-full bg-cyan" aria-hidden />{l}</li>)}</ul>
+        {r.ins.length === 0 ? <p className="mt-4 text-sm text-slate-300">Chưa đủ số liệu để chẩn đoán. Khi các em nộp bài và làm mô phỏng, nhận định sẽ hiện ở đây.</p> : (
+          <ol className="mt-5 grid gap-3 lg:grid-cols-2">
+            {r.ins.map((x, i) => {
+              const T = TONE[x.tone];
+              return (
+                <li key={x.id} className={cn("flex flex-col rounded-2xl border bg-white/[0.04] p-4", T.border)}>
+                  <p className={cn("flex items-center gap-1.5 text-xs font-semibold", T.text)}><T.icon className="size-4" aria-hidden /> {i + 1}. {T.label}</p>
+                  <h3 className="mt-1 font-semibold leading-snug text-white">{x.title}</h3>
+                  <p className="mt-1 text-sm text-slate-300">{x.evidence}</p>
+                  {x.advice && <p className="mt-2 rounded-lg bg-white/5 px-3 py-2 text-sm text-slate-200">{x.advice}</p>}
+                  {x.actions.length > 0 && (
+                    <div className="mt-3 flex flex-wrap gap-2 pt-1">
+                      {x.actions.map((a, j) => {
+                        const cls = j === 0 ? "bg-[#22d3ee] text-slate-900 hover:bg-[#67e8f9]" : "border border-white/20 text-white hover:bg-white/10";
+                        const inner = <>{a.kind === "remedy" ? <Send className="size-3.5" aria-hidden /> : a.kind === "plan" ? <NotebookPen className="size-3.5" aria-hidden /> : a.kind === "drill" ? <ListChecks className="size-3.5" aria-hidden /> : <ArrowRight className="size-3.5" aria-hidden />}{a.label}</>;
+                        const base = cn("inline-flex h-8 items-center gap-1.5 rounded-lg px-3 text-xs font-semibold transition-colors", cls);
+                        if (a.kind === "link") return <Link key={j} href={a.href} className={base}>{inner}</Link>;
+                        return <button key={j} type="button" className={base} onClick={() => a.kind === "remedy" ? remedy(a.studentIds, a.ref) : a.kind === "drill" ? setDrill(a.metric) : toPlan(a.lessonId, a.note)}>{inner}</button>;
+                      })}
+                    </div>
+                  )}
+                </li>
+              );
+            })}
+          </ol>
+        )}
       </section>
 
       <div className="mb-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        {KPIS.map((k) => (
-          <div key={k.key} className="rounded-2xl border border-line bg-surface p-4">
-            <p className="text-sm text-muted">{k.label}</p>
-            <p className="mt-1 text-3xl font-bold tabular-nums text-fg">{k.value}</p>
-            <p className="text-xs text-muted">{k.of}</p>
-            <p className="mt-2 flex gap-1 text-[11px] leading-snug text-muted"><Info className="mt-px size-3 shrink-0" aria-hidden /> {METRIC_HELP[k.key]}</p>
-            {k.key !== "mastery" ? <button type="button" onClick={() => setDrill(k.key as MetricKey)} className="mt-2 text-xs font-semibold text-cyan-fg hover:underline">Xem danh sách →</button> : <a href="#muc-tieu" className="mt-2 inline-block text-xs font-semibold text-cyan-fg hover:underline">Xem theo yêu cầu →</a>}
-          </div>
-        ))}
+        {KPIS.map((k) => {
+          const v = k.pct;
+          const tone = v === undefined ? "neutral" : v >= 80 ? "good" : v >= 60 ? "mid" : "low";
+          const color = { good: "text-success-fg", mid: "text-warning-fg", low: "text-danger-fg", neutral: "text-fg" }[tone];
+          const bar = { good: "bg-success", mid: "bg-warning", low: "bg-danger", neutral: "bg-line" }[tone];
+          const body = (
+            <>
+              <span className="flex items-center justify-between gap-2 text-sm text-muted">{k.label}<span title={METRIC_HELP[k.key]} aria-label={`Cách tính: ${METRIC_HELP[k.key]}`}><Info className="size-3.5" /></span></span>
+              <span className="mt-1 flex items-baseline gap-2"><span className={cn("text-3xl font-bold tabular-nums", color)}>{k.value}</span><span className="text-xs text-muted">{k.of}</span></span>
+              <span className="mt-2 block h-1.5 rounded-full bg-surface-2"><span className={cn("block h-full rounded-full", bar)} style={{ width: `${v ?? 0}%` }} /></span>
+              <span className="mt-2 block text-xs text-muted">{tone === "good" ? "Tốt" : tone === "mid" ? "Cần chú ý" : tone === "low" ? "Đáng lo" : "Chưa có số liệu"} · mục tiêu 80%</span>
+            </>
+          );
+          return k.key === "mastery"
+            ? <a key={k.key} href="#muc-tieu" className="block rounded-2xl border border-line bg-surface p-4 transition-colors hover:border-brand/40">{body}</a>
+            : <button key={k.key} type="button" onClick={() => setDrill(k.key as MetricKey)} className="block rounded-2xl border border-line bg-surface p-4 text-left transition-colors hover:border-brand/40">{body}</button>;
+        })}
       </div>
 
       <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
