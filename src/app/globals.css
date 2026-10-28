@@ -4,56 +4,57 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  --bg: #f4f7fb;
+  /* Bảng màu sáng, sạch: nền slate, thẻ trắng, xanh dương làm màu chính (theo bản giao diện AI Studio) */
+  --bg: #f8fafc;
   --surface: #ffffff;
-  --surface-2: #eef2f8;
+  --surface-2: #f1f5f9;
   --sidebar: #ffffff;
-  --line: #dfe5ef;
-  --fg: #0b1220;
-  --muted: #4b5a70;
-  --cyan: #0e93b0;
-  --blue: #3b63e0;
-  --violet: #7344e0;
-  --success: #0f9d63;
-  --warning: #b86e00;
-  --danger: #d0334a;
-  --ring: #0e93b0;
+  --line: #e2e8f0;
+  --fg: #0f172a;
+  --muted: #64748b;
+  --cyan: #06b6d4;
+  --blue: #2563eb;
+  --violet: #7c3aed;
+  --success: #059669;
+  --warning: #d97706;
+  --danger: #e11d48;
+  --ring: #2563eb;
   /* màu thương hiệu: nút chính, trạng thái đang chọn (chữ trắng trên nền ≥ 4.5:1) */
-  --brand: #0b6e86;
-  --brand-hover: #095a6e;
+  --brand: #2563eb;
+  --brand-hover: #1d4ed8;
   --brand-ink: #ffffff;
-  --grid: rgba(11, 18, 32, 0.05);
+  --grid: rgba(15, 23, 42, 0.04);
   /* màu chữ trên nền sáng: tương phản ≥ 4.5:1 */
-  --cyan-fg: #065d72;
-  --blue-fg: #2a47b3;
-  --violet-fg: #5a2fc2;
-  --success-fg: #05663f;
-  --warning-fg: #774600;
-  --danger-fg: #a01f36;
+  --cyan-fg: #0e7490;
+  --blue-fg: #1d4ed8;
+  --violet-fg: #6d28d9;
+  --success-fg: #047857;
+  --warning-fg: #b45309;
+  --danger-fg: #be123c;
 }
 
 .dark {
-  --bg: #0b1220;
-  --surface: #111a2e;
-  --surface-2: #16223b;
-  --sidebar: #111d33;
-  --line: #22314f;
-  --fg: #f8fafc;
-  --muted: #9aabc4;
+  --bg: #0b1120;
+  --surface: #111827;
+  --surface-2: #1e293b;
+  --sidebar: #0f172a;
+  --line: #1e293b;
+  --fg: #f1f5f9;
+  --muted: #94a3b8;
   --cyan: #22d3ee;
-  --blue: #4f7fff;
-  --violet: #8b5cf6;
+  --blue: #60a5fa;
+  --violet: #a78bfa;
   --success: #34d399;
   --warning: #fbbf24;
   --danger: #fb7185;
-  --ring: #22d3ee;
-  --brand: #22d3ee;
-  --brand-hover: #67e8f9;
-  --brand-ink: #04111f;
-  --grid: rgba(148, 163, 184, 0.07);
+  --ring: #60a5fa;
+  --brand: #60a5fa;
+  --brand-hover: #93c5fd;
+  --brand-ink: #0b1120;
+  --grid: rgba(148, 163, 184, 0.06);
   /* màu chữ trên nền tối: tương phản ≥ 4.5:1 */
   --cyan-fg: #22d3ee;
-  --blue-fg: #93b4ff;
+  --blue-fg: #93c5fd;
   --violet-fg: #c4b5fd;
   --success-fg: #34d399;
   --warning-fg: #fbbf24;
@@ -84,7 +85,7 @@
   --color-success-fg: var(--success-fg);
   --color-warning-fg: var(--warning-fg);
   --color-danger-fg: var(--danger-fg);
-  --font-sans: var(--font-be-vietnam), "Inter", system-ui, sans-serif;
+  --font-sans: var(--font-app), "Plus Jakarta Sans", "Be Vietnam Pro", system-ui, sans-serif;
   --font-mono: ui-monospace, "SFMono-Regular", "JetBrains Mono", Menlo, monospace;
   --radius-card: 16px;
 }
@@ -101,6 +102,16 @@ body {
   color: var(--fg);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
+}
+
+/* Thẻ trắng nổi nhẹ trên nền slate */
+.rounded-2xl.bg-surface,
+.rounded-3xl.bg-surface {
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 1px 3px rgba(15, 23, 42, 0.03);
+}
+.dark .rounded-2xl.bg-surface,
+.dark .rounded-3xl.bg-surface {
+  box-shadow: none;
 }
 
 .bg-grid {

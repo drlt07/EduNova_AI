@@ -88,13 +88,22 @@ export default function TeacherToday() {
     pending ? `${pending} bài chờ chấm` : "",
     missing ? `${missing} lượt học sinh chưa nộp sắp hết hạn` : "",
   ].filter(Boolean);
+  const heroLesson = [...data.today, ...data.next].find((x) => x.lesson);
   const summary = parts.length > 1 ? `${parts.slice(0, -1).join(", ")} và ${parts.at(-1)}` : parts[0];
 
   return (
     <>
-      <header className="mb-6">
-        <p className="text-sm font-medium text-muted">{DAY[now.getDay()]}, {formatDate(now.toISOString())}</p>
-        <h1 className="mt-1 text-2xl font-bold tracking-tight text-fg">Chào {user.name.split(" ").pop()}, hôm nay có {summary}.</h1>
+      <header className="relative mb-6 overflow-hidden rounded-3xl bg-gradient-to-br from-[#2563eb] via-[#1d4ed8] to-[#0891b2] p-6 text-white shadow-lg shadow-blue-600/20 sm:p-8">
+        <div aria-hidden className="pointer-events-none absolute -right-16 -top-20 size-72 rounded-full bg-white/10" />
+        <div aria-hidden className="pointer-events-none absolute -bottom-24 right-40 size-56 rounded-full bg-cyan-300/20" />
+        <p className="relative inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-xs font-semibold"><CalendarDays className="size-3.5" aria-hidden /> {DAY[now.getDay()]}, {formatDate(now.toISOString())}</p>
+        <h1 className="relative mt-3 text-2xl font-extrabold tracking-tight sm:text-3xl">Chào {user.name.split(" ").pop()}!</h1>
+        <p className="relative mt-1 max-w-2xl text-sm text-blue-50 sm:text-base">Hôm nay có {summary}.</p>
+        <div className="relative mt-5 flex flex-wrap gap-2">
+          {heroLesson && <Link href={`/teacher/sgk/${heroLesson.lesson!.ref}`} className="inline-flex h-10 items-center gap-2 rounded-xl bg-white px-4 text-sm font-semibold text-blue-700 shadow-sm hover:bg-blue-50"><MonitorPlay className="size-4" aria-hidden /> Bài {heroLesson.lesson!.lesson.no} · {heroLesson.cls.name}</Link>}
+          {pending > 0 && <Link href="/teacher/assignments" className="inline-flex h-10 items-center gap-2 rounded-xl bg-cyan-300 px-4 text-sm font-semibold text-slate-900 hover:bg-cyan-200"><ClipboardCheck className="size-4" aria-hidden /> Chấm {pending} bài</Link>}
+          <Link href="/teacher/lesson-planner" className="inline-flex h-10 items-center gap-2 rounded-xl border border-white/30 bg-white/10 px-4 text-sm font-semibold text-white hover:bg-white/20"><NotebookPen className="size-4" aria-hidden /> Soạn KHBD</Link>
+        </div>
       </header>
 
       <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">

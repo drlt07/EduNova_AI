@@ -33,7 +33,7 @@ function SidebarNav({ role, onNavigate }: { role: Role; onNavigate?: () => void 
     <nav aria-label={`Điều hướng ${ROLE_LABEL[role]}`} className="flex flex-col gap-0.5">
       {groups.map((g) => (
         <div key={g} className={cn("flex flex-col gap-0.5", g && "mt-4 border-t border-line pt-3")}>
-          {g && <p className="px-3 pb-1 text-[11px] font-semibold uppercase tracking-wide text-muted">{g}</p>}
+          {(g || role === "teacher") && <p className="px-3 pb-1 text-[11px] font-semibold uppercase tracking-wide text-muted">{g || "Công việc chính"}</p>}
           {NAV[role].filter((i) => (i.group ?? "") === g).map((item) => {
             const under = (h: string) => pathname === h || pathname.startsWith(h + "/");
             const active = item.href === "/" ? pathname === "/" : pathname === item.href || (item.href !== "/admin" && pathname.startsWith(item.href + "/")) || (item.match?.some(under) ?? false);
@@ -46,12 +46,12 @@ function SidebarNav({ role, onNavigate }: { role: Role; onNavigate?: () => void 
                 aria-current={active ? "page" : undefined}
                 className={cn(
                   "group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-muted transition-colors hover:bg-surface-2 hover:text-fg",
-                  active && "bg-brand/10 font-semibold text-fg",
+                  active && "bg-brand font-semibold text-brand-ink shadow-md shadow-brand/25 hover:bg-brand hover:text-brand-ink",
                 )}
               >
-                <item.icon className={cn("size-[18px] shrink-0", active ? "text-cyan-fg" : "text-muted group-hover:text-fg")} />
+                <item.icon className={cn("size-[18px] shrink-0", active ? "text-brand-ink" : "text-muted group-hover:text-fg")} />
                 <span className="min-w-0 flex-1 truncate">{item.label}</span>
-                {n > 0 && <span className={cn("rounded-full px-1.5 text-xs font-semibold tabular-nums", item.badge === "todos" ? "bg-brand text-brand-ink" : "bg-surface-2 text-muted")} aria-label={item.badge === "todos" ? `${n} việc cần làm` : `${n} lớp`}>{n}</span>}
+                {n > 0 && <span className={cn("rounded-full px-1.5 text-xs font-semibold tabular-nums", active ? "bg-white/20 text-brand-ink" : item.badge === "todos" ? "bg-danger text-white" : "bg-surface-2 text-muted")} aria-label={item.badge === "todos" ? `${n} việc cần làm` : `${n} lớp`}>{n}</span>}
               </Link>
             );
           })}
@@ -121,13 +121,7 @@ export function AppShell({ role, children, bleed = false }: { role: Role; childr
       )}
 
       <div className="relative flex min-w-0 flex-1 flex-col">
-        {/* Nền lưới và quầng màu như trang chủ */}
-        <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-[560px] overflow-hidden">
-          <div className="absolute inset-0 bg-grid [mask-image:linear-gradient(to_bottom,black,transparent)]" />
-          <div className="absolute -top-40 left-1/3 h-[420px] w-[720px] rounded-full bg-[radial-gradient(closest-side,rgba(79,127,255,0.22),transparent)]" />
-          <div className="absolute -top-24 right-0 h-[360px] w-[480px] rounded-full bg-[radial-gradient(closest-side,rgba(168,85,247,0.16),transparent)]" />
-        </div>
-        <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-3 border-b border-line bg-bg/80 px-4 backdrop-blur-xl sm:px-6">
+        <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-3 border-b border-line bg-surface/90 px-4 backdrop-blur-xl sm:px-6">
           <div className="flex min-w-0 flex-1 items-center gap-2">
             <Button variant="ghost" size="icon" className="lg:hidden" aria-label="Mở menu" onClick={() => setOpen(true)}>
               <Menu />

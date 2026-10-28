@@ -9,7 +9,7 @@ export const buttonVariants = cva(
     variants: {
       variant: {
         /** Hành động chính của trang: một nút mỗi vùng, màu thương hiệu đặc. */
-        primary: "bg-brand text-brand-ink hover:bg-brand-hover",
+        primary: "bg-brand text-brand-ink shadow-sm shadow-brand/30 hover:bg-brand-hover",
         /** Hành động phụ. */
         secondary: "bg-surface text-fg border border-line hover:bg-surface-2",
         outline: "border border-line bg-transparent text-fg hover:bg-surface-2",
