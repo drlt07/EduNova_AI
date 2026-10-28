@@ -31,7 +31,13 @@ export function teacherAssignments(d: D, teacherId: string): Assignment[] {
 
 export function studentAssignments(d: D, studentId: string): Assignment[] {
   const mine = new Set(studentClassIds(d, studentId));
-  return d.assignments.filter((a) => mine.has(a.classId));
+  return d.assignments.filter((a) => mine.has(a.classId) && (!a.studentIds || a.studentIds.includes(studentId)));
+}
+
+/** Học sinh được giao một nhiệm vụ: cả lớp, hoặc chỉ các em được chọn. */
+export function assignedStudents(d: D, a: Pick<Assignment, "classId" | "studentIds">): User[] {
+  const all = classStudents(d, a.classId);
+  return a.studentIds ? all.filter((u) => a.studentIds!.includes(u.id)) : all;
 }
 
 /** Bài nộp giáo viên được xem: chỉ thuộc assignment của lớp mình. */

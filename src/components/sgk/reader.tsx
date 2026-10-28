@@ -11,7 +11,7 @@ import { PRACTICE_SETS } from "@/lib/data/practice";
 import { sgkLessonId } from "@/lib/data/sgk-kntt";
 import { bookEntry, bookOf, itemKey, lessonSimSlugs, neighbors, type BookEntry } from "@/lib/sgk/book";
 import { fmtScore, labSummary } from "@/lib/sim/lab-score";
-import { classStudents, teacherClasses } from "@/lib/store/scoped";
+import { teacherClasses, assignedStudents } from "@/lib/store/scoped";
 import { useSessionData } from "@/lib/store/use-role";
 import { taskOutcome } from "@/lib/teacher/assign";
 import { cn, formatDate } from "@/lib/utils";
@@ -289,7 +289,7 @@ function TeacherPanel({ e, picks, onAssign }: { e: BookEntry; picks: Set<string>
         {assigned.length === 0 ? <p className="mt-1 text-xs text-muted">Chưa giao nhiệm vụ nào từ bài này.</p> : (
           <ul className="mt-2 space-y-2 text-sm">
             {assigned.map((a) => {
-              const students = classStudents(d, a.classId);
+              const students = assignedStudents(d, a);
               const done = a.task ? students.filter((u) => taskOutcome(d, u.id, a).done).length : d.submissions.filter((s) => s.assignmentId === a.id).length;
               return (
                 <li key={a.id}>

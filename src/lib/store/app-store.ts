@@ -283,7 +283,7 @@ export const useApp = create<AppState>()(
           const studentId = uid("s");
           set((s) => ({
             users: [...s.users, { id: studentId, role: "student", name, email: `${studentId}@demo.edunova.vn`, hue: Math.floor(Math.random() * 360) }],
-            enrollments: [...s.enrollments, { id: uid("en"), classId, studentId }],
+            enrollments: [...s.enrollments, { id: uid("en"), classId, studentId, status: "invited" }],
           }));
         },
         removeEnrollment: (enrollmentId) => set((s) => ({ enrollments: s.enrollments.filter((e) => e.id !== enrollmentId) })),

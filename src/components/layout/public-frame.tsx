@@ -1,5 +1,7 @@
 "use client";
-import { usePathname } from "next/navigation";
+import { useEffect } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { ROLE_HOME } from "@/lib/auth/paths";
 import { useCurrentUser, useHydrated } from "@/lib/store/hooks";
 import { AppShell } from "./app-shell";
 import { LoginGate } from "./login-gate";
@@ -17,6 +19,8 @@ export function PublicFrame({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const hydrated = useHydrated();
   const user = useCurrentUser();
+  // Trang giới thiệu EduNova chỉ dành cho khách; đã đăng nhập thì vào thẳng không gian làm việc.
+  if (hydrated && user && pathname === "/") return <GoHome href={ROLE_HOME[user.role]} />;
   if (hydrated && user && !AUTH_PAGES.some((p) => pathname.startsWith(p))) {
     return <AppShell role={user.role} bleed>{children}</AppShell>;
   }
@@ -29,4 +33,10 @@ export function PublicFrame({ children }: { children: React.ReactNode }) {
       <SiteFooter />
     </div>
   );
+}
+
+function GoHome({ href }: { href: string }) {
+  const router = useRouter();
+  useEffect(() => { router.replace(href); }, [router, href]);
+  return null;
 }

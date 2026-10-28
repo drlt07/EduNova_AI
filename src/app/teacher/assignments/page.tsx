@@ -3,7 +3,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { CalendarClock, ClipboardCheck, ListChecks, Lock, LockOpen, Pencil, Plus, Search } from "lucide-react";
 import { toast } from "sonner";
-import { teacherAssignments, teacherClasses } from "@/lib/store/scoped";
+import { teacherAssignments, teacherClasses, assignedStudents } from "@/lib/store/scoped";
 import { useSessionData } from "@/lib/store/use-role";
 import { cn, formatDate, isFutureBy, matchesQuery, relativeDays } from "@/lib/utils";
 import { LAB_TEMPLATES } from "@/lib/data/labs";
@@ -17,7 +17,6 @@ import { Field, Input, Select } from "@/components/ui/form";
 import { SectionHead } from "@/components/layout/section-head";
 import { AssessTabs } from "@/components/teacher/assess-tabs";
 import { AssignDialog } from "@/components/teacher/assign-dialog";
-import { classStudents } from "@/lib/store/scoped";
 import { taskOutcome } from "@/lib/teacher/assign";
 
 const TASK_LABEL = { lab: "Mô phỏng", quiz: "Bộ câu hỏi", code: "Bài code" } as const;
@@ -26,7 +25,7 @@ const TASK_LABEL = { lab: "Mô phỏng", quiz: "Bộ câu hỏi", code: "Bài co
 function TaskResults({ assignmentId }: { assignmentId: string }) {
   const { d } = useSessionData();
   const a = d.assignments.find((x) => x.id === assignmentId)!;
-  const rows = classStudents(d, a.classId).map((u) => ({ u, o: taskOutcome(d, u.id, a) })).sort((x, y) => Number(y.o.done) - Number(x.o.done) || (y.o.ratio ?? 0) - (x.o.ratio ?? 0));
+  const rows = assignedStudents(d, a).map((u) => ({ u, o: taskOutcome(d, u.id, a) })).sort((x, y) => Number(y.o.done) - Number(x.o.done) || (y.o.ratio ?? 0) - (x.o.ratio ?? 0));
   const done = rows.filter((r) => r.o.done);
   return (
     <DialogContent title={a.title} description={`${d.classes.find((c) => c.id === a.classId)?.name} · ${done.length}/${rows.length} em đã làm xong · hạn ${formatDate(a.dueAt, true)}`}>
@@ -63,7 +62,7 @@ export default function AssignmentsPage() {
     for (const a of list) {
       const total = d.enrollments.filter((e) => e.classId === a.classId).length;
       if (a.task) {
-        const outs = classStudents(d, a.classId).map((u) => taskOutcome(d, u.id, a));
+        const outs = assignedStudents(d, a).map((u) => taskOutcome(d, u.id, a));
         m.set(a.id, { total, subs: outs.filter((o) => o.done).length, graded: outs.filter((o) => o.done).length, working: outs.filter((o) => !o.done && o.text).length });
         continue;
       }

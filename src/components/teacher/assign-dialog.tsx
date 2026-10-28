@@ -9,7 +9,7 @@ import { PRACTICE_SETS } from "@/lib/data/practice";
 import { CODING_EXERCISES } from "@/lib/data/coding-exercises";
 import { SCORED_LABS } from "@/lib/sim/lab-score";
 import { dueFor, fmtDue, type DueChoice, type TaskKind } from "@/lib/teacher/assign";
-import { teacherClasses } from "@/lib/store/scoped";
+import { classStudents, teacherClasses } from "@/lib/store/scoped";
 import { useSessionData } from "@/lib/store/use-role";
 import { cn, matchesQuery } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -40,19 +40,19 @@ const DUE: { id: DueChoice; label: string }[] = [
  * Giao nhiệm vụ trong một hộp thoại: chọn nội dung có sẵn (mô phỏng, câu hỏi, bài code), chọn một hay nhiều lớp,
  * hạn nộp tính theo thời khóa biểu từng lớp, lời dặn, và xem trước thẻ học sinh sẽ thấy.
  */
-export function AssignDialog({ open, onOpenChange, preset, sgkRef, suggest }: { open: boolean; onOpenChange: (o: boolean) => void; preset?: AssignPreset; sgkRef?: string; suggest?: AssignPreset[] }) {
+export function AssignDialog({ open, onOpenChange, preset, sgkRef, suggest, classId, studentIds, title = "Giao nhiệm vụ" }: { open: boolean; onOpenChange: (o: boolean) => void; preset?: AssignPreset; sgkRef?: string; suggest?: AssignPreset[]; classId?: string; studentIds?: string[]; title?: string }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       {open && (
-        <DialogContent title="Giao nhiệm vụ" description="Chọn nội dung, lớp và hạn nộp. Mô phỏng, câu hỏi và bài code được máy chấm, thầy cô xem kết quả ngay." className="max-w-3xl">
-          <AssignForm key={preset ? `${preset.kind}:${preset.ref}` : "new"} preset={preset} sgkRef={sgkRef} suggest={suggest} onDone={() => onOpenChange(false)} />
+        <DialogContent title={title} description="Chọn nội dung, lớp và hạn nộp. Mô phỏng, câu hỏi và bài code được máy chấm, thầy cô xem kết quả ngay." className="max-w-3xl">
+          <AssignForm key={preset ? `${preset.kind}:${preset.ref}` : "new"} preset={preset} sgkRef={sgkRef} suggest={suggest} classId={classId} studentIds={studentIds} onDone={() => onOpenChange(false)} />
         </DialogContent>
       )}
     </Dialog>
   );
 }
 
-function AssignForm({ preset, sgkRef, suggest, onDone }: { preset?: AssignPreset; sgkRef?: string; suggest?: AssignPreset[]; onDone: () => void }) {
+function AssignForm({ preset, sgkRef, suggest, classId, studentIds, onDone }: { preset?: AssignPreset; sgkRef?: string; suggest?: AssignPreset[]; classId?: string; studentIds?: string[]; onDone: () => void }) {
   const { d, user } = useSessionData();
   const classes = teacherClasses(d, user.id);
   const activities = d.activities.filter((a) => a.ownerId === user.id && a.status === "published");
@@ -70,6 +70,7 @@ function AssignForm({ preset, sgkRef, suggest, onDone }: { preset?: AssignPreset
   const [pick, setPick] = useState<Item | undefined>(presetItem);
   const [q, setQ] = useState("");
   const [classIds, setClassIds] = useState<string[]>(() => {
+    if (classId) return [classId];
     const g = presetItem?.grades;
     const match = classes.filter((c) => !g || g.includes(c.grade)).map((c) => c.id);
     return match.length ? [match[0]] : classes.slice(0, 1).map((c) => c.id);
@@ -78,6 +79,8 @@ function AssignForm({ preset, sgkRef, suggest, onDone }: { preset?: AssignPreset
   const [custom, setCustom] = useState("");
   const [note, setNote] = useState("");
   const [tutor, setTutor] = useState(true);
+  /** undefined = cả lớp; mảng = chỉ các em được chọn (khi giao cho đúng một lớp). */
+  const [only, setOnly] = useState<string[] | undefined>(studentIds);
   const [now] = useState(() => new Date());
 
   const chosen = classes.filter((c) => classIds.includes(c.id));
@@ -92,9 +95,10 @@ function AssignForm({ preset, sgkRef, suggest, onDone }: { preset?: AssignPreset
     if (missingDue) return toast.error("Hạn nộp phải sau hiện tại ít nhất 1 giờ");
     let made = 0;
     for (const c of chosen) {
-      const dup = d.assignments.some((a) => a.classId === c.id && a.status === "open" && (pick.kind === "activity" ? a.activityId === pick.ref : a.task?.kind === pick.kind && a.task.ref === pick.ref));
+      const dup = !(chosen.length === 1 && only?.length) && d.assignments.some((a) => a.classId === c.id && a.status === "open" && !a.studentIds && (pick.kind === "activity" ? a.activityId === pick.ref : a.task?.kind === pick.kind && a.task.ref === pick.ref));
       if (dup) { toast.warning(`${c.name} đã có nhiệm vụ này đang mở, bỏ qua`); continue; }
-      const base = { ownerId: user.id, ...(sgkRef ? { sgkRef } : {}), classId: c.id, title: pick.title, dueAt: dueOf(c)!.toISOString(), hintMode: (tutor ? "guided" : "off") as HintMode, ...(note.trim() ? { note: note.trim() } : {}) };
+      const target = chosen.length === 1 && only?.length ? { studentIds: only } : {};
+      const base = { ownerId: user.id, ...(sgkRef ? { sgkRef } : {}), ...target, classId: c.id, title: pick.title, dueAt: dueOf(c)!.toISOString(), hintMode: (tutor ? "guided" : "off") as HintMode, ...(note.trim() ? { note: note.trim() } : {}) };
       if (pick.kind === "activity") {
         const act = activities.find((a) => a.id === pick.ref);
         const cfg = act && d.labConfigs.find((x) => x.id === act.labConfigId);
@@ -106,7 +110,7 @@ function AssignForm({ preset, sgkRef, suggest, onDone }: { preset?: AssignPreset
     }
     const tq = pick.kind === "quiz" && d.teacherQuizzes.find((x) => x.id === pick.ref);
     if (tq && made) d.saveTeacherQuiz({ ...tq, status: "published", classIds: [...new Set([...tq.classIds, ...classIds])] });
-    if (made) { toast.success(`Đã giao “${pick.title}” cho ${made} lớp`); onDone(); }
+    if (made) { toast.success(chosen.length === 1 && only?.length ? `Đã giao “${pick.title}” cho ${only.length} em` : `Đã giao “${pick.title}” cho ${made} lớp`); onDone(); }
   }
 
   const firstDue = chosen[0] && dueOf(chosen[0]);
@@ -167,10 +171,27 @@ function AssignForm({ preset, sgkRef, suggest, onDone }: { preset?: AssignPreset
           <div className="flex flex-wrap gap-2">
             {classes.map((c) => (
               <label key={c.id} className={cn("flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-1.5 text-sm", classIds.includes(c.id) ? "border-cyan bg-cyan/10 text-fg" : "border-line text-muted")}>
-                <input type="checkbox" checked={classIds.includes(c.id)} onChange={(e) => setClassIds(e.target.checked ? [...classIds, c.id] : classIds.filter((x) => x !== c.id))} /> {c.name}
+                <input type="checkbox" checked={classIds.includes(c.id)} onChange={(e) => { setClassIds(e.target.checked ? [...classIds, c.id] : classIds.filter((x) => x !== c.id)); setOnly(undefined); }} /> {c.name}
               </label>
             ))}
           </div>
+          {chosen.length === 1 && (
+            <div className="mt-2 rounded-xl border border-line p-2">
+              <div className="flex flex-wrap gap-3 text-sm" role="radiogroup" aria-label="Giao cho">
+                <label className="flex items-center gap-1.5"><input type="radio" checked={!only} onChange={() => setOnly(undefined)} /> Cả lớp</label>
+                <label className="flex items-center gap-1.5"><input type="radio" checked={!!only} onChange={() => setOnly([])} /> Chọn học sinh</label>
+              </div>
+              {only && (
+                <div className="mt-2 flex max-h-32 flex-wrap gap-1.5 overflow-y-auto">
+                  {classStudents(d, chosen[0].id).map((u) => (
+                    <label key={u.id} className={cn("flex cursor-pointer items-center gap-1.5 rounded-lg border px-2 py-1 text-xs", only.includes(u.id) ? "border-cyan bg-cyan/10 text-fg" : "border-line text-muted")}>
+                      <input type="checkbox" checked={only.includes(u.id)} onChange={(e) => setOnly(e.target.checked ? [...only, u.id] : only.filter((x) => x !== u.id))} /> {u.name}
+                    </label>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </section>
 
         <section>
@@ -203,7 +224,7 @@ function AssignForm({ preset, sgkRef, suggest, onDone }: { preset?: AssignPreset
           {firstDue && !Number.isNaN(firstDue.getTime()) && <p className="mt-1 flex items-center gap-1 text-xs text-muted"><CalendarClock className="size-3.5" aria-hidden /> Hạn {fmtDue(firstDue)}</p>}
           {pick && <p className="mt-2 text-xs text-muted">{pick.auto ? "Làm xong là có kết quả ngay, thầy cô không cần chấm." : "Nộp bài để thầy cô chấm theo tiêu chí."}{tutor ? "" : " Không dùng AI Gia sư."}</p>}
         </div>
-        <Button className="w-full" onClick={submit} disabled={!pick || !chosen.length}><Send /> Giao cho {chosen.length || ""} lớp</Button>
+        <Button className="w-full" onClick={submit} disabled={!pick || !chosen.length || (chosen.length === 1 && !!only && only.length === 0)}><Send /> {chosen.length === 1 && only?.length ? `Giao cho ${only.length} em` : `Giao cho ${chosen.length || ""} lớp`}</Button>
       </aside>
     </div>
   );

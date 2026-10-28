@@ -5,7 +5,7 @@
  */
 import type { DemoData } from "@/lib/data/seed";
 import { diagnose } from "@/lib/sim/smart-garden";
-import { classStudents, teacherAssignments, teacherClasses } from "@/lib/store/scoped";
+import { teacherAssignments, teacherClasses, assignedStudents } from "@/lib/store/scoped";
 import { taskOutcome } from "@/lib/teacher/assign";
 
 export type NoteKind = "fix" | "chase" | "lab" | "praise";
@@ -50,7 +50,7 @@ export function classNotes(d: DemoData, teacherId: string, now = Date.now()): Cl
   for (const a of teacherAssignments(d, teacherId)) {
     const klass = classes.find((c) => c.id === a.classId);
     if (!klass) continue;
-    const students = classStudents(d, a.classId);
+    const students = assignedStudents(d, a);
     const nameOf = (id: string) => students.find((u) => u.id === id)?.name ?? "Học sinh";
     const title = a.title;
 

@@ -1,3 +1,4 @@
+"use client";
 import Link from "next/link";
 import { ArrowRight, CalendarClock, ClipboardList, NotebookPen } from "lucide-react";
 import type { ClassRoom, Grade } from "@/lib/domain/types";
@@ -105,7 +106,7 @@ function groupNotes(notes: ClassNote[]): [string, ClassNote[]][] {
 const NOTE_DOT: Record<NoteKind, string> = { fix: "bg-warning", chase: "bg-danger", lab: "bg-cyan", praise: "bg-success" };
 
 /** Sổ tay lớp học: em nào vướng chỗ nào, ai chưa nộp, ai làm tốt, và tiết sau nên làm gì. */
-export function ClassInsights({ notes }: { notes: ClassNote[] }) {
+export function ClassInsights({ notes, onRemedy }: { notes: ClassNote[]; onRemedy?: (objectiveId?: string) => void }) {
   return (
     <section aria-labelledby="ins-h" className="min-w-0 rounded-2xl border border-line bg-surface p-5">
       <h2 id="ins-h" className="text-lg font-bold text-fg">Sổ tay lớp học</h2>
@@ -129,7 +130,7 @@ export function ClassInsights({ notes }: { notes: ClassNote[] }) {
                         {links && (
                           <span className="mt-1 flex flex-wrap gap-3 text-xs font-semibold">
                             <Link href={links.plan} className="inline-flex items-center gap-1 text-cyan-fg hover:underline"><NotebookPen className="size-3.5" aria-hidden /> Thêm vào KHBD</Link>
-                            <Link href={links.quiz} className="inline-flex items-center gap-1 text-cyan-fg hover:underline"><ClipboardList className="size-3.5" aria-hidden /> Soạn vài câu luyện thêm</Link>
+                            {onRemedy ? <button type="button" onClick={() => onRemedy(n.objectiveId)} className="inline-flex items-center gap-1 text-cyan-fg hover:underline"><ClipboardList className="size-3.5" aria-hidden /> Giao bài củng cố</button> : <Link href={links.quiz} className="inline-flex items-center gap-1 text-cyan-fg hover:underline"><ClipboardList className="size-3.5" aria-hidden /> Soạn vài câu luyện thêm</Link>}
                           </span>
                         )}
                       </div>

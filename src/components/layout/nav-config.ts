@@ -8,7 +8,6 @@ import {
   Gamepad2,
   GraduationCap,
   Home,
-  LayoutDashboard,
   NotebookPen,
   Shield,
   Users,
@@ -27,8 +26,7 @@ export const NAV: Record<Role, NavItem[]> = {
   // Trang chủ chung + 6 chức năng của giáo viên. Kho mô phỏng, học liệu, ngân hàng câu hỏi là tài nguyên dùng chung,
   // mở từ Khóa học hoặc Bài tập & Đánh giá (match) chứ không phải mục menu riêng.
   teacher: [
-    { href: "/", label: "Trang chủ", icon: Home },
-    { href: "/teacher/dashboard", label: "Tổng quan", icon: LayoutDashboard },
+    { href: "/teacher/dashboard", label: "Hôm nay", icon: Home },
     { href: "/teacher/classes", label: "Lớp học của tôi", icon: Users },
     { href: "/teacher/sgk", label: "Sách giáo khoa số", icon: BookMarked, match: ["/teacher/courses", "/teacher/labs", "/teacher/library", "/labs", "/curriculum", "/explore", "/bai-hoc", "/thuat-toan"] },
     { href: "/teacher/assignments", label: "Bài tập & Đánh giá", icon: ClipboardCheck, match: ["/teacher/assessment", "/teacher/activity-builder", "/teacher/resources"] },

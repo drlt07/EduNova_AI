@@ -14,6 +14,7 @@ import Labs from "@/app/(public)/labs/page";
 import LabDetailPage from "@/app/(public)/labs/[slug]/page";
 import Hsg from "@/app/(public)/thuat-toan/page";
 import TSgk from "@/app/teacher/sgk/page";
+import TClass from "@/app/teacher/classes/[id]/page";
 import SSgk from "@/app/student/sgk/page";
 import { BookReader } from "@/components/sgk/reader";
 import { AlgoPage } from "@/components/algo/algo-page";
@@ -129,6 +130,7 @@ const ROUTES: Route[] = [
   r("/teacher/labs", "teacher", C(TLabs)),
   r("/teacher/resources", "teacher", C(TResources)),
   r("/teacher/classes", "teacher", C(TClasses)),
+  r("/teacher/classes/:id", "teacher", (p) => <TClass key={p.id} />),
   r("/teacher/assignments", "teacher", C(TAssignments)),
   r("/teacher/assessment", "teacher", C(TAssessment)),
   r("/teacher/analytics", "teacher", C(TAnalytics)),

@@ -272,6 +272,8 @@ export interface Assignment {
   note?: string;
   /** Bài SGK mà nhiệm vụ này thuộc về, vd "10-19". */
   sgkRef?: string;
+  /** Chỉ giao cho các em này trong lớp (bỏ trống = cả lớp). */
+  studentIds?: string[];
 }
 
 export interface ClassRoom {
@@ -290,6 +292,8 @@ export interface Enrollment {
   id: string;
   classId: string;
   studentId: string;
+  /** "invited": giáo viên đã thêm nhưng em chưa vào lớp lần nào. */
+  status?: "invited";
 }
 
 // ---------- Evidence ----------
