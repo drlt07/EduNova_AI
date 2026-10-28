@@ -30,7 +30,7 @@ export const NAV: Record<Role, NavItem[]> = {
     { href: "/", label: "Trang chủ", icon: Home },
     { href: "/teacher/dashboard", label: "Tổng quan", icon: LayoutDashboard },
     { href: "/teacher/classes", label: "Lớp học của tôi", icon: Users },
-    { href: "/teacher/courses", label: "Khóa học", icon: BookMarked, match: ["/teacher/labs", "/teacher/library", "/labs", "/curriculum", "/explore", "/bai-hoc"] },
+    { href: "/teacher/courses", label: "Khóa học", icon: BookMarked, match: ["/teacher/labs", "/teacher/library", "/labs", "/curriculum", "/explore", "/bai-hoc", "/thuat-toan"] },
     { href: "/teacher/assignments", label: "Bài tập & Đánh giá", icon: ClipboardCheck, match: ["/teacher/assessment", "/teacher/activity-builder", "/teacher/resources"] },
     { href: "/teacher/analytics", label: "Kết quả học tập", icon: BarChart3 },
     { href: "/teacher/lesson-planner", label: "Trợ lý KHBD AI", icon: NotebookPen },
@@ -39,7 +39,7 @@ export const NAV: Record<Role, NavItem[]> = {
   student: [
     { href: "/", label: "Trang chủ", icon: Home },
     { href: "/student/courses", label: "Khóa học của tôi", icon: BookMarked, match: ["/student/missions", "/student/learning", "/student/dashboard", "/curriculum", "/explore", "/bai-hoc"] },
-    { href: "/student/games", label: "Tình huống mô phỏng", icon: Gamepad2, match: ["/labs"] },
+    { href: "/student/games", label: "Tình huống mô phỏng", icon: Gamepad2, match: ["/labs", "/thuat-toan"] },
     { href: "/student/practice", label: "Luyện tập", icon: Dumbbell, match: ["/student/code", "/student/projects"] },
     { href: "/student/tutor", label: "AI Gia sư", icon: Bot },
   ],

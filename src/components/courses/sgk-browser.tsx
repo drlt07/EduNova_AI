@@ -1,9 +1,11 @@
 "use client";
 import Link from "next/link";
-import { BookOpen, FlaskConical, ListChecks, NotebookPen, Plus, SlidersHorizontal } from "lucide-react";
+import { ArrowRight, BookOpen, FlaskConical, ListChecks, NotebookPen, Plus, SlidersHorizontal, Trophy } from "lucide-react";
 import type { Grade } from "@/lib/domain/types";
 import { SGK_KNTT, sgkCount, sgkLabs, sgkLessonId, sgkRef } from "@/lib/data/sgk-kntt";
+import { hsgCount } from "@/lib/data/hsg";
 import { cn } from "@/lib/utils";
+import { HsgCatalog } from "@/components/algo/hsg-catalog";
 import { Button } from "@/components/ui/button";
 
 const GRADE_TILE: Record<Grade, { title: string; tone: string; ring: string }> = {
@@ -22,9 +24,14 @@ const TOPIC_TONE = [
   { band: "from-danger/30 to-danger/5", chip: "bg-danger/15 text-danger-fg" },
 ];
 
-/** Chọn khối lớp → mục lục SGK Kết nối tri thức theo chủ đề, mỗi bài kèm bài tương tác, mô phỏng và lối soạn KHBD. */
-export function SgkBrowser({ grade, onGrade, onCreate, onOpenLesson, stats }: { grade: Grade; onGrade: (g: Grade) => void; onCreate: (g: Grade) => void; onOpenLesson?: (ref: string) => void; stats?: (ref: string) => { quizzes: number; extraLabs: number } }) {
-  const count = sgkCount(grade);
+export type Track = Grade | "hsg";
+
+/**
+ * Chọn khối lớp → mục lục SGK Kết nối tri thức theo chủ đề, mỗi bài kèm bài tương tác, mô phỏng và lối soạn KHBD.
+ * Ô thứ tư "HSG" mở các chuyên đề bồi dưỡng học sinh giỏi với mô phỏng thuật toán.
+ */
+export function SgkBrowser({ grade: track, onGrade, onCreate, onOpenLesson, stats }: { grade: Track; onGrade: (g: Track) => void; onCreate: (g: Grade) => void; onOpenLesson?: (ref: string) => void; stats?: (ref: string) => { quizzes: number; extraLabs: number } }) {
+  const hsg = hsgCount();
   return (
     <section aria-labelledby="sgk-h" className="mb-10">
       <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
@@ -33,10 +40,10 @@ export function SgkBrowser({ grade, onGrade, onCreate, onOpenLesson, stats }: { 
           <h2 id="sgk-h" className="text-2xl font-bold text-fg">Chọn khối lớp</h2>
         </div>
       </div>
-      <div className="grid gap-4 md:grid-cols-3" role="group" aria-label="Khối lớp">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4" role="group" aria-label="Khối lớp">
         {([10, 11, 12] as Grade[]).map((g) => {
           const c = sgkCount(g);
-          const on = g === grade;
+          const on = g === track;
           return (
             <button
               key={g}
@@ -65,8 +72,52 @@ export function SgkBrowser({ grade, onGrade, onCreate, onOpenLesson, stats }: { 
             </button>
           );
         })}
+        <button
+          type="button"
+          aria-pressed={track === "hsg"}
+          onClick={() => onGrade("hsg")}
+          className={cn(
+            "group relative overflow-hidden rounded-3xl border bg-gradient-to-br from-warning/30 via-warning/10 to-transparent p-5 text-left transition-all hover:-translate-y-0.5",
+            track === "hsg" ? "border-transparent shadow-[0_18px_50px_-24px_var(--warning)] ring-2 ring-warning" : "border-line opacity-80 hover:opacity-100",
+          )}
+        >
+          <span className="flex items-baseline gap-3">
+            <span className="grid size-12 shrink-0 place-items-center self-center rounded-2xl bg-gradient-to-br from-warning to-danger text-white shadow-sm"><Trophy className="size-6" aria-hidden /></span>
+            <span className="min-w-0">
+              <span className="block text-lg font-bold text-fg">Bồi dưỡng HSG</span>
+              <span className="block text-sm text-muted">Thuật toán nổi bật</span>
+            </span>
+          </span>
+          <span className="mt-4 flex flex-wrap gap-1.5 text-xs font-medium">
+            <span className="rounded-full bg-surface/80 px-2.5 py-1 text-fg">{hsg.topics} chuyên đề</span>
+            <span className="rounded-full bg-surface/80 px-2.5 py-1 text-warning-fg">{hsg.algos} mô phỏng thuật toán</span>
+          </span>
+          {track === "hsg" && <span className="absolute right-4 top-4 rounded-full bg-fg px-2.5 py-0.5 text-[11px] font-semibold text-bg">Đang xem</span>}
+        </button>
       </div>
 
+      {track === "hsg" ? (
+        <>
+          <div className="mt-8 flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h3 className="flex items-center gap-2 text-xl font-bold text-fg"><Trophy className="size-5 text-warning-fg" aria-hidden /> Chuyên đề bồi dưỡng học sinh giỏi</h3>
+              <p className="text-sm text-muted">Mỗi thuật toán chạy từng bước theo code Python, có chế độ dự đoán để học sinh đoán bước tiếp theo. Học sinh mở được ở mục Tình huống mô phỏng.</p>
+            </div>
+            <Button asChild variant="secondary"><Link href="/thuat-toan">Trang chuyên đề <ArrowRight /></Link></Button>
+          </div>
+          <div className="mt-4"><HsgCatalog /></div>
+        </>
+      ) : (
+        <GradeToc grade={track} onCreate={onCreate} onOpenLesson={onOpenLesson} stats={stats} />
+      )}
+    </section>
+  );
+}
+
+function GradeToc({ grade, onCreate, onOpenLesson, stats }: { grade: Grade; onCreate: (g: Grade) => void; onOpenLesson?: (ref: string) => void; stats?: (ref: string) => { quizzes: number; extraLabs: number } }) {
+  const count = sgkCount(grade);
+  return (
+    <>
       <div className="mt-8 flex flex-wrap items-center justify-between gap-3">
         <div>
           <h3 className="text-xl font-bold text-fg">Mục lục SGK Tin học {grade}</h3>
@@ -118,6 +169,6 @@ export function SgkBrowser({ grade, onGrade, onCreate, onOpenLesson, stats }: { 
           );
         })}
       </div>
-    </section>
+    </>
   );
 }

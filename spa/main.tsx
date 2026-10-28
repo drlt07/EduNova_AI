@@ -12,6 +12,8 @@ import Explore from "@/app/(public)/explore/page";
 import Curriculum from "@/app/(public)/curriculum/page";
 import Labs from "@/app/(public)/labs/page";
 import LabDetailPage from "@/app/(public)/labs/[slug]/page";
+import Hsg from "@/app/(public)/thuat-toan/page";
+import { AlgoPage } from "@/components/algo/algo-page";
 import About from "@/app/(public)/about/page";
 import Guide from "@/app/(public)/huong-dan/page";
 import Policy from "@/app/(public)/chinh-sach/page";
@@ -104,6 +106,8 @@ const ROUTES: Route[] = [
   r("/curriculum", "public", C(Curriculum)),
   r("/labs", "public", C(Labs)),
   r("/labs/:slug", "public", (p) => <LabDetail slug={p.slug} />),
+  r("/thuat-toan", "public", C(Hsg)),
+  r("/thuat-toan/:id", "public", (p) => <AlgoPage key={p.id} id={p.id} />),
   r("/bai-hoc/:id", "public", (p) => <AsyncPage page={LessonPage} params={p} />),
   r("/about", "public", C(About)),
   r("/huong-dan", "public", C(Guide)),

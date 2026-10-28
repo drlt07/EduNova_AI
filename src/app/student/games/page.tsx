@@ -12,6 +12,8 @@ import { Badge } from "@/components/ui/badge";
 import { Select } from "@/components/ui/form";
 import { LabIcon } from "@/components/labs/lab-card";
 import { AnimatedBar, Stagger, StaggerItem } from "@/components/motion";
+import { AlgoThumb } from "@/components/algo/hsg-catalog";
+import { ALGO_IDS, HSG_TOPICS } from "@/lib/data/hsg";
 
 const WORLD_STYLE = { success: "from-success/25 via-cyan/10", blue: "from-blue/25 via-cyan/10", violet: "from-violet/25 via-blue/10" } as const;
 const DIFF_TONE = { "co-ban": "success", "trung-binh": "warning", "nang-cao": "danger" } as const;
@@ -27,6 +29,14 @@ export default function GamesPage() {
   return (
     <>
       <PageHero variant="app" eyebrow="Tình huống mô phỏng" icon={Gamepad2} title="Khám phá Tin học" accent="bằng cách thử" description="Thuật toán, máy tính, mạng và những tình huống tương tác. Gặp khó, mở AI Gia sư ngay bên cạnh mô phỏng." stats={[{ value: GAMES.filter((g) => g.status === "available").length, label: "chơi được ngay" }, { value: GAMES.length, label: "tình huống" }, { value: WORLDS.length, label: "thế giới" }, { value: "3D", label: "giao lộ thông minh" }]} visual={<MiniSimPreview href="/student/games/traffic-city" cta="Chơi ngay" />} />
+      <Link href="/thuat-toan" className="group mb-6 flex flex-wrap items-center gap-4 rounded-2xl border border-warning/40 bg-gradient-to-r from-warning/20 via-warning/5 to-transparent p-4 transition-all hover:-translate-y-0.5 sm:p-5">
+        <span className="flex gap-2" aria-hidden>{(["bubble", "bfs", "dijkstra"] as const).map((id) => <AlgoThumb key={id} id={id} className="h-10 w-16 rounded-lg bg-surface" />)}</span>
+        <span className="min-w-0 flex-1">
+          <span className="flex items-center gap-2 text-lg font-bold text-fg"><Trophy className="size-5 text-warning-fg" aria-hidden /> Chuyên đề HSG: mô phỏng thuật toán</span>
+          <span className="block text-sm text-muted">{ALGO_IDS.length} thuật toán trong {HSG_TOPICS.length} chuyên đề: sắp xếp, tìm kiếm, loang BFS/DFS, Dijkstra, quy hoạch động, sàng nguyên tố. Chạy từng bước và đoán bước tiếp theo.</span>
+        </span>
+        <span className="rounded-xl bg-fg px-3 py-2 text-sm font-semibold text-bg group-hover:opacity-90">Mở chuyên đề</span>
+      </Link>
       <Stagger className="mb-6 grid gap-4 md:grid-cols-3">
         {WORLDS.map((w) => (
           <StaggerItem key={w.id}>

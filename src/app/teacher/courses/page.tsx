@@ -25,7 +25,8 @@ export default function TeacherCoursesPage() {
   const router = useRouter();
   const pathname = usePathname();
   const params = useSearchParams();
-  const grade = ([10, 11, 12] as const).find((g) => String(g) === params.get("grade")) ?? 10;
+  const track = params.get("grade") === "hsg" ? "hsg" : (([10, 11, 12] as const).find((g) => String(g) === params.get("grade")) ?? 10);
+  const grade = track === "hsg" ? 10 : track;
   const lessonRef = params.get("bai");
   const lessonTab = (["labs", "quiz", "code", "plan"].includes(params.get("tab") ?? "") ? params.get("tab") : "labs") as LessonTab;
   const setQuery = (patch: Record<string, string | null>) => {
@@ -40,7 +41,7 @@ export default function TeacherCoursesPage() {
     <>
       <PageHero variant="app" eyebrow="Khóa học" icon={BookMarked} title="Xây bài học," accent="giao hoạt động" description="Khóa học theo khối lớp, bộ sách, chủ đề và bài học; mỗi bài gồm kiến thức, video, mô phỏng, thực hành Python và luyện tập, phát hành cho lớp." actions={<Button onClick={() => setOpen(grade)}><Plus /> Tạo khóa học</Button>} stats={[{ value: courses.length, label: "khóa học của tôi" }, { value: courses.filter((c) => c.status === "published").length, label: "đã phát hành" }, { value: courses.reduce((n, c) => n + allLessons(c).length, 0), label: "bài học" }, { value: 6, label: "loại nội dung" }]} visual={<LabCollage slugs={["inside-computer-3d", "network-journey", "os-explorer", "smart-coding-city"]} hrefFor={(s) => `/labs/${s}`} />} />
       <SgkBrowser
-        grade={grade}
+        grade={track}
         onGrade={(g) => router.replace(`${pathname}?grade=${g}`, { scroll: false })}
         onCreate={setOpen}
         onOpenLesson={(ref) => setQuery({ bai: ref, tab: "labs" })}
