@@ -44,7 +44,8 @@ function SidebarNav({ role, onNavigate }: { role: Role; onNavigate?: () => void 
   );
 }
 
-export function AppShell({ role, children }: { role: Role; children: React.ReactNode }) {
+/** bleed: trang công khai (trang chủ, kho mô phỏng…) tự lo bề rộng và lề, nên vùng nội dung không giới hạn bề rộng. */
+export function AppShell({ role, children, bleed = false }: { role: Role; children: React.ReactNode; bleed?: boolean }) {
   const hydrated = useHydrated();
   const user = useCurrentUser();
   const [open, setOpen] = useState(false);
@@ -133,7 +134,7 @@ export function AppShell({ role, children }: { role: Role; children: React.React
             {hydrated && <RoleSwitcher />}
           </div>
         </header>
-        <main id="main" className="relative mx-auto w-full max-w-[1400px] flex-1 px-4 py-6 pb-24 sm:px-6 lg:px-8">
+        <main id="main" className={cn("relative w-full flex-1", bleed ? "pb-16" : "mx-auto max-w-[1400px] px-4 py-6 pb-24 sm:px-6 lg:px-8")}>
           <motion.div key={pathname} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.22, ease: "easeOut" }}>
             {isStudent ? <TutorProvider userId={user!.id}>{body}</TutorProvider> : body}
           </motion.div>

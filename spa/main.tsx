@@ -2,10 +2,8 @@ import { StrictMode, useEffect, useState, useSyncExternalStore, type ReactNode }
 import { createRoot } from "react-dom/client";
 import "./styles.css";
 import { Providers } from "@/components/layout/providers";
-import { SiteHeader } from "@/components/layout/site-header";
-import { SiteFooter } from "@/components/layout/site-footer";
 import { AppShell } from "@/components/layout/app-shell";
-import { LoginGate } from "@/components/layout/login-gate";
+import { PublicFrame } from "@/components/layout/public-frame";
 import { ParamsContext } from "./shims/navigation";
 import { getLoc, subscribe } from "./shims/router-store";
 
@@ -166,13 +164,9 @@ function App() {
   return (
     <ParamsContext.Provider value={params}>
       {area === "public" ? (
-        <div className="flex min-h-screen flex-col">
-          <SiteHeader />
-          <main id="main" className="flex-1" key={loc.pathname}>
-            <LoginGate>{body}</LoginGate>
-          </main>
-          <SiteFooter />
-        </div>
+        <PublicFrame>
+          <div key={loc.pathname}>{body}</div>
+        </PublicFrame>
       ) : (
         <AppShell role={area}>
           <div key={loc.pathname}>{body}</div>

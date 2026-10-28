@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AccountCta, GuestOnly } from "@/components/layout/account-cta";
 import {
   ArrowRight,
   BarChart3,
@@ -120,10 +121,12 @@ export default function HomePage() {
                 <RoleLink role="student">Bắt đầu học tập</RoleLink>
               </Button>
             </div>
-            <p className="mt-4 flex items-center gap-2 text-sm text-muted">
-              <Lock className="size-4 shrink-0 text-cyan-fg" aria-hidden />
-              Đăng nhập để sử dụng các chức năng — bản dùng thử có sẵn tài khoản, không cần mật khẩu.
-            </p>
+            <GuestOnly>
+              <p className="mt-4 flex items-center gap-2 text-sm text-muted">
+                <Lock className="size-4 shrink-0 text-cyan-fg" aria-hidden />
+                Đăng nhập để sử dụng các chức năng — bản dùng thử có sẵn tài khoản, không cần mật khẩu.
+              </p>
+            </GuestOnly>
           </div>
           <div className="relative">
             <div className="rounded-[22px] border border-line bg-surface/80 p-3 shadow-[0_30px_80px_-30px_rgba(34,211,238,0.35)] backdrop-blur">
@@ -345,9 +348,7 @@ else:
                 Khám phá kho mô phỏng <ArrowRight />
               </Link>
             </Button>
-            <Button asChild size="lg" variant="secondary">
-              <Link href="/login">Đăng nhập hệ thống</Link>
-            </Button>
+            <AccountCta />
           </div>
         </div>
       </section>
