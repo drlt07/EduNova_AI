@@ -2,13 +2,12 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ArrowLeft, ArrowRight, BookMarked, BookOpen, Library, CheckCircle2, ClipboardList, Code2, FileText, FlaskConical, ListChecks, Lock, NotebookPen, Play, Send } from "lucide-react";
+import { ArrowLeft, ArrowRight, BookMarked, BookOpen, Library, CheckCircle2, ClipboardList, Code2, FileText, FlaskConical, ListChecks, Lock, Play, Send } from "lucide-react";
 import type { Grade } from "@/lib/domain/types";
 import { ALGO_IDS } from "@/lib/data/hsg";
 import { CODING_EXERCISES } from "@/lib/data/coding-exercises";
 import { getLabBySlug } from "@/lib/data/labs";
 import { PRACTICE_SETS, setsForLesson } from "@/lib/data/practice";
-import { sgkLessonId } from "@/lib/data/sgk-kntt";
 import { BOOKS, bookEntry, bookLessons, bookOf, contentCount, lessonChecks, lessonSimSlugs, type BookEntry } from "@/lib/sgk/book";
 import { teacherClasses } from "@/lib/store/scoped";
 import { useSessionData } from "@/lib/store/use-role";
@@ -218,7 +217,6 @@ function LessonPreview({ e, role }: { e: BookEntry; role: Role }) {
   const code = e.lesson.key ? CODING_EXERCISES.filter((x) => x.lessonKey === e.lesson.key).length : 0;
   const tasks = teacher ? lessonAssignments(d, d.assignments.filter((a) => a.ownerId === user.id), user.id, e).length : 0;
   const progress = d.bookProgress.find((p) => p.userId === user.id && p.ref === e.ref);
-  const lessonId = sgkLessonId(e.lesson);
   const sim = sims[0];
   const parts: { tab: string; label: string; n: number; icon: React.ComponentType<{ className?: string }> }[] = [
     { tab: "", label: "mục nội dung", n: e.content?.sections.length ?? 0, icon: FileText },
@@ -235,7 +233,6 @@ function LessonPreview({ e, role }: { e: BookEntry; role: Role }) {
           <h2 className="mt-1.5 text-2xl font-bold text-fg">{e.lesson.title}</h2>
         </div>
         <span className="flex flex-wrap gap-2">
-          {teacher && lessonId && <Button asChild size="sm" variant="ghost"><Link href={`/teacher/lesson-planner/assistant?lesson=${lessonId}`}><NotebookPen /> Soạn KHBD</Link></Button>}
           {teacher && <Button size="sm" variant="secondary" onClick={() => setAssign(null)}><Send /> Giao</Button>}
           <Button asChild size="sm"><Link href={href}><BookOpen /> {teacher ? "Mở bài" : progress ? "Học tiếp" : "Vào bài"}</Link></Button>
         </span>

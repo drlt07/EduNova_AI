@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { ArrowLeft, ArrowRight, BookOpen, Bot, CheckCircle2, ChevronRight, Circle, ClipboardList, Code2, FileText, FlaskConical, ListChecks, Lock, MonitorPlay, NotebookPen, PencilLine, Send, Star, Target, Trash2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, BookOpen, Bot, CheckCircle2, ChevronRight, Circle, ClipboardList, Code2, FileText, FlaskConical, ListChecks, Lock, MonitorPlay, PencilLine, Send, Star, Target, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import type { Assignment } from "@/lib/domain/types";
 import type { DemoData } from "@/lib/data/seed";
@@ -10,7 +10,6 @@ import { CODING_EXERCISES } from "@/lib/data/coding-exercises";
 import { getLabBySlug } from "@/lib/data/labs";
 import { getQuestion, KIND_LABEL, setsForLesson, type PracticeQuestion } from "@/lib/data/practice";
 import { LessonCodeTab, LessonLabsTab, LessonQuizTab } from "@/components/courses/lesson-panel";
-import { sgkLessonId } from "@/lib/data/sgk-kntt";
 import { bookEntry, bookOf, itemKey, lessonChecks, lessonSimSlugs, neighbors, type BookEntry } from "@/lib/sgk/book";
 import { fmtScore, labSummary } from "@/lib/sim/lab-score";
 import { teacherClasses, assignedStudents, studentClassIds } from "@/lib/store/scoped";
@@ -30,18 +29,17 @@ import { codeKey, lessonKey, setKey } from "@/lib/access/unlocks";
 import { useAccess } from "@/lib/access/use-access";
 
 type Role = "teacher" | "student";
-type TabId = "noi-dung" | "mo-phong" | "cau-hoi" | "lap-trinh" | "khbd" | "nhiem-vu" | "luyen-tap";
+type TabId = "noi-dung" | "mo-phong" | "cau-hoi" | "lap-trinh" | "nhiem-vu" | "luyen-tap";
 const TAB_META: Record<TabId, { label: string; icon: React.ComponentType<{ className?: string }>; on: string }> = {
   "noi-dung": { label: "Nội dung", icon: FileText, on: "bg-blue-600 text-white shadow-blue-600/30" },
   "mo-phong": { label: "Mô phỏng", icon: FlaskConical, on: "bg-violet-600 text-white shadow-violet-600/30" },
   "cau-hoi": { label: "Câu hỏi luyện tập", icon: ListChecks, on: "bg-emerald-600 text-white shadow-emerald-600/30" },
   "lap-trinh": { label: "Bài lập trình", icon: Code2, on: "bg-slate-800 text-white shadow-slate-800/30" },
   "luyen-tap": { label: "Luyện tập", icon: ListChecks, on: "bg-emerald-600 text-white shadow-emerald-600/30" },
-  khbd: { label: "KHBD", icon: NotebookPen, on: "bg-amber-500 text-white shadow-amber-500/30" },
   "nhiem-vu": { label: "Nhiệm vụ & kết quả", icon: ClipboardList, on: "bg-rose-500 text-white shadow-rose-500/30" },
 };
 const GRADE_BG: Record<number, string> = { 10: "from-[#2563eb] to-[#06b6d4]", 11: "from-[#4f46e5] to-[#7c3aed]", 12: "from-[#7c3aed] to-[#db2777]" };
-const TEACHER_TABS: TabId[] = ["noi-dung", "mo-phong", "cau-hoi", "lap-trinh", "khbd", "nhiem-vu"];
+const TEACHER_TABS: TabId[] = ["noi-dung", "mo-phong", "cau-hoi", "lap-trinh", "nhiem-vu"];
 const STUDENT_TABS: TabId[] = ["noi-dung", "mo-phong", "luyen-tap", "nhiem-vu"];
 const base = (role: Role) => (role === "teacher" ? "/teacher/sgk" : "/student/sgk");
 
@@ -99,7 +97,7 @@ function Notes({ refId, sectionId }: { refId: string; sectionId: string }) {
   );
 }
 
-/** Trang một bài trong Khóa học: mọi thứ của bài (nội dung, mô phỏng, câu hỏi, lập trình, KHBD, nhiệm vụ) nằm trong các tab ngay dưới tên bài. */
+/** Trang một bài trong Khóa học: mọi thứ của bài (tóm tắt kiến thức, mô phỏng, câu hỏi, lập trình, nhiệm vụ); KHBD soạn riêng ở Trợ lý KHBD nằm trong các tab ngay dưới tên bài. */
 export function BookReader({ refId, role }: { refId: string; role: Role }) {
   const { d, user } = useSessionData();
   const tutor = useTutor();
@@ -292,7 +290,6 @@ export function BookReader({ refId, role }: { refId: string; role: Role }) {
           {tab === "mo-phong" && (teacher ? <LessonLabsTab refId={refId} inline={lessonSimSlugs(e)} /> : allSims.length ? <LessonSims labs={allSims.map((s) => getLabBySlug(s)).filter((l): l is NonNullable<typeof l> => !!l)} studentId={user.id} /> : <p className="text-sm text-muted">Bài này chưa có mô phỏng.</p>)}
           {tab === "cau-hoi" && <><ContentChecks e={e} onOpen={() => setTab("noi-dung")} /><LessonQuizTab refId={refId} /></>}
           {tab === "lap-trinh" && <LessonCodeTab refId={refId} />}
-          {tab === "khbd" && <PlanTab e={e} />}
           {tab === "luyen-tap" && <StudentPracticeTab e={e} />}
           {tab === "nhiem-vu" && (teacher ? <TeacherTasks e={e} onAssign={() => setAssign(null)} /> : <StudentTasks e={e} />)}
         </div>
@@ -406,32 +403,6 @@ function ContentChecks({ e, onOpen }: { e: BookEntry; onOpen: () => void }) {
       </ul>
       <button type="button" onClick={onOpen} className="mt-2 text-xs font-medium text-cyan-fg hover:underline">Xem trong nội dung bài</button>
     </section>
-  );
-}
-
-function PlanTab({ e }: { e: BookEntry }) {
-  const { d, user } = useSessionData();
-  const id = sgkLessonId(e.lesson);
-  const plans = id ? d.lessonPlans.filter((p) => p.ownerId === user.id && p.lessonId === id) : [];
-  return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap gap-2">
-        <Button asChild><Link href={`/teacher/lesson-planner/assistant${id ? `?lesson=${id}` : ""}`}><NotebookPen /> Soạn KHBD bài này</Link></Button>
-        {id && <Button asChild variant="secondary"><Link href={`/bai-hoc/${id}`}><BookOpen /> Xem bài học tương tác</Link></Button>}
-      </div>
-      {plans.length === 0 ? <p className="text-sm text-muted">Chưa có KHBD cho bài này. {id ? "" : "Thầy cô có thể tải KHBD của mình lên Trợ lý KHBD để phân tích, bổ sung năng lực số và gắn mô phỏng."}</p> : (
-        <ul className="space-y-2">
-          {plans.map((p) => (
-            <li key={p.id}>
-              <Link href={`/teacher/lesson-planner/${p.id}`} className="flex flex-wrap items-center gap-2 rounded-xl border border-line bg-surface p-3 hover:border-cyan/40">
-                <span className="min-w-0 flex-1"><span className="block font-semibold text-fg">{p.title}</span><span className="block text-xs text-muted">{p.activities.length} hoạt động · {p.durationMinutes} phút</span></span>
-                <span className={cn("rounded-full px-2 py-0.5 text-xs font-semibold", p.status === "published" ? "bg-success/15 text-success-fg" : "bg-surface-2 text-muted")}>{p.status === "published" ? "Đã dùng" : "Nháp"}</span>
-              </Link>
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
   );
 }
 
