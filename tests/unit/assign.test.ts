@@ -86,8 +86,14 @@ describe("Cấu hình giao bài: số lần làm và cách tính điểm", () =>
 });
 
 describe("Điều hướng", () => {
-  it("giáo viên có đúng 5 mục, bài học là trung tâm", () => {
-    expect(NAV.teacher.map((i) => i.label)).toEqual(["Hôm nay", "Khóa học", "Lớp của tôi", "Trợ lý KHBD AI", "Thư viện"]);
+  it("giáo viên có 5 mục chính và mục Mô phỏng đời sống riêng", () => {
+    expect(NAV.teacher.map((i) => i.label)).toEqual(["Hôm nay", "Khóa học", "Lớp của tôi", "Trợ lý KHBD AI", "Thư viện", "Mô phỏng đời sống"]);
+  });
+  it("Mô phỏng đời sống là mục riêng ở cả ba vai trò", () => {
+    expect(NAV.teacher.find((i) => i.label === "Mô phỏng đời sống")?.href).toBe("/teacher/kho");
+    expect(NAV.student.find((i) => i.label === "Mô phỏng đời sống")?.href).toBe("/student/kho");
+    expect(NAV.admin.find((i) => i.label === "Mô phỏng đời sống")?.href).toBe("/admin/kho");
+    expect(NAV.student.find((i) => i.href === "/student/games")?.match).not.toContain("/student/kho");
   });
   it("trang cũ vẫn thuộc một mục (không mất chức năng)", () => {
     const all = NAV.teacher.flatMap((i) => [i.href, ...(i.match ?? [])]);

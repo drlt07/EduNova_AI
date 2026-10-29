@@ -57,7 +57,7 @@ export function ClassesHeader({ subtitle = "Lớp, học sinh, bài đã giao v�
 export function LibraryHeader({ subtitle = "Tài nguyên dùng lại cho mọi bài học và lớp", actions }: { subtitle?: string; actions?: React.ReactNode }) {
   return (
     <SectionHeader title="Thư viện" subtitle={subtitle} actions={actions} tabs={[
-      { href: "/teacher/sims", label: "Mô phỏng", match: ["/teacher/sims", "/teacher/kho"] },
+      { href: "/teacher/sims", label: "Mô phỏng", match: ["/teacher/sims"] },
       { href: "/teacher/bank", label: "Ngân hàng luyện tập", match: ["/teacher/bank", "/teacher/activity-builder"] },
       { href: "/teacher/library", label: "Học liệu", match: ["/teacher/library", "/teacher/resources", "/teacher/labs"] },
     ]} />

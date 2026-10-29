@@ -1,5 +1,5 @@
 "use client";
-import { FlaskConical } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import { SectionHead } from "@/components/layout/section-head";
 import { KhoGallery } from "@/components/life/kho";
 
@@ -7,7 +7,7 @@ import { KhoGallery } from "@/components/life/kho";
 export default function Page() {
   return (
     <>
-      <SectionHead icon={FlaskConical} title="Kho mô phỏng" subtitle="Tin học trong đời sống: tự do khám phá, không tính điểm. Mô phỏng theo bài học nằm trong Khóa học." />
+      <SectionHead icon={Sparkles} title="Mô phỏng đời sống" subtitle="Tin học quanh ta: tự do khám phá, không tính điểm. Mô phỏng theo bài học nằm trong Khóa học." />
       <KhoGallery base="/student/kho" />
     </>
   );

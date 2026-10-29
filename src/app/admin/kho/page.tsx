@@ -20,7 +20,7 @@ export default function AdminKhoPage() {
   const rows = [...LIFE_LABS].sort((a, b) => (kho.plays[b.slug] ?? 0) - (kho.plays[a.slug] ?? 0));
   return (
     <>
-      <SectionHead icon={FlaskConical} title="Quản trị kho mô phỏng" subtitle="Kho công khai cho khách, học sinh và giáo viên. Ẩn mô phỏng chưa phù hợp, chọn mô phỏng nổi bật hiện trên trang kho và trang chủ." actions={<Button asChild variant="secondary"><Link href="/kho">Xem kho như khách</Link></Button>} />
+      <SectionHead icon={FlaskConical} title="Mô phỏng đời sống" subtitle="Kho công khai cho khách, học sinh và giáo viên. Ẩn mô phỏng chưa phù hợp, chọn mô phỏng nổi bật hiện trên trang kho và trang chủ." actions={<Button asChild variant="secondary"><Link href="/kho">Xem kho như khách</Link></Button>} />
       <div className="mb-5 grid gap-2 sm:grid-cols-4">
         {[
           { label: "Mô phỏng trong kho", value: LIFE_LABS.length },
