@@ -15,6 +15,7 @@ import { ErrorState } from "@/components/ui/feedback";
 import { LIFE_COMPONENTS, LifeArt } from "./life-registry";
 
 export const GROUP_THEME: Record<LifeLab["group"], { chip: string; text: string; glow: string; bar: string; soft: string }> = {
+  "may-tinh": { chip: "bg-indigo-100 text-indigo-800 dark:bg-indigo-500/20 dark:text-indigo-200", text: "text-indigo-700 dark:text-indigo-300", glow: "hover:shadow-indigo-500/25", bar: "from-indigo-400 to-violet-400", soft: "from-indigo-100 via-white to-violet-50 dark:from-indigo-500/15 dark:via-surface dark:to-violet-500/10" },
   "thuong-ngay": { chip: "bg-sky-100 text-sky-800 dark:bg-sky-500/20 dark:text-sky-200", text: "text-sky-700 dark:text-sky-300", glow: "hover:shadow-sky-500/25", bar: "from-sky-400 to-cyan-400", soft: "from-sky-100 via-white to-cyan-50 dark:from-sky-500/15 dark:via-surface dark:to-cyan-500/10" },
   "an-toan": { chip: "bg-rose-100 text-rose-800 dark:bg-rose-500/20 dark:text-rose-200", text: "text-rose-700 dark:text-rose-300", glow: "hover:shadow-rose-500/25", bar: "from-rose-400 to-fuchsia-400", soft: "from-rose-100 via-white to-fuchsia-50 dark:from-rose-500/15 dark:via-surface dark:to-fuchsia-500/10" },
   "du-lieu": { chip: "bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-200", text: "text-emerald-700 dark:text-emerald-300", glow: "hover:shadow-emerald-500/25", bar: "from-emerald-400 to-lime-400", soft: "from-emerald-100 via-white to-lime-50 dark:from-emerald-500/15 dark:via-surface dark:to-lime-500/10" },

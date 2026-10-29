@@ -439,7 +439,7 @@ export function buildSeed(now: Date = new Date()): DemoData {
     courseProgress: seedCourseProgress(courses, hist.attempts),
     tutorEvents: seedTutorEvents(at),
     teacherQuizzes: [],
-    kho: { hidden: [], featured: DEFAULT_FEATURED, plays: { "qr-code": 1284, gps: 932, barcode: 611, encryption: 1047, "spam-filter": 588, recommender: 1390, "image-compress": 476, password: 214, "rgb-pixel": 167 } },
+    kho: { hidden: [], featured: DEFAULT_FEATURED, plays: { "qr-code": 1284, gps: 932, barcode: 611, encryption: 1047, "spam-filter": 588, recommender: 1390, "image-compress": 476, password: 214, "rgb-pixel": 167, "download-time": 96, "storage-units": 88, "print-queue": 71, "undo-stack": 103, "browser-cache": 64, elevator: 79 } },
     bookNotes: [],
     bookPicks: [],
     bookProgress: [{ userId: "t1", ref: "10-19", read: ["dieu-kien", "if-else"], last: "if-else", at: at(-1) }],

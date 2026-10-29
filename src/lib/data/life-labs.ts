@@ -8,7 +8,7 @@ export interface LifeLab {
   tagline: string;
   description: string;
   /** Nhóm hiển thị trong kho. */
-  group: "thuong-ngay" | "an-toan" | "du-lieu";
+  group: "may-tinh" | "thuong-ngay" | "an-toan" | "du-lieu";
   minutes: number;
   /** Liên hệ với kiến thức Tin học ở trường. */
   links: string;
@@ -18,6 +18,7 @@ export interface LifeLab {
 }
 
 export const LIFE_GROUPS: { id: LifeLab["group"]; title: string; sub: string; emoji: string }[] = [
+  { id: "may-tinh", title: "Máy tính làm việc thế nào", sub: "Tải tệp, in ấn, hoàn tác, bộ nhớ — chuyện gì xảy ra mỗi lần em bấm chuột?", emoji: "💻" },
   { id: "thuong-ngay", title: "Công nghệ thường ngày", sub: "Quét mã, định vị, màn hình, mua sắm — chuyện gì xảy ra bên trong?", emoji: "📱" },
   { id: "an-toan", title: "Bảo mật và an toàn", sub: "Mật khẩu, tin nhắn bí mật, thư rác — tự bảo vệ mình trên mạng.", emoji: "🛡️" },
   { id: "du-lieu", title: "Dữ liệu và trí tuệ nhân tạo", sub: "Ứng dụng học từ dữ liệu của em để gợi ý, nén, dự đoán.", emoji: "🤖" },
@@ -36,6 +37,12 @@ export const LIFE_LABS: LifeLab[] = [
   { slug: "image-compress", title: "Nén ảnh khi gửi qua mạng", tagline: "Ảnh nhẹ đi 10 lần mà mắt gần như không thấy khác", description: "Kéo thanh chất lượng: ảnh được chia khối và làm tròn màu, dung lượng giảm theo biểu đồ. Màn Nén không mất dữ liệu: mã hóa loạt điểm ảnh giống nhau (RLE) để thấy vì sao ảnh nhiều mảng màu nén tốt hơn ảnh chụp.", group: "du-lieu", minutes: 12, links: "Dữ liệu hình ảnh (Tin 10)", tags: ["nén ảnh", "dung lượng", "RLE"] },
   { slug: "password", title: "Mật khẩu mạnh cỡ nào?", tagline: "Máy tính đoán ra mật khẩu của em trong bao lâu?", description: "Gõ thử một mật khẩu, xem số kí tự có thể, độ dài và thời gian máy đoán ra khi chạy 1 nghìn, 1 tỉ hay 100 tỉ lần mỗi giây. Thấy vì sao \"Lan2009\" lộ ngay còn một cụm từ dài lại an toàn. Thử thách: chọn mật khẩu mạnh nhất, cách làm mật khẩu mạnh lên nhanh nhất.", group: "an-toan", minutes: 10, links: "An toàn trên không gian mạng (Tin 10), lũy thừa và tổ hợp", tags: ["mật khẩu", "bảo mật", "xác thực"], isNew: true },
   { slug: "rgb-pixel", title: "Màn hình trộn màu RGB", tagline: "16,7 triệu màu từ ba bóng đèn nhỏ", description: "Phóng to một điểm ảnh trên màn hình: ba đèn đỏ, xanh lá, xanh dương. Kéo độ sáng từng đèn, xem màu trộn ra, mã #RRGGBB và 8 bit của mỗi đèn. Thử thách: pha đúng màu đích, tính số màu một điểm ảnh 24 bit hiển thị được.", group: "thuong-ngay", minutes: 10, links: "Biểu diễn hình ảnh bằng bit (Tin 10), mã màu CSS (Tin 12)", tags: ["RGB", "điểm ảnh", "màu"], isNew: true },
+  { slug: "download-time", title: "Tải xuống mất bao lâu?", tagline: "Mạng 100 Mbps sao không tải được 100 MB mỗi giây?", description: "Chọn tệp (ảnh, bài hát, phim, trò chơi) và gói mạng (3G, 4G, Wi-Fi, cáp quang), xem gói tin chạy từ máy chủ về máy em và phép tính dung lượng × 8 ÷ tốc độ. Thử thách: tính thời gian tải, chọn gói mạng rẻ nhất vẫn kịp tải trò chơi 4 GB trong 10 phút.", group: "may-tinh", minutes: 10, links: "Đơn vị đo dữ liệu, bit và byte (Tin 10), mạng máy tính (Tin 12)", tags: ["tải xuống", "Mbps", "byte", "bit"], isNew: true },
+  { slug: "storage-units", title: "Thẻ nhớ chứa được bao nhiêu?", tagline: "Điện thoại báo “Bộ nhớ sắp đầy” giữa chuyến đi", description: "Kéo số ảnh, bài hát, phút video, ứng dụng và xem thẻ nhớ 8–64 GB đầy dần. Thang đổi B → KB → MB → GB theo 1024. Thử thách: tính số ảnh, số phút video tối đa còn lưu được.", group: "may-tinh", minutes: 10, links: "Đơn vị đo dung lượng (Tin 10), bộ nhớ ngoài (Tin 11)", tags: ["dung lượng", "GB", "MB", "thẻ nhớ"], isNew: true },
+  { slug: "print-queue", title: "Hàng đợi máy in", tagline: "Bốn bạn cùng bấm In, ai được in trước?", description: "Máy in mỗi lúc chỉ in một tài liệu: các tài liệu xếp hàng đợi. Xem máy in chạy từng trang, biểu đồ thời gian chờ; đổi sang “tài liệu ngắn trước” để thời gian chờ trung bình giảm. Thử thách: xếp thứ tự in, tính thời gian chờ của từng bạn.", group: "may-tinh", minutes: 12, links: "Cấu trúc hàng đợi, thuật toán (Tin 10–11), hệ điều hành (Tin 11)", tags: ["hàng đợi", "queue", "máy in", "lập lịch"], isNew: true },
+  { slug: "undo-stack", title: "Hoàn tác Ctrl+Z", tagline: "Máy nhớ các thao tác của em theo thứ tự nào?", description: "Gõ từ, xóa từ, bấm Ctrl+Z và Ctrl+Y trên một trang soạn thảo, xem hai ngăn xếp Hoàn tác và Làm lại thay đổi như chồng đĩa. Thử thách: đoán chữ còn lại trên trang sau một chuỗi thao tác, kể cả khi có thao tác mới chen vào.", group: "may-tinh", minutes: 10, links: "Cấu trúc ngăn xếp (Tin 11), phần mềm soạn thảo (Tin 10)", tags: ["ngăn xếp", "stack", "Ctrl+Z", "hoàn tác"], isNew: true },
+  { slug: "browser-cache", title: "Bộ nhớ đệm trình duyệt", tagline: "Vì sao trang web lần sau mở nhanh hơn?", description: "Mở các trang (trang trường, thời khóa biểu, từ điển…): trang đã lưu trong bộ nhớ đệm mở ngay, trang chưa lưu phải tải từ máy chủ. Bộ nhớ đệm đầy thì bỏ trang lâu nhất chưa mở lại. Thử thách: đếm số lần tải chậm, chọn cỡ bộ nhớ đệm nhỏ nhất đủ dùng.", group: "may-tinh", minutes: 12, links: "Bộ nhớ trong máy tính (Tin 11), Internet và web (Tin 12)", tags: ["bộ nhớ đệm", "cache", "trình duyệt", "LRU"], isNew: true },
+  { slug: "elevator", title: "Thang máy thông minh", tagline: "Người chờ ở khắp các tầng: dừng tầng nào trước?", description: "Bấm gọi thang ở các tầng, so sánh phục vụ theo thứ tự bấm và đi hết một chiều rồi quay lại; xem buồng thang chạy và tổng số tầng phải đi. Thử thách: tính quãng đường, xếp lộ trình ngắn nhất.", group: "thuong-ngay", minutes: 12, links: "Thuật toán và tối ưu (Tin 10), lập lịch trong hệ điều hành (Tin 11)", tags: ["thang máy", "thuật toán", "lập lịch", "tối ưu"], isNew: true },
 ];
 
 export const getLifeLab = (slug: string) => LIFE_LABS.find((l) => l.slug === slug);

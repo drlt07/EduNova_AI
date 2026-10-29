@@ -9,9 +9,15 @@ import { RecommenderLab } from "./recommender";
 import { ImageCompressLab } from "./image-compress";
 import { PasswordLab } from "./password";
 import { RgbPixelLab } from "./rgb-pixel";
+import { DownloadTimeLab } from "./download-time";
+import { StorageUnitsLab } from "./storage-units";
+import { PrintQueueLab } from "./print-queue";
+import { UndoStackLab } from "./undo-stack";
+import { BrowserCacheLab } from "./browser-cache";
+import { ElevatorLab } from "./elevator";
 
 export const LIFE_COMPONENTS: Record<string, () => React.ReactElement> = {
-  "qr-code": QrCodeLab, gps: GpsLab, barcode: BarcodeLab, encryption: EncryptionLab, "spam-filter": SpamFilterLab, recommender: RecommenderLab, "image-compress": ImageCompressLab, password: PasswordLab, "rgb-pixel": RgbPixelLab,
+  "qr-code": QrCodeLab, gps: GpsLab, barcode: BarcodeLab, encryption: EncryptionLab, "spam-filter": SpamFilterLab, recommender: RecommenderLab, "image-compress": ImageCompressLab, password: PasswordLab, "rgb-pixel": RgbPixelLab, "download-time": DownloadTimeLab, "storage-units": StorageUnitsLab, "print-queue": PrintQueueLab, "undo-stack": UndoStackLab, "browser-cache": BrowserCacheLab, elevator: ElevatorLab,
 };
 
 type P = { className?: string };
@@ -89,6 +95,52 @@ const ART: Record<string, (p: P) => React.ReactElement> = {
       <circle cx="160" cy="118" r="48" fill="#3a6bff" opacity="0.85" style={{ mixBlendMode: "screen" }} />
       <text x="40" y="160" fontSize="12" fontFamily={M} fill="#94a3b8">#FF8C00</text>
       <text x="280" y="160" textAnchor="end" fontSize="12" fontFamily={M} fill="#94a3b8">24 bit</text>
+    </Svg>
+  ),
+  "download-time": ({ className }) => (
+    <Svg className={className} bg="#e0f2fe" label="Gói tin chạy từ máy chủ về máy tính">
+      <rect x="30" y="50" width="60" height="80" rx="8" fill="#1e293b" />{[0, 1, 2].map((i) => <rect key={i} x="40" y={60 + i * 22} width="40" height="14" rx="3" fill="#334155" />)}
+      <path d="M100 90 H220" stroke="#7dd3fc" strokeWidth="10" strokeLinecap="round" />{[0, 1, 2, 3].map((i) => <circle key={i} cx={115 + i * 30} cy="90" r="6" fill="#0284c7" />)}
+      <rect x="228" y="60" width="70" height="50" rx="5" fill="#0f172a" /><rect x="234" y="66" width="58" height="38" rx="3" fill="#f0f9ff" /><rect x="240" y="88" width="46" height="7" rx="3" fill="#bae6fd" /><rect x="240" y="88" width="30" height="7" rx="3" fill="#0284c7" />
+      <text x="160" y="150" textAnchor="middle" fontSize="13" fontFamily={M} fill="#0369a1">100 Mbps = 12,5 MB/s</text>
+    </Svg>
+  ),
+  "storage-units": ({ className }) => (
+    <Svg className={className} bg="#1e293b" label="Thẻ nhớ đầy dần">
+      <path d="M90 30 h120 l20 20 v100 a8 8 0 0 1 -8 8 h-132 a8 8 0 0 1 -8 -8 v-112 a8 8 0 0 1 8 -8z" fill="#334155" />{[0, 1, 2, 3, 4].map((i) => <rect key={i} x={98 + i * 20} y="38" width="12" height="20" rx="2" fill="#fbbf24" />)}
+      <text x="100" y="92" fontSize="20" fontWeight="800" fill="#fff">32 GB</text>
+      <rect x="96" y="112" width="124" height="20" rx="5" fill="#475569" /><rect x="96" y="112" width="40" height="20" rx="5" fill="#0ea5e9" /><rect x="136" y="112" width="30" height="20" fill="#a855f7" /><rect x="166" y="112" width="34" height="20" fill="#f97316" />
+      <text x="250" y="80" fontSize="12" fontFamily={M} fill="#94a3b8">×1024</text><text x="250" y="100" fontSize="12" fontFamily={M} fill="#94a3b8">MB→GB</text>
+    </Svg>
+  ),
+  "print-queue": ({ className }) => (
+    <Svg className={className} bg="#eef2ff" label="Máy in và hàng đợi tài liệu">
+      <rect x="30" y="60" width="110" height="50" rx="10" fill="#334155" /><rect x="50" y="40" width="70" height="22" rx="3" fill="#e2e8f0" /><rect x="55" y="105" width="60" height="40" rx="2" fill="#fff" stroke="#6366f1" strokeWidth="2" />
+      {[["#6366f1", "Minh"], ["#f59e0b", "Lan"], ["#10b981", "Huy"], ["#ec4899", "Vy"]].map(([c, n], i) => <g key={n} transform={`translate(${160 + i * 38} ${70 + (i % 2) * 6})`}><rect width="32" height="40" rx="5" fill={c} /><text x="16" y="26" textAnchor="middle" fontSize="10" fontWeight="700" fill="#fff">{n}</text></g>)}
+      <text x="230" y="140" textAnchor="middle" fontSize="12" fontFamily={M} fill="#4338ca">vào trước, ra trước</text>
+    </Svg>
+  ),
+  "undo-stack": ({ className }) => (
+    <Svg className={className} bg="#f5f3ff" label="Chồng thao tác hoàn tác">
+      <rect x="30" y="40" width="150" height="60" rx="10" fill="#fff" stroke="#c4b5fd" /><text x="45" y="77" fontSize="18" fontFamily="serif" fill="#0f172a">Hôm nay em…</text>
+      {[0, 1, 2, 3].map((i) => <rect key={i} x="210" y={130 - i * 22} width="80" height="18" rx="5" fill={i === 3 ? "#7c3aed" : "#a78bfa"} />)}
+      <path d="M200 40 v110 h100 v-110" fill="none" stroke="#cbd5e1" strokeWidth="4" />
+      <text x="105" y="135" textAnchor="middle" fontSize="20" fontWeight="800" fontFamily={M} fill="#7c3aed">Ctrl+Z</text>
+    </Svg>
+  ),
+  "browser-cache": ({ className }) => (
+    <Svg className={className} bg="#ecfdf5" label="Bộ nhớ đệm giữ các trang vừa mở">
+      <rect x="30" y="35" width="260" height="110" rx="12" fill="#fff" stroke="#a7f3d0" /><rect x="30" y="35" width="260" height="22" rx="12" fill="#d1fae5" />{[0, 1, 2].map((i) => <circle key={i} cx={46 + i * 12} cy="46" r="4" fill="#34d399" />)}
+      {[["#0ea5e9", "🏫"], ["#f59e0b", "📅"], ["#10b981", "📖"]].map(([c, e], i) => <g key={e} transform={`translate(${56 + i * 72} 74)`}><rect width="60" height="44" rx="8" fill={c} /><text x="30" y="30" textAnchor="middle" fontSize="20">{e}</text></g>)}
+      <text x="160" y="25" textAnchor="middle" fontSize="12" fontFamily={M} fill="#047857">0,1 giây thay vì 1,5 giây</text>
+    </Svg>
+  ),
+  elevator: ({ className }) => (
+    <Svg className={className} bg="#f1f5f9" label="Thang máy và người chờ ở các tầng">
+      <rect x="110" y="10" width="100" height="160" fill="#e2e8f0" />{[0, 1, 2, 3, 4].map((i) => <line key={i} x1="110" x2="210" y1={42 + i * 32} y2={42 + i * 32} stroke="#94a3b8" />)}
+      <rect x="140" y="76" width="40" height="30" rx="4" fill="#2563eb" /><rect x="145" y="81" width="13" height="20" fill="#93c5fd" /><rect x="162" y="81" width="13" height="20" fill="#93c5fd" />
+      {[20, 116, 148].map((y) => <text key={y} x="226" y={y + 16} fontSize="16">🙋</text>)}
+      <path d="M80 30 v120" stroke="#f59e0b" strokeWidth="4" /><text x="40" y="95" fontSize="12" fontFamily={M} fill="#b45309">↑↓</text>
     </Svg>
   ),
 };
