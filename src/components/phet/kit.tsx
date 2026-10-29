@@ -4,20 +4,28 @@
  * nút "Đặt lại tất cả", và thanh chọn màn ở đáy (Khám phá tự do / Thử thách có chấm điểm).
  * Nguyên tắc: thao tác trực tiếp, phản hồi tức thì, nhiều cách biểu diễn liên kết với nhau, ít chữ.
  */
-import { useState, type ReactNode } from "react";
-import { Compass, Frown, RotateCcw, Smile, Star, Trophy } from "lucide-react";
+import { useReducer, useState, type ReactNode } from "react";
+import { Compass, Flag, Frown, Lightbulb, RotateCcw, Smile, Star, Trophy } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { challengeReducer, initialChallenge, type CheckInfo } from "@/lib/sim/challenge";
 import { Button } from "@/components/ui/button";
 import { LabScore } from "@/components/sim/lab-result";
+import { starsFor } from "@/components/sim/mission";
 
 export interface SimScreen { id: string; label: string; icon?: React.ComponentType<{ className?: string }>; render: () => ReactNode }
 
 /** Khung một mô phỏng: tên, các màn, thanh chọn màn ở đáy kiểu PhET. */
-export function SimShell({ title, screens }: { title: string; screens: SimScreen[] }) {
+export function SimShell({ title, screens, intro }: { title: string; screens: SimScreen[]; intro?: { story: string; goal: string } }) {
   const [cur, setCur] = useState(screens[0].id);
   const s = screens.find((x) => x.id === cur) ?? screens[0];
   return (
     <div className="overflow-hidden rounded-3xl border border-line bg-surface shadow-sm">
+      {intro && (
+        <p className="flex flex-wrap items-baseline gap-x-3 gap-y-1 border-b border-line bg-surface-2/60 px-4 py-2.5 text-sm text-fg">
+          <span>{intro.story}</span>
+          <span className="flex items-center gap-1.5 font-semibold"><Flag className="size-3.5 shrink-0 text-brand" aria-hidden />{intro.goal}</span>
+        </p>
+      )}
       <div key={s.id} className="p-3 sm:p-4">{s.render()}</div>
       <nav aria-label={`Các màn của ${title}`} className="flex items-center gap-2 border-t border-slate-800 bg-[#0f172a] px-3 py-2">
         <span className="mr-auto truncate text-sm font-semibold text-white">{title}</span>
@@ -102,38 +110,53 @@ export function ResetAll({ onClick }: { onClick: () => void }) {
   );
 }
 
-/** Thử thách: các câu nối tiếp, đếm lần sai, cuối cùng chấm điểm (và lưu cho học sinh). */
-export function useChallenge(total: number) {
-  const [idx, setIdx] = useState(0);
-  const [mistakes, setMistakes] = useState(0);
-  const [feedback, setFeedback] = useState<{ ok: boolean; text: string } | null>(null);
-  const [run, setRun] = useState(0);
+export type { CheckInfo } from "@/lib/sim/challenge";
+
+/**
+ * Thử thách: các câu nối tiếp, đếm lần sai, cuối cùng chấm điểm (và lưu cho học sinh).
+ * Ghi lại từng thử thách (số lần kiểm tra, lỗi, gợi ý) để thầy cô xem; kiểm tra lại đúng đáp án sai cũ thì không trừ điểm.
+ */
+export function useChallenge(total: number, labels?: string[]) {
+  const [st, dispatch] = useReducer(challengeReducer, undefined, initialChallenge);
+  const label = labels?.[st.idx] ?? `Thử thách ${st.idx + 1}`;
   return {
-    idx, mistakes, feedback, run, done: idx >= total, total,
+    ...st, done: st.idx >= total, total,
     /** Ghi kết quả câu hiện tại. Đúng thì sang câu sau khi bấm "Tiếp". */
-    check: (ok: boolean, text: string) => { setFeedback({ ok, text }); if (!ok) setMistakes((m) => m + 1); },
-    next: () => { setFeedback(null); setIdx((i) => i + 1); },
-    restart: () => { setIdx(0); setMistakes(0); setFeedback(null); setRun((r) => r + 1); },
+    check: (ok: boolean, text: string, info?: CheckInfo) => dispatch({ type: "check", ok, text, info, label }),
+    /** Mở gợi ý bậc tiếp theo (tối đa 3). Gợi ý không trừ điểm, chỉ được ghi lại. */
+    hint: () => dispatch({ type: "hint", label }),
+    next: () => dispatch({ type: "next" }),
+    restart: () => dispatch({ type: "restart" }),
   };
 }
 export type Challenge = ReturnType<typeof useChallenge>;
 
-/** Khung màn Thử thách: tiến độ bằng sao, đề bài, phản hồi mặt cười, kết quả cuối có điểm. */
-export function ChallengeFrame({ c, prompt, children, onCheck, summary }: { c: Challenge; prompt: ReactNode; children: ReactNode; onCheck: () => void; summary: string[] }) {
+/** Khung màn Thử thách: tiến độ bằng sao, đề bài, gợi ý theo bậc, phản hồi, kết quả cuối có điểm và nhận xét lỗi. */
+export function ChallengeFrame({ c, prompt, children, onCheck, summary, hints, next }: { c: Challenge; prompt: ReactNode; children: ReactNode; onCheck: () => void; summary: string[]; hints?: string[]; next?: string }) {
   if (c.done) {
+    const stars = starsFor(c.mistakes);
+    const slips = c.steps.filter((st) => st.errors.length > 0);
     return (
       <div className="mx-auto max-w-lg py-6 text-center">
-        <div className="flex justify-center gap-1" aria-label={`${Math.max(1, 3 - Math.floor(c.mistakes / 2))} trên 3 sao`}>
-          {[1, 2, 3].map((i) => <Star key={i} className={cn("size-9", i <= Math.max(1, 3 - Math.floor(c.mistakes / 2)) ? "fill-amber-400 text-amber-400" : "text-line")} aria-hidden />)}
+        <div className="flex justify-center gap-1" aria-label={`${stars} trên 3 sao`}>
+          {[1, 2, 3].map((i) => <Star key={i} style={{ animationDelay: `${i * 120}ms` }} className={cn("sim-pop size-9", i <= stars ? "fill-amber-400 text-amber-400" : "text-line")} aria-hidden />)}
         </div>
         <h3 className="mt-2 text-lg font-bold text-fg">Hoàn thành {c.total} thử thách</h3>
         <p className="text-sm text-muted">Số lần trả lời sai: <b className="text-fg">{c.mistakes}</b></p>
-        <LabScore mistakes={c.mistakes} />
+        {slips.length > 0 && (
+          <div className="mt-3 rounded-xl bg-warning/10 px-3 py-2 text-left text-sm text-fg">
+            <p className="font-semibold">Chỗ em đã vấp</p>
+            <ul className="mt-1 space-y-0.5">{slips.map((st) => <li key={st.id}>• {st.label}: {[...new Set(st.errors)].join(", ")}</li>)}</ul>
+          </div>
+        )}
         <ul className="mt-3 space-y-1 text-left text-sm text-fg">{summary.map((s) => <li key={s}>• {s}</li>)}</ul>
+        <LabScore mistakes={c.mistakes} steps={c.steps} />
+        {next && <p className="mt-3 text-left text-sm text-muted">Tiếp theo: <span className="text-fg">{next}</span></p>}
         <Button variant="secondary" size="sm" className="mt-4" onClick={c.restart}><RotateCcw /> Làm lại từ đầu</Button>
       </div>
     );
   }
+  const shown = hints?.slice(0, c.hintLevel) ?? [];
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap items-center gap-3">
@@ -146,12 +169,18 @@ export function ChallengeFrame({ c, prompt, children, onCheck, summary }: { c: C
       {children}
       <div className="flex flex-wrap items-center gap-3">
         {c.feedback?.ok ? <Button onClick={c.next}>Thử thách tiếp</Button> : <Button onClick={onCheck}>Kiểm tra</Button>}
+        {hints && !c.feedback?.ok && c.hintLevel < 3 && <Button variant="ghost" size="sm" onClick={c.hint}><Lightbulb /> {c.hintLevel ? "Gợi ý thêm" : "Gợi ý"}</Button>}
         {c.feedback && (
           <p role="status" className={cn("flex items-center gap-2 text-sm", c.feedback.ok ? "text-success-fg" : "text-danger-fg")}>
             {c.feedback.ok ? <Smile className="size-6" aria-hidden /> : <Frown className="size-6" aria-hidden />} {c.feedback.text}
           </p>
         )}
       </div>
+      {shown.length > 0 && !c.feedback?.ok && (
+        <ol className="space-y-1 rounded-xl border border-amber-300/50 bg-amber-50 px-3 py-2 text-sm text-amber-950 dark:border-amber-500/30 dark:bg-amber-950/30 dark:text-amber-100" aria-label="Gợi ý">
+          {shown.map((h, i) => <li key={i} className="sim-pop flex gap-2"><Lightbulb className="mt-0.5 size-4 shrink-0" aria-hidden /> {h}</li>)}
+        </ol>
+      )}
     </div>
   );
 }

@@ -239,3 +239,11 @@ html[data-contrast="high"] {
 @keyframes kho-in { from { opacity: 0; transform: translateY(8px) scale(0.98); } to { opacity: 1; transform: none; } }
 .kho-in { animation: kho-in 0.5s ease both; }
 @media (prefers-reduced-motion: reduce) { .kho-in { animation: none; } }
+
+/* Mô phỏng: hộp rơi xuống băng chuyền, sao/gợi ý bật lên, ô đích phát sáng */
+@keyframes sim-drop { 0% { transform: translateY(-46px); opacity: 0; } 60% { transform: translateY(3px); opacity: 1; } 100% { transform: none; } }
+.sim-drop { animation: sim-drop 0.42s cubic-bezier(.3,1.4,.5,1) both; transform-box: fill-box; }
+@keyframes sim-pop { 0% { transform: scale(0.6); opacity: 0; } 70% { transform: scale(1.08); opacity: 1; } 100% { transform: none; } }
+.sim-pop { animation: sim-pop 0.35s ease-out both; transform-box: fill-box; transform-origin: center; }
+@keyframes sim-glow { 50% { opacity: 0.45; } }
+.sim-glow { animation: sim-glow 1.8s ease-in-out infinite; }

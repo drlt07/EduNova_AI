@@ -2,6 +2,19 @@
 
 import type { LabGrade } from "@/lib/ai/lab-grader";
 
+/** Kết quả một thử thách trong lượt làm: số lần kiểm tra, các lỗi đã mắc, số gợi ý đã mở. */
+export interface LabStep {
+  id: string;
+  label: string;
+  tries: number;
+  ok: boolean;
+  /** Tên lỗi mỗi lần kiểm tra sai (theo thứ tự). */
+  errors: string[];
+  hints: number;
+  /** Đáp án cuối cùng, dạng chữ (ví dụ "range(3, 9)"). */
+  answer?: string;
+}
+
 export interface LabResult {
   id: string;
   studentId: string;
@@ -12,6 +25,8 @@ export interface LabResult {
   /** Thời gian làm (giây), tính từ lúc mở mô phỏng. */
   seconds: number;
   finishedAt: string;
+  /** Chi tiết từng thử thách (mô phỏng đã nâng cấp mới có; kết quả cũ không có trường này). */
+  steps?: LabStep[];
   /** Câu trả lời phần giải thích sau khi làm xong. */
   answer?: string;
   /** Bản chấm của AI (hoặc bộ luật) cho cả bài. */

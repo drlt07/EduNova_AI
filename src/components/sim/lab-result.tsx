@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { EXPLAIN_MAX, gradeLab, LAB_RUBRICS, PRACTICE_MAX, practiceScore, type LabGrade } from "@/lib/ai/lab-grader";
 import { labGradeLlm } from "@/lib/ai/lab-grade-runtime";
 import { getLabBySlug } from "@/lib/data/labs";
-import { fmtScore, labScore, type LabResult } from "@/lib/sim/lab-score";
+import { fmtScore, labScore, type LabResult, type LabStep } from "@/lib/sim/lab-score";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/form";
@@ -36,7 +36,7 @@ const MAX_TRIES = 2;
  * Đặt ở màn hình hoàn thành của mô phỏng. Phần thực hành được chấm ngay từ số lần sai và (với học sinh) lưu một lần mỗi lượt;
  * sau đó em viết vài câu giải thích để AI chấm nốt phần còn lại và nhận xét. Lượt mới bắt đầu khi bấm "Làm lại".
  */
-export function LabScore({ mistakes }: { mistakes: number }) {
+export function LabScore({ mistakes, steps }: { mistakes: number; steps?: LabStep[] }) {
   const scope = useContext(Ctx);
   const user = useCurrentUser();
   const record = useApp((s) => s.recordLabResult);
@@ -52,9 +52,9 @@ export function LabScore({ mistakes }: { mistakes: number }) {
   useEffect(() => {
     if (!scope || !student || saved.current) return;
     const seconds = scope.lap();
-    saved.current = { id: record({ studentId: student, labSlug: scope.slug, score, mistakes, seconds }), seconds };
+    saved.current = { id: record({ studentId: student, labSlug: scope.slug, score, mistakes, seconds, ...(steps?.length ? { steps } : {}) }), seconds };
     toast.success(rubric ? `Đã lưu phần thực hành: ${fmtScore(score)}/${PRACTICE_MAX} điểm` : `Đã lưu kết quả: ${fmtScore(score)} điểm`);
-  }, [scope, student, record, score, mistakes, rubric]);
+  }, [scope, student, record, score, mistakes, rubric, steps]);
 
   const submit = async () => {
     if (!scope || !rubric || answer.trim().length < 10) return toast.error("Em viết ít nhất một câu nhé.");

@@ -34,7 +34,7 @@ export const LAB_META: Record<string, LabMeta> = {
   "binary-control": { topic: "logic", level: "co-ban", minutes: 15, missions: 5 },
   "smart-home": { topic: "logic", level: "trung-binh", minutes: 20, missions: 5 },
   "digital-camera": { topic: "he-thong", level: "trung-binh", minutes: 25, missions: 5 },
-  "robot-factory": { topic: "lap-trinh", level: "co-ban", minutes: 20, missions: 5 },
+  "robot-factory": { topic: "lap-trinh", level: "co-ban", minutes: 20, missions: 6 },
   "maze-robot": { topic: "lap-trinh", level: "trung-binh", minutes: 25, missions: 4 },
   "software-ecosystem": { topic: "he-thong", level: "co-ban", minutes: 15, missions: 4 },
   "device-connection": { topic: "he-thong", level: "co-ban", minutes: 15, missions: 4 },

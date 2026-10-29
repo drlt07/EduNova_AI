@@ -139,6 +139,18 @@ function WorkDetail({ a, studentId }: { a: Assignment; studentId: string }) {
         {rs.map((r, i) => (
           <li key={r.id} className="rounded-lg border border-line bg-surface p-2.5">
             <p className="text-fg"><b>Lần {i + 1}</b> · {formatDate(r.finishedAt, true)} · <b>{fmtScore(r.score)} điểm</b> · {r.mistakes} lần chọn sai · {Math.round(r.seconds / 60)} phút</p>
+            {r.steps && r.steps.length > 0 && (
+              <ul className="mt-1.5 grid gap-x-4 gap-y-0.5 sm:grid-cols-2">
+                {r.steps.map((st) => (
+                  <li key={st.id} className="text-muted">
+                    <span className={cn("font-medium", st.errors.length ? "text-warning-fg" : "text-fg")}>{st.label}</span>: {st.tries} lần kiểm tra
+                    {st.errors.length > 0 && <> · sai: {[...new Set(st.errors)].map((e) => `${e}${st.errors.filter((x) => x === e).length > 1 ? ` ×${st.errors.filter((x) => x === e).length}` : ""}`).join("; ")}</>}
+                    {st.hints > 0 && <> · {st.hints} gợi ý</>}
+                    {st.answer && <> · <span className="font-mono text-fg">{st.answer}</span></>}
+                  </li>
+                ))}
+              </ul>
+            )}
             {r.answer && <p className="mt-1 text-muted">Giải thích của em: “{r.answer}”</p>}
             {r.grade && r.grade.improve.length > 0 && <p className="mt-1 text-muted">Cần cải thiện: {r.grade.improve.join("; ")}</p>}{r.review?.note && <p className="mt-1 text-muted">Thầy cô nhận xét: {r.review.note}</p>}
           </li>
