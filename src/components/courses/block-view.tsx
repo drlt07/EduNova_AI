@@ -1,12 +1,13 @@
 "use client";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { BookOpen, CheckCircle2, Circle, Code2, Dumbbell, FileText, FlaskConical, Image as ImageIcon, Play, RotateCcw } from "lucide-react";
+import { BookOpen, CheckCircle2, Circle, ClipboardCheck, Code2, Dumbbell, FileText, FlaskConical, Image as ImageIcon, Play, RotateCcw } from "lucide-react";
 import type { CourseBlock, CourseBlockKind } from "@/lib/domain/types";
 import { BLOCK_LABEL, SELF_MARK_KINDS, youtubeEmbed } from "@/lib/courses/course";
 import { getLabBySlug } from "@/lib/data/labs";
 import { getExercise } from "@/lib/data/coding-exercises";
 import { getSet } from "@/lib/data/practice";
+import { useSessionData } from "@/lib/store/use-role";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -131,13 +132,15 @@ function PythonBlock({ block, initialCode, onTests, onSave }: { block: CourseBlo
 }
 
 function PracticeBlock({ block, best, preview }: { block: CourseBlock; best: number | null; preview: boolean }) {
-  const set = block.practiceSetId ? getSet(block.practiceSetId) : undefined;
+  const { d } = useSessionData();
+  const tq = d.teacherQuizzes.find((q) => q.id === block.practiceSetId);
+  const set = block.practiceSetId ? (getSet(block.practiceSetId) ?? (tq ? { id: tq.id, title: tq.title, questionIds: tq.questions.map((q) => q.id) } : undefined)) : undefined;
   if (!set) return <p className="text-sm text-danger-fg">Chưa chọn bộ câu hỏi.</p>;
   return (
     <div className="flex flex-wrap items-center gap-3 rounded-xl border border-line bg-surface-2 px-4 py-3">
-      <Dumbbell className="size-5 text-cyan-fg" aria-hidden />
+      {block.final ? <ClipboardCheck className="size-5 text-violet-fg" aria-hidden /> : <Dumbbell className="size-5 text-cyan-fg" aria-hidden />}
       <div className="min-w-0 flex-1">
-        <p className="font-medium text-fg">{set.title} · {set.questionIds.length} câu</p>
+        <p className="font-medium text-fg">{block.final && <span className="mr-1.5 rounded bg-violet/15 px-1.5 py-0.5 text-xs font-semibold text-violet-fg">Bài kiểm tra cuối bài</span>}{set.title} · {set.questionIds.length} câu</p>
         <p className="text-xs text-muted">Cần đạt từ {block.minScore ?? 0}%{best !== null && ` · kết quả tốt nhất của em: ${best}%`}</p>
       </div>
       {preview ? <Badge>Học sinh làm bài ở trang Luyện tập</Badge> : (

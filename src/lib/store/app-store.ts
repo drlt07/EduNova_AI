@@ -159,7 +159,7 @@ interface Actions {
   markNotifRead: (userId: string, ids: string[]) => void;
   setPortfolioVisibility: (id: string, v: "private" | "teacher" | "class") => void;
   // Khóa học & bài giảng
-  createCourse: (c: Pick<Course, "ownerId" | "title" | "description" | "grade" | "textbookId" | "sequential"> & { scaffold: boolean }) => string;
+  createCourse: (c: Pick<Course, "ownerId" | "title" | "description" | "grade" | "textbookId" | "sequential"> & { scaffold: boolean; classIds?: string[] }) => string;
   updateCourse: (id: string, patch: Partial<Omit<Course, "id" | "ownerId" | "createdAt">>) => void;
   deleteCourse: (id: string, actorId: string) => void;
   publishCourse: (id: string, classIds: string[], actorId: string) => void;
@@ -454,10 +454,10 @@ export const useApp = create<AppState>()(
         markNotifRead: (userId, ids) => set((s) => ({ notifRead: { ...s.notifRead, [userId]: [...new Set([...(s.notifRead[userId] ?? []), ...ids])] } })),
         setPortfolioVisibility: (id, v) => set((s) => ({ portfolio: s.portfolio.map((p) => (p.id === id ? { ...p, visibility: v } : p)) })),
 
-        createCourse: ({ scaffold, ...c }) => {
+        createCourse: ({ scaffold, classIds = [], ...c }) => {
           const id = uid("course");
           const t = now();
-          set((s) => ({ courses: [{ ...c, id, topics: scaffold ? scaffoldTopics(c.grade, c.textbookId) : [], classIds: [], status: "draft", createdAt: t, updatedAt: t }, ...s.courses] }));
+          set((s) => ({ courses: [{ ...c, id, topics: scaffold ? scaffoldTopics(c.grade, c.textbookId) : [], classIds, status: "draft", createdAt: t, updatedAt: t }, ...s.courses] }));
           audit(c.ownerId, "create", "Course", id, `Tạo khóa học "${c.title}"`);
           return id;
         },
@@ -528,14 +528,22 @@ export const useApp = create<AppState>()(
     },
     {
       name: "edunova-v3",
-      version: 2,
-      // v2: thêm lịch sử luyện tập/mô phỏng mẫu 6 tuần; giữ dữ liệu cũ của người dùng, chỉ bổ sung bản ghi mẫu còn thiếu
+      version: 3,
+      // v2: thêm lịch sử luyện tập/mô phỏng mẫu 6 tuần; v3: khóa học mẫu theo chương → bài → hoạt động + bài kiểm tra cuối bài,
+      // bài giao mẫu cho lớp 10A2. Giữ dữ liệu cũ của người dùng, chỉ bổ sung (hoặc làm mới khóa học mẫu) bản ghi mẫu.
       migrate: (persisted, version) => {
         const p = (persisted ?? {}) as Partial<AppState>;
-        if (version >= 2) return p as AppState;
+        if (version >= 3) return p as AppState;
         const seed = buildSeed();
         const add = <T extends { id: string }>(cur: T[] | undefined, extra: T[]) => { const have = new Set((cur ?? []).map((x) => x.id)); return [...(cur ?? []), ...extra.filter((x) => !have.has(x.id))]; };
-        return { ...p, practiceAttempts: add(p.practiceAttempts, seed.practiceAttempts), labResults: add(p.labResults, seed.labResults) } as AppState;
+        const out: Partial<AppState> = { ...p };
+        if (version < 2) Object.assign(out, { practiceAttempts: add(p.practiceAttempts, seed.practiceAttempts), labResults: add(p.labResults, seed.labResults) });
+        const seedIds = new Set(seed.courses.map((c) => c.id));
+        out.courses = [...seed.courses, ...(p.courses ?? []).filter((c) => !seedIds.has(c.id))];
+        out.assignments = add(p.assignments, seed.assignments).map((a) => a.courseId || !seed.assignments.find((x) => x.id === a.id)?.courseId ? a : { ...a, courseId: seed.assignments.find((x) => x.id === a.id)!.courseId });
+        const has = new Set((p.unlocks ?? []).map((u) => `${u.classId}|${u.key}`));
+        out.unlocks = [...(p.unlocks ?? []), ...seed.unlocks.filter((u) => !has.has(`${u.classId}|${u.key}`))];
+        return out as AppState;
       },
       storage: createJSONStorage(safeStorage),
       skipHydration: true,

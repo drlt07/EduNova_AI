@@ -4,7 +4,8 @@
  */
 import type { Course, CourseBlock, CourseBlockKind, CourseLesson, CourseProgress, CourseTopic, Grade, PracticeAttempt, TextbookId } from "@/lib/domain/types";
 import { LESSONS, TOPICS, getLesson } from "@/lib/data/curriculum";
-import { SGK_KNTT, sgkLessonId } from "@/lib/data/sgk-kntt";
+import { SGK_KNTT, sgkLabs, sgkLessonId, sgkRef } from "@/lib/data/sgk-kntt";
+import { getSet } from "@/lib/data/practice";
 import { uid } from "@/lib/utils";
 
 export const BLOCK_LABEL: Record<CourseBlockKind, string> = {
@@ -35,18 +36,25 @@ export function newTopic(title: string, topicId?: string, lessons: CourseLesson[
 }
 
 /**
- * Khung khóa học theo khối lớp + bộ sách: chủ đề → bài học. Bộ KNTT dựng đúng mục lục SGK; bài nào có
- * bài tương tác EduNova thì gắn vào và lấy tóm tắt làm khối kiến thức.
+ * Khung khóa học theo khối lớp + bộ sách: chương → bài học → hoạt động. Bộ KNTT dựng đúng mục lục SGK; mỗi bài có
+ * tóm tắt kiến thức, các mô phỏng gắn theo chương trình và bài kiểm tra cuối bài (bộ câu hỏi của bài).
  */
 export function scaffoldTopics(grade: Grade, book: TextbookId): CourseTopic[] {
   if (book === "kntt") {
     return SGK_KNTT[grade].map((t) =>
       newTopic(
-        `Chủ đề ${t.no}. ${t.title}`,
+        `Chương ${t.no}. ${t.title}`,
         undefined,
         t.lessons.map((l) => {
           const id = sgkLessonId(l);
-          return newLesson(`Bài ${l.no}. ${l.title}`, id, [newBlock("text", { body: (id && getLesson(id)?.summary) || `Nội dung Bài ${l.no} theo SGK Tin học ${grade} (Kết nối tri thức).` })]);
+          const ref = sgkRef(grade, l);
+          const test = getSet(`bai-${ref}`);
+          const blocks = [
+            newBlock("text", { title: "Tóm tắt kiến thức", body: (id && getLesson(id)?.summary) || `Nội dung Bài ${l.no} theo SGK Tin học ${grade} (Kết nối tri thức).` }),
+            ...sgkLabs(l).filter((x) => x.status !== "planned").slice(0, 2).map((x) => newBlock("simulation", { title: `Mô phỏng: ${x.title}`, labSlug: x.slug })),
+            ...(test ? [newBlock("practice", { title: "Bài kiểm tra cuối bài", practiceSetId: test.id, final: true })] : []),
+          ];
+          return { ...newLesson(`Bài ${l.no}. ${l.title}`, id, blocks), sgkRef: ref };
         }),
       ),
     );
@@ -126,6 +134,22 @@ export function courseCompletion(course: Course, ctx: ProgressContext): { done: 
   const states = lessonStates(course, ctx).filter((s) => s.lesson.blocks.length > 0);
   const done = states.filter((s) => s.done).length;
   return { done, total: states.length, percent: states.length ? Math.round((done / states.length) * 100) : 0 };
+}
+
+/** Bài kiểm tra cuối bài (khối luyện tập đánh dấu final). */
+export const finalTest = (l: CourseLesson) => l.blocks.find((b) => b.kind === "practice" && b.final);
+
+export type CellState = "done" | "doing" | "todo" | "locked";
+export interface LessonCell { lessonId: string; state: CellState; doneBlocks: number; total: number; test: number | null }
+
+/** Tiến độ một học sinh theo từng bài: trạng thái + điểm bài kiểm tra cuối bài (% đúng cao nhất). */
+export function lessonCells(course: Course, ctx: ProgressContext): LessonCell[] {
+  return lessonStates(course, ctx).map((s) => {
+    const f = finalTest(s.lesson);
+    const test = f?.practiceSetId ? bestPracticeScore(ctx.practiceAttempts, ctx.studentId, f.practiceSetId) : null;
+    const state: CellState = s.done ? "done" : s.locked ? "locked" : s.doneBlocks > 0 || test !== null ? "doing" : "todo";
+    return { lessonId: s.lesson.id, state, doneBlocks: s.doneBlocks, total: s.lesson.blocks.length, test };
+  });
 }
 
 /** Kiểm tra trước khi phát hành: lỗi chặn phát hành và cảnh báo nên xem lại. */

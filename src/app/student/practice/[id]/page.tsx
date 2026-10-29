@@ -40,7 +40,9 @@ function Runner({ setId }: { setId: string }) {
   const set = getSet(setId) ?? (tq ? { id: tq.id, title: tq.title, grade: tq.grade, lessonKey: "", description: "", questionIds: tq.questions.map((q) => q.id) } : undefined);
   const [run, setRun] = useState(0);
   const access = useAccess();
-  if (set && !tq && !access.can(setKey(set.id))) return <ErrorState page title="Bộ luyện tập chưa được mở" description="Thầy cô sẽ mở bộ này khi lớp học tới bài. Em làm các bộ đã mở trong trang Luyện tập nhé." action={<Button asChild variant="secondary"><Link href="/student/practice">Về danh sách</Link></Button>} />;
+  // Bộ nằm trong khóa học thầy cô đã phát hành cho lớp của em thì làm được ngay trong khóa học
+  const inCourse = d.courses.some((c) => c.status === "published" && c.classIds.some((x) => studentClassIds(d, user.id).includes(x)) && c.topics.some((t) => t.lessons.some((l) => l.blocks.some((b) => b.practiceSetId === setId))));
+  if (set && !tq && !inCourse && !access.can(setKey(set.id))) return <ErrorState page title="Bộ luyện tập chưa được mở" description="Thầy cô sẽ mở bộ này khi lớp học tới bài. Em làm các bộ đã mở trong trang Luyện tập nhé." action={<Button asChild variant="secondary"><Link href="/student/practice">Về danh sách</Link></Button>} />;
   if (!set) return <ErrorState page title="Không tìm thấy bộ câu hỏi" action={<Button asChild variant="secondary"><Link href="/student/practice">Về danh sách</Link></Button>} />;
   // Bộ thích ứng lấy câu từ mọi bộ cùng bài học
   const pool = tq ? tq.questions : mode === "adaptive"

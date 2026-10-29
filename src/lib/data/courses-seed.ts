@@ -37,37 +37,53 @@ else:
   { id: "seed-cb-if-2", kind: "media", title: "Sơ đồ khối câu lệnh if/else", required: false, mediaUrl: IF_FLOWCHART, body: "Quan sát hai nhánh Đúng/Sai trước khi viết chương trình." },
   { id: "seed-cb-if-3", kind: "simulation", title: "Mô phỏng Thành phố giao thông", required: true, labSlug: "smart-coding-city", tutorLevel: "free", body: "Quan sát xe dừng khi đèn đỏ và đi khi đèn xanh. Chuyển sang chế độ thủ công và tự điều khiển đèn cho 12 lượt xe qua an toàn." },
   { id: "seed-cb-if-4", kind: "python", title: "Bài thực hành Python: Xếp loại học tập", required: true, exerciseId: "if-grade", body: "Viết chương trình dùng if/elif/else. Bấm Kiểm thử, đạt tất cả trường hợp là hoàn thành." },
-  { id: "seed-cb-if-5", kind: "practice", title: "Bài luyện tập cuối bài", required: true, practiceSetId: "if-basic", minScore: 70, tutorLevel: "guided", body: "Làm bộ câu hỏi, đạt từ 70% trở lên là hoàn thành." },
+  { id: "seed-cb-if-5", kind: "practice", title: "Bài kiểm tra cuối bài", required: true, practiceSetId: "bai-10-19", minScore: 70, tutorLevel: "exam", final: true, body: "Làm bài kiểm tra, đạt từ 70% trở lên là hoàn thành bài." },
 ];
 
 /** Khóa học mẫu của cô Hà cho 10A1: khung theo chương trình, bài "Câu lệnh rẽ nhánh" có đủ các loại nội dung. */
 export function seedCourses(createdAt: string): Course[] {
-  let n = 0;
-  const topics = scaffoldTopics(10, "kntt").map((t, ti) => ({
-    ...t,
-    id: `seed-ct-${ti}`,
-    lessons: t.lessons.map((l) => {
-      n++;
-      const isIf = l.lessonId === "L-10-if-kntt";
-      return {
-        ...l,
-        id: isIf ? "seed-cl-if" : `seed-cl-${n}`,
-        title: isIf ? "Bài 19. Câu lệnh rẽ nhánh if" : l.title,
-        blocks: isIf ? IF_BLOCKS : l.blocks.map((b, bi) => ({ ...b, id: `seed-cb-${n}-${bi}` })),
-      };
-    }),
-  }));
+  const build = (prefix: string, withIf: boolean) => {
+    let n = 0;
+    return scaffoldTopics(10, "kntt").map((t, ti) => ({
+      ...t,
+      id: `${prefix}-ct-${ti}`,
+      lessons: t.lessons.map((l) => {
+        n++;
+        const isIf = withIf && l.lessonId === "L-10-if-kntt";
+        return {
+          ...l,
+          id: isIf ? "seed-cl-if" : `${prefix}-cl-${n}`,
+          title: isIf ? "Bài 19. Câu lệnh rẽ nhánh if" : l.title,
+          blocks: isIf ? IF_BLOCKS : l.blocks.map((b, bi) => ({ ...b, id: `${prefix}-cb-${n}-${bi}` })),
+        };
+      }),
+    }));
+  };
   return [
     {
       id: "course-10-kntt",
       ownerId: "t1",
       title: "Tin học lớp 10",
-      description: "Khóa học theo bộ Kết nối tri thức. Bài Câu lệnh rẽ nhánh có đủ kiến thức, sơ đồ, mô phỏng Thành phố giao thông, thực hành Python và luyện tập.",
+      description: "Khóa học theo bộ Kết nối tri thức. Mỗi bài có tóm tắt kiến thức, mô phỏng và bài kiểm tra cuối bài; Bài 19 có thêm sơ đồ và thực hành Python.",
       grade: 10,
       textbookId: "kntt",
-      topics,
+      topics: build("seed", true),
       sequential: false,
       classIds: ["c-10a1"],
+      status: "published",
+      createdAt,
+      updatedAt: createdAt,
+    },
+    {
+      id: "course-10-t2",
+      ownerId: "t2",
+      title: "Tin học 10 – lớp 10A2",
+      description: "Học lần lượt từng bài: đọc tóm tắt, làm mô phỏng rồi làm bài kiểm tra cuối bài.",
+      grade: 10,
+      textbookId: "kntt",
+      topics: build("seed2", false),
+      sequential: true,
+      classIds: ["c-10a2"],
       status: "published",
       createdAt,
       updatedAt: createdAt,

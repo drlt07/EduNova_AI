@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { BookOpen, CalendarClock, ClipboardCheck, Eye, ListChecks, Lock, LockOpen, Pencil, Plus, RotateCcw, Search, Send } from "lucide-react";
+import { AlarmClock, BookMarked, BookOpen, CalendarClock, ClipboardCheck, Eye, ListChecks, Lock, LockOpen, Pencil, Plus, RotateCcw, Search, Send, Unlink } from "lucide-react";
 import { toast } from "sonner";
 import type { Assignment, HintMode } from "@/lib/domain/types";
 import { CODING_EXERCISES } from "@/lib/data/coding-exercises";
@@ -11,7 +11,7 @@ import { HINT_LABEL, MODE_LABEL } from "@/lib/labels";
 import { bookEntry } from "@/lib/sgk/book";
 import { assignedStudents, teacherAssignments, teacherClasses } from "@/lib/store/scoped";
 import { useSessionData } from "@/lib/store/use-role";
-import { taskOutcome } from "@/lib/teacher/assign";
+import { assignmentCourse, taskOutcome } from "@/lib/teacher/assign";
 import { cn, formatDate, matchesQuery, relativeDays } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
@@ -20,18 +20,19 @@ import { Field, Input, Select } from "@/components/ui/form";
 import { LabArt } from "@/components/labs/lab-art";
 import { LabPreview } from "@/components/labs/lab-preview";
 import { AssessTabs } from "@/components/teacher/assess-tabs";
-import { LabReviewQueue } from "@/components/teacher/lab-review";
 import { AssignDialog } from "@/components/teacher/assign-dialog";
 import { lessonAssignables } from "@/components/sgk/reader";
 
 const TASK_LABEL = { lab: "Mô phỏng", quiz: "Bộ câu hỏi", code: "Bài code" } as const;
-type Bucket = "grading" | "ongoing" | "ended" | "draft";
+type Bucket = "ongoing" | "overdue" | "closed" | "draft";
 const BUCKETS: { id: Bucket; label: string; empty: string }[] = [
-  { id: "grading", label: "Chờ chấm", empty: "Không có bài nào chờ thầy cô chấm." },
-  { id: "ongoing", label: "Đang diễn ra", empty: "Không có nhiệm vụ nào đang mở." },
-  { id: "ended", label: "Đã kết thúc", empty: "Chưa có nhiệm vụ nào kết thúc." },
-  { id: "draft", label: "Chưa giao", empty: "Không có bản nháp. Trong hộp thoại giao nhiệm vụ, chọn “Lưu nháp, giao sau”." },
+  { id: "ongoing", label: "Còn hạn", empty: "Không có bài nào đang còn hạn nộp." },
+  { id: "overdue", label: "Quá hạn", empty: "Không có bài nào quá hạn mà vẫn mở." },
+  { id: "closed", label: "Đã đóng", empty: "Chưa đóng bài nào." },
+  { id: "draft", label: "Chưa giao", empty: "Không có bản nháp. Trong hộp thoại giao bài, chọn “Lưu nháp, giao sau”." },
 ];
+type Source = "" | "course" | "free";
+const DAY = 86_400_000;
 const toLocal = (iso: string) => { const d = new Date(iso); return new Date(d.getTime() - d.getTimezoneOffset() * 60_000).toISOString().slice(0, 16); };
 
 interface Stat { target: number; done: number; working: number; pending: number; graded: number; weak: string[] }
@@ -93,13 +94,14 @@ export default function AssignmentsPage() {
   const [classId, setClassId] = useState("");
   const [q, setQ] = useState("");
   const [tab, setTab] = useState<Bucket | null>(null);
+  const [source, setSource] = useState<Source>("");
   const [editing, setEditing] = useState<{ id: string; dueAt: string; hintMode: HintMode } | null>(null);
   const [creating, setCreating] = useState(false);
   const [dialog, setDialog] = useState<{ kind: "results" | "preview"; a: Assignment } | null>(null);
   const [remedial, setRemedial] = useState<{ a: Assignment; studentIds: string[] } | null>(null);
   const [now] = useState(() => Date.now());
 
-  const all = useMemo(() => teacherAssignments(d, user.id).filter((a) => !classId || a.classId === classId), [d, user.id, classId]);
+  const all = useMemo(() => teacherAssignments(d, user.id).filter((a) => (!classId || a.classId === classId) && (!source || (source === "course") === !!assignmentCourse(d, a))), [d, user.id, classId, source]);
   const stats = useMemo(() => {
     const m = new Map<string, Stat>();
     for (const a of all) {
@@ -115,9 +117,12 @@ export default function AssignmentsPage() {
     }
     return m;
   }, [d, all]);
-  const bucketOf = (a: Assignment): Bucket => (a.status === "draft" ? "draft" : stats.get(a.id)!.pending > 0 ? "grading" : a.status === "open" && new Date(a.dueAt).getTime() > now ? "ongoing" : "ended");
+  const bucketOf = (a: Assignment): Bucket => (a.status === "draft" ? "draft" : a.status === "closed" ? "closed" : new Date(a.dueAt).getTime() > now ? "ongoing" : "overdue");
   const counts = Object.fromEntries(BUCKETS.map((b) => [b.id, all.filter((a) => bucketOf(a) === b.id).length])) as Record<Bucket, number>;
-  const active: Bucket = tab ?? (counts.grading ? "grading" : "ongoing");
+  const active: Bucket = tab ?? "ongoing";
+  const soon = all.filter((a) => bucketOf(a) === "ongoing" && new Date(a.dueAt).getTime() - now < 2 * DAY).sort((x, y) => x.dueAt.localeCompare(y.dueAt));
+  const missing = all.filter((a) => a.status === "open").reduce((n, a) => n + stats.get(a.id)!.target - stats.get(a.id)!.done, 0);
+  const toGrade = all.reduce((n, a) => n + stats.get(a.id)!.pending, 0);
   const shown = all.filter((a) => bucketOf(a) === active && matchesQuery(q, a.title)).sort((x, y) => x.dueAt.localeCompare(y.dueAt));
 
   return (
@@ -125,18 +130,32 @@ export default function AssignmentsPage() {
       <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-fg">Bài tập & Đánh giá</h1>
-          <p className="mt-1 text-muted">Nhiệm vụ giao từ bài học: máy chấm mô phỏng, câu hỏi, code; thầy cô chấm phần theo tiêu chí.</p>
+          <p className="mt-1 text-muted">Đã giao: theo dõi hạn nộp của bài thuộc khóa học và bài giao độc lập.</p>
         </div>
-        <Button onClick={() => setCreating(true)}><Plus /> Giao nhiệm vụ</Button>
+        <div className="flex flex-wrap gap-2">
+          <Button variant="secondary" asChild><Link href="/teacher/courses"><BookMarked /> Giao từ khóa học</Link></Button>
+          <Button onClick={() => setCreating(true)}><Plus /> Giao bài độc lập</Button>
+        </div>
       </div>
       <AssessTabs />
-      <LabReviewQueue />
+
+      <div className="mb-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+        {[
+          { icon: Send, label: "Đang mở", value: counts.ongoing + counts.overdue, sub: `${counts.draft} bản nháp chưa giao`, tone: "text-blue-fg" },
+          { icon: AlarmClock, label: "Sắp đến hạn (48 giờ)", value: soon.length, sub: soon[0] ? `Gần nhất: ${soon[0].title}` : "Không có bài nào sắp hết hạn", tone: "text-warning-fg" },
+          { icon: CalendarClock, label: "Lượt chưa nộp", value: missing, sub: `${counts.overdue} bài đã quá hạn vẫn mở`, tone: "text-danger-fg" },
+          { icon: ClipboardCheck, label: "Chờ chấm thủ công", value: toGrade, sub: toGrade ? "Mở tab Chờ chấm để chấm" : "Không có bài chờ chấm", tone: "text-violet-fg", href: "/teacher/assessment" },
+        ].map((k) => {
+          const body = <><p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted"><k.icon className={cn("size-3.5", k.tone)} aria-hidden /> {k.label}</p><p className="mt-1 text-2xl font-bold tabular-nums text-fg">{k.value}</p><p className="truncate text-xs text-muted">{k.sub}</p></>;
+          return k.href ? <Link key={k.label} href={k.href} className="rounded-2xl border border-line bg-surface p-3 hover:border-fg/40">{body}</Link> : <div key={k.label} className="rounded-2xl border border-line bg-surface p-3">{body}</div>;
+        })}
+      </div>
 
       <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center">
         <div className="flex gap-1 overflow-x-auto rounded-xl border border-line bg-surface p-1" role="tablist" aria-label="Trạng thái nhiệm vụ">
           {BUCKETS.map((b) => (
             <button key={b.id} type="button" role="tab" aria-selected={active === b.id} onClick={() => setTab(b.id)} className={cn("shrink-0 rounded-lg px-3 py-1.5 text-sm font-medium", active === b.id ? "bg-fg text-bg" : "text-muted hover:text-fg")}>
-              {b.label} <span className={cn("ml-1 rounded-full px-1.5 text-xs", active === b.id ? "bg-bg/20" : b.id === "grading" && counts.grading ? "bg-violet/15 text-violet-fg" : "bg-surface-2")}>{counts[b.id]}</span>
+              {b.label} <span className={cn("ml-1 rounded-full px-1.5 text-xs", active === b.id ? "bg-bg/20" : b.id === "overdue" && counts.overdue ? "bg-danger/15 text-danger-fg" : "bg-surface-2")}>{counts[b.id]}</span>
             </button>
           ))}
         </div>
@@ -145,13 +164,18 @@ export default function AssignmentsPage() {
           <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted" aria-hidden />
           <Input className="pl-9" placeholder="Tìm nhiệm vụ…" value={q} onChange={(e) => setQ(e.target.value)} />
         </label>
+        <Select aria-label="Nguồn bài" className="w-44" value={source} onChange={(e) => setSource(e.target.value as Source)}>
+          <option value="">Mọi nguồn</option>
+          <option value="course">Thuộc khóa học</option>
+          <option value="free">Giao độc lập</option>
+        </Select>
         <Select aria-label="Lọc lớp" className="w-36" value={classId} onChange={(e) => setClassId(e.target.value)}>
           <option value="">Mọi lớp</option>
           {classes.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
         </Select>
       </div>
 
-      {shown.length === 0 ? <EmptyState icon={ListChecks} title={BUCKETS.find((b) => b.id === active)!.empty} action={<Button size="sm" onClick={() => setCreating(true)}><Plus /> Giao nhiệm vụ</Button>} /> : (
+      {shown.length === 0 ? <EmptyState icon={ListChecks} title={BUCKETS.find((b) => b.id === active)!.empty} description="Bài thuộc khóa học được giao từ trình soạn khóa học (bài kiểm tra cuối bài, mô phỏng); bài độc lập giao từ ngân hàng bài tập." action={<Button size="sm" onClick={() => setCreating(true)}><Plus /> Giao bài độc lập</Button>} /> : (
         <ul className="divide-y divide-line rounded-2xl border border-line bg-surface">
           {shown.map((a) => {
             const s = stats.get(a.id)!;
@@ -162,18 +186,25 @@ export default function AssignmentsPage() {
             const klass = d.classes.find((x) => x.id === a.classId);
             const open = a.status === "open";
             const late = open && new Date(a.dueAt).getTime() < now;
+            const src = assignmentCourse(d, a);
+            const left = new Date(a.dueAt).getTime() - now;
             return (
               <li key={a.id} className="flex flex-wrap items-center gap-4 p-4">
                 {labSlug ? <LabArt slug={labSlug} className="hidden h-14 w-24 shrink-0 rounded-lg sm:block" /> : <span className="hidden h-14 w-24 shrink-0 place-items-center rounded-lg bg-surface-2 text-muted sm:grid">{a.task?.kind === "code" ? "</>" : <ListChecks className="size-5" aria-hidden />}</span>}
                 <div className="min-w-0 flex-1 basis-64">
-                  <p className="text-xs text-muted"><span className="mr-1.5 rounded bg-fg px-1.5 py-0.5 font-bold text-bg">{klass?.name}</span>{a.studentIds ? `giao riêng ${a.studentIds.length} em · ` : ""}{e ? <span className="inline-flex items-center gap-1"><BookOpen className="size-3" aria-hidden /> Bài {e.lesson.no}. {e.lesson.title}</span> : null}</p>
+                  <p className="flex flex-wrap items-center gap-1.5 text-xs text-muted">
+                    <span className="rounded bg-fg px-1.5 py-0.5 font-bold text-bg">{klass?.name}</span>
+                    {src ? <Link href={`/teacher/courses/${src.course.id}`} className="inline-flex items-center gap-1 rounded bg-cyan/15 px-1.5 py-0.5 font-medium text-cyan-fg hover:underline"><BookMarked className="size-3" aria-hidden /> {src.course.title}{src.lesson ? ` · ${src.lesson.title.split(".")[0]}` : ""}</Link> : <span className="inline-flex items-center gap-1 rounded bg-surface-2 px-1.5 py-0.5 font-medium"><Unlink className="size-3" aria-hidden /> Giao độc lập</span>}
+                    {a.studentIds ? <span>giao riêng {a.studentIds.length} em</span> : null}
+                    {e && !src?.lesson ? <span className="inline-flex items-center gap-1"><BookOpen className="size-3" aria-hidden /> Bài {e.lesson.no}. {e.lesson.title}</span> : null}
+                  </p>
                   <p className="mt-0.5 font-semibold text-fg">{a.title}</p>
                   <p className="text-xs text-muted">
                     <span className={cn("mr-1 rounded px-1.5 py-0.5 font-medium", a.task ? "bg-cyan/15 text-cyan-fg" : "bg-violet/15 text-violet-fg")}>{a.task ? "Máy chấm" : "Thầy cô chấm"}</span>
                     {a.task ? TASK_LABEL[a.task.kind] : [cfg && MODE_LABEL[cfg.mode], HINT_LABEL[a.hintMode]].filter(Boolean).join(" · ")}
                     {a.note && <span className="italic"> · “{a.note}”</span>}
                   </p>
-                  <p className={cn("mt-1 inline-flex items-center gap-1 text-xs", late ? "font-semibold text-danger-fg" : "text-muted")}><CalendarClock className="size-3.5" aria-hidden /> Hạn {formatDate(a.dueAt, true)} · {relativeDays(a.dueAt)}{a.status === "closed" ? " · đã đóng" : ""}</p>
+                  <p className={cn("mt-1 inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-xs", late ? "bg-danger/10 font-semibold text-danger-fg" : open && left < 2 * DAY ? "bg-warning/15 font-semibold text-warning-fg" : "text-muted")}><CalendarClock className="size-3.5" aria-hidden /> Hạn {formatDate(a.dueAt, true)} · {relativeDays(a.dueAt)}{a.status === "closed" ? " · đã đóng" : ""}{open && s.target - s.done > 0 ? ` · ${s.target - s.done} em chưa ${a.task ? "làm" : "nộp"}` : ""}</p>
                 </div>
                 {a.status !== "draft" && (
                   <div className="w-52 space-y-1.5 text-xs">
@@ -189,7 +220,7 @@ export default function AssignmentsPage() {
                   ) : (
                     <Button size="sm" variant={s.pending ? "primary" : "secondary"} asChild><Link href={`/teacher/assessment?assignment=${a.id}`}>{s.pending ? `Chấm ${s.pending} bài` : "Xem bài đã chấm"}</Link></Button>
                   )}
-                  {a.status !== "draft" && s.weak.length > 0 && (active === "ended" || s.done > 0) && <Button size="sm" variant="ghost" title="Giao lại cho các em chưa làm hoặc làm chưa đạt" onClick={() => setRemedial({ a, studentIds: s.weak })}><RotateCcw /> Củng cố {s.weak.length} em</Button>}
+                  {a.status !== "draft" && s.weak.length > 0 && (active !== "ongoing" || s.done > 0) && <Button size="sm" variant="ghost" title="Giao lại cho các em chưa làm hoặc làm chưa đạt" onClick={() => setRemedial({ a, studentIds: s.weak })}><RotateCcw /> Củng cố {s.weak.length} em</Button>}
                   <Button size="icon" variant="ghost" aria-label={`Xem như học sinh: ${a.title}`} title="Xem như học sinh" onClick={() => setDialog({ kind: "preview", a })}><Eye /></Button>
                   <Button size="icon" variant="ghost" aria-label={`Sửa ${a.title}`} title="Sửa hạn nộp, gợi ý" onClick={() => setEditing({ id: a.id, dueAt: toLocal(a.dueAt), hintMode: a.hintMode })}><Pencil /></Button>
                   {a.status !== "draft" && <Button size="icon" variant="ghost" aria-label={open ? `Đóng nhận bài ${a.title}` : `Mở lại ${a.title}`} title={open ? "Đóng nhận bài" : "Mở lại"} onClick={() => { d.updateAssignment(a.id, { status: open ? "closed" : "open" }); toast.success(open ? "Đã đóng nhận bài" : "Đã mở lại"); }}>{open ? <Lock /> : <LockOpen />}</Button>}
@@ -221,6 +252,7 @@ export default function AssignmentsPage() {
         studentIds={remedial?.studentIds}
         sgkRef={remedial?.a.sgkRef}
         preset={remedial?.a.task ? { kind: remedial.a.task.kind, ref: remedial.a.task.ref } : undefined}
+        courseId={remedial?.a.courseId}
         suggest={remedial?.a.sgkRef && bookEntry(remedial.a.sgkRef) ? lessonAssignables(d, user.id, bookEntry(remedial.a.sgkRef)!) : undefined}
       />
       <Dialog open={!!dialog} onOpenChange={(o) => !o && setDialog(null)}>

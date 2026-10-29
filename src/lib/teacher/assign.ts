@@ -96,3 +96,36 @@ export function taskHref(t: NonNullable<Assignment["task"]>): string {
   if (t.kind === "code") return `/student/code?bai=${t.ref}`;
   return `/labs/${t.ref}`;
 }
+
+/** Khóa học mà bài giao thuộc về: giao từ khóa học, hoặc trùng bài SGK của khóa học đã phát hành cho lớp đó. Trống = giao độc lập. */
+export function assignmentCourse(d: Pick<DemoData, "courses">, a: Pick<Assignment, "courseId" | "sgkRef" | "classId">) {
+  const course = a.courseId ? d.courses.find((c) => c.id === a.courseId) : a.sgkRef ? d.courses.find((c) => c.status === "published" && c.classIds.includes(a.classId) && c.topics.some((t) => t.lessons.some((l) => l.sgkRef === a.sgkRef))) : undefined;
+  if (!course) return undefined;
+  const lesson = a.sgkRef ? course.topics.flatMap((t) => t.lessons).find((l) => l.sgkRef === a.sgkRef) : undefined;
+  return { course, lesson };
+}
+
+export type GradeStatus = "graded" | "pending" | "missing" | "late" | "open";
+export interface GradeCell { status: GradeStatus; ratio?: number; text?: string; at?: string }
+
+/**
+ * Một ô sổ điểm: kết quả của một em ở một bài giao. Bài máy chấm lấy từ kết quả làm bài; bài thầy cô chấm lấy từ
+ * phiếu chấm đã chốt (thang theo tổng điểm tối đa của tiêu chí).
+ */
+export function gradeCell(d: D & Pick<DemoData, "submissions" | "assessments" | "rubrics">, studentId: string, a: Assignment, now: number): GradeCell {
+  const overdue = new Date(a.dueAt).getTime() < now;
+  if (a.task) {
+    const o = taskOutcome(d, studentId, a);
+    if (o.text) return { status: "graded", ratio: o.ratio, text: o.text, at: o.at };
+    return { status: overdue ? "missing" : "open" };
+  }
+  const sub = d.submissions.find((s) => s.assignmentId === a.id && s.studentId === studentId);
+  if (!sub) return { status: overdue ? "missing" : "open" };
+  const late = new Date(sub.submittedAt).getTime() > new Date(a.dueAt).getTime();
+  const as = d.assessments.find((x) => x.submissionId === sub.id && x.status === "final");
+  if (!as) return { status: late ? "late" : "pending", at: sub.submittedAt, text: "chờ chấm" };
+  const rubric = d.rubrics.find((r) => r.id === as.rubricId);
+  const max = rubric?.criteria.reduce((n, c) => n + c.maxScore, 0) || 1;
+  const got = as.scores.reduce((n, s) => n + s.score, 0);
+  return { status: "graded", ratio: got / max, text: `${fmtScore(Math.round((got / max) * 20) / 2)} điểm`, at: sub.submittedAt };
+}

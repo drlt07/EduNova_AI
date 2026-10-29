@@ -275,6 +275,8 @@ export interface Assignment {
   sgkRef?: string;
   /** Chỉ giao cho các em này trong lớp (bỏ trống = cả lớp). */
   studentIds?: string[];
+  /** Giao từ khóa học này (bài tập thuộc khóa học); trống = giao độc lập. */
+  courseId?: string;
 }
 
 export interface ClassRoom {
@@ -547,6 +549,8 @@ export interface CourseBlock {
   required: boolean;
   /** Mức hỗ trợ của AI Gia sư cho khối này (mặc định: luyện tập có hướng dẫn) */
   tutorLevel?: "free" | "guided" | "exam";
+  /** practice: đây là bài kiểm tra cuối bài (hiện riêng, tính điểm bài học) */
+  final?: boolean;
 }
 
 export interface CourseLesson {
@@ -554,6 +558,8 @@ export interface CourseLesson {
   title: string;
   /** Bài học trong chương trình (L-10-if-kntt…) */
   lessonId?: string;
+  /** Bài SGK tương ứng, vd "10-4" (để nối bài giao, mở khóa) */
+  sgkRef?: string;
   blocks: CourseBlock[];
   /** Mở tự do: học sinh vào được dù chưa xong bài trước (khi khóa học yêu cầu học lần lượt) */
   alwaysOpen?: boolean;

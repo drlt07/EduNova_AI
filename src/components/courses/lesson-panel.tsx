@@ -18,12 +18,13 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Field, Input, Select, Textarea } from "@/components/ui/form";
 
-type Draft = { id?: string; title: string; questions: PracticeQuestion[]; classIds: string[] };
+export type QuizDraft = { id?: string; title: string; questions: PracticeQuestion[]; classIds: string[] };
+type Draft = QuizDraft;
 type NewQ = { kind: "mcq" | "truefalse"; prompt: string; options: string[]; correct: number; answer: boolean; explanation: string };
 const EMPTY_Q: NewQ = { kind: "mcq", prompt: "", options: ["", "", "", ""], correct: 0, answer: true, explanation: "" };
 
 /** Soạn câu hỏi mới + chọn từ ngân hàng + chọn lớp để giao. */
-function QuizEditor({ draft, setDraft, bank, objectiveId, grade, onSave, onCancel }: { draft: Draft; setDraft: (d: Draft) => void; bank: PracticeQuestion[]; objectiveId: string; grade: number; onSave: (publish: boolean) => void; onCancel: () => void }) {
+export function QuizEditor({ draft, setDraft, bank, objectiveId, grade, onSave, onCancel }: { draft: Draft; setDraft: (d: Draft) => void; bank: PracticeQuestion[]; objectiveId: string; grade: number; onSave: (publish: boolean) => void; onCancel: () => void }) {
   const { d, user } = useSessionData();
   const [q, setQ] = useState<NewQ>(EMPTY_Q);
   const [err, setErr] = useState("");

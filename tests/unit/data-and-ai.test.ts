@@ -55,7 +55,8 @@ describe("data scoping (RLS simulation)", () => {
 
   it("students only see assignments of enrolled classes", () => {
     expect(studentAssignments(d, "s1").map((a) => a.id).sort()).toEqual(["as-seed-1", "as-seed-bin", "as-seed-robot"]);
-    expect(studentAssignments(d, "s16")).toHaveLength(0);
+    // 10A2 (cô Bảo) chỉ thấy bài đã giao của lớp mình, không thấy bản nháp
+    expect(studentAssignments(d, "s16").map((a) => a.id).sort()).toEqual(["as-seed-t2-7", "as-seed-t2-8", "as-seed-t2-code", "as-seed-t2-enc"]);
     expect(canStudentViewAssignment(d, "s16", "as-seed-1")).toBe(false);
   });
 
@@ -183,8 +184,8 @@ describe("student mission status", () => {
     expect(missionStatus(d, "s6", a)).toBe("submitted");
     expect(missionStatus(d, "s1", a, new Date("2027-01-01").getTime())).toBe("overdue");
   });
-  it("student 10A2 sees no missions; mastery is personal", () => {
-    expect(studentMissions(d, "s16")).toHaveLength(0);
+  it("student 10A2 sees only class 10A2 missions; mastery is personal", () => {
+    expect(studentMissions(d, "s16").every((m) => m.assignment.classId === "c-10a2")).toBe(true);
     expect(studentMastery(d, "s2").every((m) => m.mastery === 100)).toBe(true);
     expect(studentMastery(d, "s1")).toEqual([]);
   });

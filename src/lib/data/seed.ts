@@ -153,11 +153,11 @@ export const SEED_RUBRIC_CRITERIA = (prefix: string) => [
 
 /** Lớp mẫu đã học được một phần chương trình: mở các bài đầu, luyện tập của các bài đã dạy. */
 function seedUnlocks(at: string): Unlock[] {
-  const plan: [string, 10 | 11 | 12, number, number][] = [["c-10a1", 10, 20, 19], ["c-11a2", 11, 3, 2], ["c-12a3", 12, 3, 1]];
-  return plan.flatMap(([classId, grade, lessons, practice]) => gradeLessons(grade).slice(0, lessons).flatMap((x, i) => {
+  const plan: [string, 10 | 11 | 12, number, number, string][] = [["c-10a1", 10, 20, 19, "t1"], ["c-11a2", 11, 3, 2, "t1"], ["c-12a3", 12, 3, 1, "t1"], ["c-10a2", 10, 9, 8, "t2"]];
+  return plan.flatMap(([classId, grade, lessons, practice, by]) => gradeLessons(grade).slice(0, lessons).flatMap((x, i) => {
     const keys = [lessonKey(x.ref)];
     if (i < practice) { const it = lessonItems(x.ref, x.lesson.key); keys.push(...it.sets.map((s) => setKey(s.id)), ...it.code.map((c) => codeKey(c.id))); }
-    return keys.map((key) => ({ classId, key, by: "t1", at }));
+    return keys.map((key) => ({ classId, key, by, at }));
   })).filter((u, i, arr) => arr.findIndex((v) => v.classId === u.classId && v.key === u.key) === i);
 }
 
@@ -438,9 +438,14 @@ export function buildSeed(now: Date = new Date()): DemoData {
     activities: [activity],
     activityDrafts: [],
     assignments: [assignment,
-      { id: "as-seed-bin", ownerId: "t1", activityId: "", classId: "c-10a1", title: "Mô phỏng: Phòng điều khiển mã nhị phân", dueAt: at(-2), hintMode: "guided", publishedAt: at(-30), status: "open", task: { kind: "lab", ref: "binary-control" }, sgkRef: "10-4", note: "Làm hết 5 thử thách, ghi lại vì sao 255 + 1 thành 0." },
-      { id: "as-seed-robot", ownerId: "t1", activityId: "", classId: "c-10a1", title: "Mô phỏng: Nhà máy robot tự động", dueAt: at(4), hintMode: "guided", publishedAt: at(-3), status: "open", task: { kind: "lab", ref: "robot-factory" }, sgkRef: "10-20", note: "Thử đếm ngược bằng step âm." },
-      { id: "as-seed-os", ownerId: "t1", activityId: "", classId: "c-11a2", title: "Khám phá hệ điều hành", dueAt: at(2), hintMode: "guided", publishedAt: at(-2), status: "open", task: { kind: "lab", ref: "os-explorer" }, note: "Làm hết ba nhiệm vụ, chú ý phần cấp RAM cho tiến trình." }],
+      { id: "as-seed-bin", ownerId: "t1", activityId: "", classId: "c-10a1", title: "Mô phỏng: Phòng điều khiển mã nhị phân", dueAt: at(-2), hintMode: "guided", publishedAt: at(-30), status: "open", task: { kind: "lab", ref: "binary-control" }, sgkRef: "10-4", courseId: "course-10-kntt", note: "Làm hết 5 thử thách, ghi lại vì sao 255 + 1 thành 0." },
+      { id: "as-seed-robot", ownerId: "t1", activityId: "", classId: "c-10a1", title: "Mô phỏng: Nhà máy robot tự động", dueAt: at(4), hintMode: "guided", publishedAt: at(-3), status: "open", task: { kind: "lab", ref: "robot-factory" }, sgkRef: "10-20", courseId: "course-10-kntt", note: "Thử đếm ngược bằng step âm." },
+      { id: "as-seed-os", ownerId: "t1", activityId: "", classId: "c-11a2", title: "Khám phá hệ điều hành", dueAt: at(2), hintMode: "guided", publishedAt: at(-2), status: "open", task: { kind: "lab", ref: "os-explorer" }, note: "Làm hết ba nhiệm vụ, chú ý phần cấp RAM cho tiến trình." },
+      { id: "as-seed-t2-7", ownerId: "t2", activityId: "", classId: "c-10a2", title: "Bài kiểm tra cuối Bài 7", dueAt: at(-1), hintMode: "off", publishedAt: at(-12), status: "open", task: { kind: "quiz", ref: "bai-10-7" }, sgkRef: "10-7", courseId: "course-10-t2" },
+      { id: "as-seed-t2-8", ownerId: "t2", activityId: "", classId: "c-10a2", title: "Bài kiểm tra cuối Bài 8", dueAt: at(2), hintMode: "off", publishedAt: at(-6), status: "open", task: { kind: "quiz", ref: "bai-10-8" }, sgkRef: "10-8", courseId: "course-10-t2" },
+      { id: "as-seed-t2-enc", ownerId: "t2", activityId: "", classId: "c-10a2", title: "Mô phỏng: Mã hóa văn bản", dueAt: at(4), hintMode: "guided", publishedAt: at(-1), status: "open", task: { kind: "lab", ref: "text-encoding" }, sgkRef: "10-3", courseId: "course-10-t2", note: "Gõ tên mình và đếm số byte theo ASCII và UTF-8." },
+      { id: "as-seed-t2-code", ownerId: "t2", activityId: "", classId: "c-10a2", title: "Lập trình: Số lớn nhất", dueAt: at(6), hintMode: "guided", publishedAt: at(-1), status: "open", task: { kind: "code", ref: "if-max" } },
+      { id: "as-seed-t2-9", ownerId: "t2", activityId: "", classId: "c-10a2", title: "Bài kiểm tra cuối Bài 9", dueAt: at(9), hintMode: "off", publishedAt: at(-1), status: "draft", task: { kind: "quiz", ref: "bai-10-9" }, sgkRef: "10-9", courseId: "course-10-t2" }],
     attempts,
     events,
     submissions,

@@ -8,6 +8,7 @@ import { BLOCK_LABEL, MAX_FILE_BYTES } from "@/lib/courses/course";
 import { LAB_TEMPLATES } from "@/lib/data/labs";
 import { CODING_EXERCISES } from "@/lib/data/coding-exercises";
 import { PRACTICE_SETS } from "@/lib/data/practice";
+import { useSessionData } from "@/lib/store/use-role";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Checkbox, Field, Input, Select, Textarea } from "@/components/ui/form";
@@ -77,7 +78,8 @@ export function BlockEditor({ block, grade, index, count, open, dragging, onTogg
   const Icon = BLOCK_ICON[block.kind];
   const labs = [...LAB_TEMPLATES].sort((a, b) => Number(!a.grades.includes(grade)) - Number(!b.grades.includes(grade)));
   const exercises = CODING_EXERCISES.filter((x) => x.grade === grade);
-  const sets = PRACTICE_SETS.filter((x) => x.grade === grade);
+  const { d, user } = useSessionData();
+  const sets = [...d.teacherQuizzes.filter((x) => x.ownerId === user.id && x.grade === grade).map((x) => ({ id: x.id, title: `${x.title} (của tôi)`, questionIds: x.questions })), ...PRACTICE_SETS.filter((x) => x.grade === grade)];
   return (
     <li
       draggable
@@ -92,7 +94,7 @@ export function BlockEditor({ block, grade, index, count, open, dragging, onTogg
         <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-cyan/10 text-cyan-fg"><Icon className="size-4" aria-hidden /></span>
         <button type="button" onClick={onToggle} aria-expanded={open} aria-controls={`${id}-body`} className="min-w-0 flex-1 text-left">
           <span className="block truncate text-sm font-medium text-fg">{block.title || BLOCK_LABEL[block.kind]}</span>
-          <span className="block text-xs text-muted">{BLOCK_LABEL[block.kind]} · {block.required ? "bắt buộc" : "không bắt buộc"}</span>
+          <span className="block text-xs text-muted">{block.final ? "Bài kiểm tra cuối bài" : BLOCK_LABEL[block.kind]} · {block.required ? "bắt buộc" : "không bắt buộc"}</span>
         </button>
         <Button size="icon" variant="ghost" disabled={index === 0} onClick={() => onMove(index - 1)} aria-label={`Đưa "${block.title}" lên`}><ChevronUp /></Button>
         <Button size="icon" variant="ghost" disabled={index === count - 1} onClick={() => onMove(index + 1)} aria-label={`Đưa "${block.title}" xuống`}><ChevronDown /></Button>

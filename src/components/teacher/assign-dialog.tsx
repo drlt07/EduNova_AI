@@ -40,19 +40,19 @@ const DUE: { id: DueChoice; label: string }[] = [
  * Giao nhiệm vụ trong một hộp thoại: chọn nội dung có sẵn (mô phỏng, câu hỏi, bài code), chọn một hay nhiều lớp,
  * hạn nộp tính theo thời khóa biểu từng lớp, lời dặn, và xem trước thẻ học sinh sẽ thấy.
  */
-export function AssignDialog({ open, onOpenChange, preset, sgkRef, suggest, classId, studentIds, title = "Giao nhiệm vụ" }: { open: boolean; onOpenChange: (o: boolean) => void; preset?: AssignPreset; sgkRef?: string; suggest?: AssignPreset[]; classId?: string; studentIds?: string[]; title?: string }) {
+export function AssignDialog({ open, onOpenChange, preset, sgkRef, suggest, classId, studentIds, courseId, title = "Giao nhiệm vụ" }: { open: boolean; onOpenChange: (o: boolean) => void; preset?: AssignPreset; sgkRef?: string; suggest?: AssignPreset[]; classId?: string; studentIds?: string[]; courseId?: string; title?: string }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       {open && (
         <DialogContent title={title} description="Chọn nội dung, lớp và hạn nộp. Mô phỏng, câu hỏi và bài code được máy chấm, thầy cô xem kết quả ngay." className="max-w-3xl">
-          <AssignForm key={preset ? `${preset.kind}:${preset.ref}` : "new"} preset={preset} sgkRef={sgkRef} suggest={suggest} classId={classId} studentIds={studentIds} onDone={() => onOpenChange(false)} />
+          <AssignForm key={preset ? `${preset.kind}:${preset.ref}` : "new"} preset={preset} sgkRef={sgkRef} suggest={suggest} classId={classId} studentIds={studentIds} courseId={courseId} onDone={() => onOpenChange(false)} />
         </DialogContent>
       )}
     </Dialog>
   );
 }
 
-function AssignForm({ preset, sgkRef, suggest, classId, studentIds, onDone }: { preset?: AssignPreset; sgkRef?: string; suggest?: AssignPreset[]; classId?: string; studentIds?: string[]; onDone: () => void }) {
+function AssignForm({ preset, sgkRef, suggest, classId, studentIds, courseId, onDone }: { preset?: AssignPreset; sgkRef?: string; suggest?: AssignPreset[]; classId?: string; studentIds?: string[]; courseId?: string; onDone: () => void }) {
   const { d, user } = useSessionData();
   const classes = teacherClasses(d, user.id);
   const activities = d.activities.filter((a) => a.ownerId === user.id && a.status === "published");
@@ -98,7 +98,7 @@ function AssignForm({ preset, sgkRef, suggest, classId, studentIds, onDone }: { 
       const dup = !(chosen.length === 1 && only?.length) && d.assignments.some((a) => a.classId === c.id && a.status === "open" && !a.studentIds && (pick.kind === "activity" ? a.activityId === pick.ref : a.task?.kind === pick.kind && a.task.ref === pick.ref));
       if (dup) { toast.warning(`${c.name} đã có nhiệm vụ này đang mở, bỏ qua`); continue; }
       const target = chosen.length === 1 && only?.length ? { studentIds: only } : {};
-      const base = { ownerId: user.id, ...(sgkRef ? { sgkRef } : {}), ...target, classId: c.id, title: pick.title, dueAt: dueOf(c)!.toISOString(), hintMode: (tutor ? "guided" : "off") as HintMode, ...(note.trim() ? { note: note.trim() } : {}) };
+      const base = { ownerId: user.id, ...(sgkRef ? { sgkRef } : {}), ...(courseId ? { courseId } : {}), ...target, classId: c.id, title: pick.title, dueAt: dueOf(c)!.toISOString(), hintMode: (tutor ? "guided" : "off") as HintMode, ...(note.trim() ? { note: note.trim() } : {}) };
       if (pick.kind === "activity") {
         const act = activities.find((a) => a.id === pick.ref);
         const cfg = act && d.labConfigs.find((x) => x.id === act.labConfigId);

@@ -1,9 +1,10 @@
 import { describe, expect, it } from "vitest";
 import type { Course, CourseProgress, PracticeAttempt } from "@/lib/domain/types";
-import { allLessons, courseCompletion, isLessonDone, lessonStates, moveItem, newBlock, newLesson, newTopic, scaffoldTopics, validateForPublish, youtubeEmbed } from "@/lib/courses/course";
+import { allLessons, courseCompletion, finalTest, isLessonDone, lessonCells, lessonStates, moveItem, newBlock, newLesson, newTopic, scaffoldTopics, validateForPublish, youtubeEmbed } from "@/lib/courses/course";
 import { seedCourses } from "@/lib/data/courses-seed";
 import { buildSeed } from "@/lib/data/seed";
 import { studentClassIds } from "@/lib/store/scoped";
+import { assignmentCourse, gradeCell } from "@/lib/teacher/assign";
 
 function course(sequential: boolean): Course {
   const l1 = newLesson("Bài 1", undefined, [newBlock("text", { id: "b1", body: "x" }), newBlock("media", { id: "b2", mediaUrl: "https://example.com/a.png" })]);
@@ -82,6 +83,44 @@ describe("Khóa học: soạn và phát hành", () => {
   });
 });
 
+describe("Khóa học: chương → bài → hoạt động, bài kiểm tra cuối bài", () => {
+  it("dựng khung KNTT có tên chương, mô phỏng theo bài và bài kiểm tra cuối bài", () => {
+    const topics = scaffoldTopics(10, "kntt");
+    expect(topics[0].title.startsWith("Chương 1.")).toBe(true);
+    const lessons = topics.flatMap((t) => t.lessons);
+    expect(lessons.every((l) => l.sgkRef)).toBe(true);
+    expect(lessons.filter((l) => finalTest(l)).length).toBeGreaterThan(25);
+    expect(lessons.some((l) => l.blocks.some((b) => b.kind === "simulation" && b.labSlug))).toBe(true);
+    const c = { ...course(false), topics };
+    expect(validateForPublish(c).errors).toEqual([]);
+  });
+
+  it("bảng tiến độ: hoàn thành / đang học / chưa mở và điểm bài kiểm tra", () => {
+    const d = buildSeed();
+    const c = d.courses.find((x) => x.id === "course-10-t2")!;
+    const ctx = { progress: undefined, practiceAttempts: d.practiceAttempts, studentId: "s16" };
+    const cells = lessonCells(c, ctx);
+    expect(cells.length).toBe(allLessons(c).length);
+    expect(cells.some((x) => x.test !== null)).toBe(true);
+    expect(cells.some((x) => x.state === "locked")).toBe(true); // học lần lượt
+    expect(cells.every((x) => x.state !== "done" || x.test === null || x.test >= 0)).toBe(true);
+  });
+
+  it("bài giao biết mình thuộc khóa học hay giao độc lập; sổ điểm phân biệt chưa nộp và còn hạn", () => {
+    const d = buildSeed();
+    const a = (id: string) => d.assignments.find((x) => x.id === id)!;
+    expect(assignmentCourse(d, a("as-seed-t2-7"))?.course.id).toBe("course-10-t2");
+    expect(assignmentCourse(d, a("as-seed-t2-7"))?.lesson?.sgkRef).toBe("10-7");
+    expect(assignmentCourse(d, a("as-seed-t2-code"))).toBeUndefined();
+    const now = Date.now();
+    const code = gradeCell(d, "s16", a("as-seed-t2-code"), now);
+    expect(code.status).toBe("open");
+    const quiz = ["s16", "s17", "s18"].map((s) => gradeCell(d, s, a("as-seed-t2-7"), now));
+    expect(quiz.every((g) => g.status === "graded" || g.status === "missing")).toBe(true);
+    expect(quiz.some((g) => g.status === "graded" && g.ratio! > 0)).toBe(true);
+  });
+});
+
 describe("Khóa học mẫu", () => {
   it("bài Câu lệnh rẽ nhánh có đủ 5 loại nội dung và hợp lệ để phát hành", () => {
     const [c] = seedCourses("2026-01-01T00:00:00Z");
@@ -95,6 +134,6 @@ describe("Khóa học mẫu", () => {
     const d = buildSeed();
     const visible = (sid: string) => d.courses.filter((c) => c.status === "published" && c.classIds.some((id) => studentClassIds(d, sid).includes(id)));
     expect(visible("s1").map((c) => c.id)).toContain("course-10-kntt"); // 10A1
-    expect(visible("s16")).toEqual([]); // 10A2
+    expect(visible("s16").map((c) => c.id)).toEqual(["course-10-t2"]); // 10A2 chỉ thấy khóa của cô Bảo
   });
 });
