@@ -10,6 +10,7 @@ import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import type { LabGrade } from "@/lib/ai/lab-grader";
 import { AUTH_MODE } from "@/lib/supabase/config";
+import { normalizeEmail, type LocalCredential } from "@/lib/auth/local-auth";
 import type { TeacherQuiz } from "@/lib/data/practice";
 import type {
   ActivityQuestion,
@@ -71,11 +72,15 @@ export interface SubmitInput {
 
 interface Session {
   userId: string | null;
+  /** Bản dùng thử: muối + băm mật khẩu của tài khoản tự đăng ký (không bao giờ lưu mật khẩu gốc). */
+  credentials: Record<string, LocalCredential>;
 }
 
 interface Actions {
   login: (userId: string) => void;
   logout: () => void;
+  /** Bản dùng thử: tạo tài khoản trên trình duyệt này. Trả về id, hoặc null nếu email đã có. Học sinh nhập mã lớp đúng thì vào lớp luôn. */
+  registerLocal: (u: { name: string; email: string; role: "teacher" | "student"; credential: LocalCredential; inviteCode?: string }) => { id: string; classId?: string } | null;
   /** Đăng nhập thật (Supabase): đưa hồ sơ đã xác thực vào phiên; vai trò lấy từ cơ sở dữ liệu. */
   signInAs: (user: User) => void;
   resetDemo: () => void;
@@ -186,10 +191,25 @@ export const useApp = create<AppState>()(
       return {
         ...buildSeed(),
         userId: null,
+        credentials: {},
         login: (userId) => set({ userId }),
+        registerLocal: ({ name, email, role, credential, inviteCode }) => {
+          const e = normalizeEmail(email);
+          if (get().users.some((u) => normalizeEmail(u.email) === e)) return null;
+          const id = uid(role === "teacher" ? "t" : "s");
+          const code = inviteCode?.trim().toUpperCase();
+          const cls = role === "student" && code ? get().classes.find((c) => c.inviteCode.toUpperCase() === code) : undefined;
+          set((s) => ({
+            users: [...s.users, { id, role, name: name.trim(), email: e, hue: Math.floor(Math.random() * 360) }],
+            credentials: { ...s.credentials, [id]: credential },
+            enrollments: cls ? [...s.enrollments, { id: uid("en"), classId: cls.id, studentId: id }] : s.enrollments,
+          }));
+          return { id, classId: cls?.id };
+        },
         logout: () => set({ userId: null }),
         signInAs: (user) => set((s) => ({ users: [...s.users.filter((u) => u.id !== user.id), user], userId: user.id })),
-        resetDemo: () => set((s) => ({ ...buildSeed(), userId: s.userId })),
+        // Giữ tài khoản tự đăng ký khi làm mới dữ liệu mẫu
+        resetDemo: () => set((s) => { const seed = buildSeed(); return { ...seed, users: [...seed.users, ...s.users.filter((u) => s.credentials[u.id])], userId: s.userId }; }),
 
         createLessonPlan: (p) => {
           const id = uid("lp");

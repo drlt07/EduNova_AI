@@ -48,7 +48,7 @@ export default function GuidePage() {
       icon={LifeBuoy}
       title="Bắt đầu với EduNova"
       accent="trong 3 bước"
-      description="Chọn tài khoản dùng thử theo vai trò, vào không gian của mình và làm theo luồng học hoặc luồng soạn bài bên dưới."
+      description="Đăng nhập bằng email và mật khẩu (hoặc tài khoản dùng thử theo vai trò), vào không gian của mình và làm theo luồng học hoặc luồng soạn bài bên dưới."
       actions={<Button asChild size="lg"><Link href="/login">Đăng nhập dùng thử</Link></Button>}
       visual={<StepTiles steps={[{ title: "Đăng nhập", text: "Chọn tài khoản Giáo viên hoặc Học sinh, không cần mật khẩu." }, { title: "Vào không gian của em", text: "Giáo viên vào Tổng quan, học sinh vào Khóa học của tôi." }, { title: "Học hoặc soạn bài", text: "Học sinh học bài, làm mô phỏng; giáo viên soạn KHBD, giao bài." }]} />}
     />

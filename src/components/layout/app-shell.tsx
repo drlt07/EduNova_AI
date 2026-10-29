@@ -14,7 +14,6 @@ import { PageSkeleton } from "@/components/ui/feedback";
 import { Logo } from "./logo";
 import { NAV, ROLE_HOME, ROLE_LABEL, type NavItem } from "./nav-config";
 import { RoleSwitcher } from "./role-switcher";
-import { AUTH_MODE } from "@/lib/supabase/config";
 import { NotificationBell, PrefsApplier, SearchPalette } from "@/components/student/top-bar";
 import { TutorProvider } from "@/components/tutor/tutor-provider";
 import { motion } from "motion/react";
@@ -77,7 +76,7 @@ export function AppShell({ role, children, bleed = false }: { role: Role; childr
         <ShieldAlert className="mx-auto size-10 text-warning-fg" aria-hidden />
         <h1 className="mt-3 text-xl font-semibold text-fg">Cần đăng nhập vai trò {ROLE_LABEL[role]}</h1>
         <p className="mt-2 text-sm text-muted">
-          {user ? `Bạn đang đăng nhập với vai trò ${ROLE_LABEL[user.role]}. Khu vực này chỉ dành cho ${ROLE_LABEL[role]}.` : "Bạn chưa đăng nhập."} {AUTH_MODE === "demo" ? "Hãy chọn tài khoản dùng thử phù hợp." : "Hãy đăng nhập bằng tài khoản có quyền phù hợp."}
+          {user ? `Bạn đang đăng nhập với vai trò ${ROLE_LABEL[user.role]}. Khu vực này chỉ dành cho ${ROLE_LABEL[role]}.` : "Bạn chưa đăng nhập."} Hãy đăng nhập bằng tài khoản có quyền phù hợp.
         </p>
         <div className="mt-5 flex justify-center gap-2">
           <Button asChild>

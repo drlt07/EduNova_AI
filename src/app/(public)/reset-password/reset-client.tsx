@@ -19,7 +19,7 @@ export function ResetPasswordClient() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
-  if (AUTH_MODE === "demo") return <Notice tone="info">Bản dùng thử không dùng mật khẩu. <Link href="/login" className="font-medium text-cyan-fg hover:underline">Chọn tài khoản dùng thử</Link>.</Notice>;
+  if (AUTH_MODE === "demo") return <Notice tone="info">Bản dùng thử chưa gửi được email đặt lại mật khẩu. Tài khoản mẫu dùng mật khẩu chung ghi ở trang <Link href="/login" className="font-medium text-cyan-fg hover:underline">Đăng nhập</Link>; tài khoản em tự tạo thì đăng ký lại bằng email khác.</Notice>;
   return (
     <form
       noValidate
