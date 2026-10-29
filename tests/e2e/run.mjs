@@ -40,7 +40,10 @@ const go = async (path) => {
 const shot = (name) => page.screenshot({ path: `${SHOTS}${name}.png`, fullPage: false });
 const login = async (id) => {
   await go("/login");
-  await page.getByTestId(`login-${id}`).click();
+  // Tài khoản mẫu: <id>@demo.edunova.vn, mật khẩu chung của bản dùng thử (DEMO_PASSWORD trong src/lib/auth/local-auth.ts)
+  await page.getByLabel("Email").fill(`${id}@demo.edunova.vn`);
+  await page.getByLabel("Mật khẩu", { exact: true }).fill(process.env.DEMO_PASSWORD ?? "edunova2026");
+  await page.getByRole("button", { name: "Đăng nhập", exact: true }).click();
   await page.waitForURL(/\/(teacher|student|admin)/);
   await page.locator("h1").first().waitFor();
 };

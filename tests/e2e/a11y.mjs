@@ -11,7 +11,10 @@ const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
 if (process.env.THEME) await page.addInitScript((t) => localStorage.setItem("theme", t), process.env.THEME);
 const login = async (id) => {
   await page.goto(`${BASE}/login`, { waitUntil: "networkidle" });
-  await page.getByTestId(`login-${id}`).click();
+  // Tài khoản mẫu: <id>@demo.edunova.vn, mật khẩu chung của bản dùng thử (DEMO_PASSWORD trong src/lib/auth/local-auth.ts)
+  await page.getByLabel("Email").fill(`${id}@demo.edunova.vn`);
+  await page.getByLabel("Mật khẩu", { exact: true }).fill(process.env.DEMO_PASSWORD ?? "edunova2026");
+  await page.getByRole("button", { name: "Đăng nhập", exact: true }).click();
   await page.waitForURL(/\/(teacher|student|admin)/);
 };
 const pages = {

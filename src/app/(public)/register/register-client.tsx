@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox, Field, Input, Select } from "@/components/ui/form";
 import { Notice } from "@/components/ui/feedback";
 import { PasswordInput } from "@/components/auth/password-input";
+import { AuthSubmit } from "@/components/auth/auth-form";
 import { AUTH_MODE } from "@/lib/supabase/config";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { authErrorVi } from "@/lib/auth/errors";
@@ -86,7 +87,7 @@ export function RegisterClient() {
 
   const err = (k: keyof Values) => (errors[k] ? { "aria-invalid": true, "aria-describedby": `${k}-error` } : {});
   return (
-    <form noValidate onSubmit={handleSubmit(submit)} className="space-y-4 rounded-2xl border border-line bg-surface p-6">
+    <form noValidate onSubmit={handleSubmit(submit)} className="space-y-4">
       {real ? (
         <Notice tone="info">Giáo viên: đăng ký bằng <strong>email của trường</strong> để tự nhận quyền giáo viên sau khi xác nhận email. Email cá nhân sẽ là tài khoản học sinh.</Notice>
       ) : (
@@ -113,7 +114,7 @@ export function RegisterClient() {
       </div>
       <Notice tone="info" className="text-xs">Tài khoản học sinh dưới 16 tuổi sẽ cần xác nhận của nhà trường khi tích hợp thật.</Notice>
       {error && <div role="alert"><Notice tone="danger">{error}</Notice></div>}
-      <Button type="submit" disabled={isSubmitting} className="w-full">{isSubmitting ? "Đang tạo tài khoản…" : "Tạo tài khoản"}</Button>
+      <AuthSubmit disabled={isSubmitting}>{isSubmitting ? "Đang tạo tài khoản…" : "Tạo tài khoản"}</AuthSubmit>
     </form>
   );
 }

@@ -15,7 +15,7 @@ export function ForgotPasswordClient() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
-  if (AUTH_MODE === "demo") return <Notice tone="info">Bản dùng thử chưa gửi được email đặt lại mật khẩu. Tài khoản mẫu dùng mật khẩu chung ghi ở trang <Link href="/login" className="font-medium text-cyan-fg hover:underline">Đăng nhập</Link>; tài khoản em tự tạo thì đăng ký lại bằng email khác.</Notice>;
+  if (AUTH_MODE === "demo") return <Notice tone="info">Bản hiện tại chưa nối máy chủ email nên chưa gửi được liên kết đặt lại mật khẩu. Nếu quên mật khẩu, hãy <Link href="/register" className="font-medium text-cyan-fg hover:underline">đăng ký</Link> bằng email khác.</Notice>;
   if (sent)
     return (
       <div className="max-w-md rounded-2xl border border-line bg-surface p-6 text-center">

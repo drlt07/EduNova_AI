@@ -23,6 +23,8 @@ import About from "@/app/(public)/about/page";
 import Guide from "@/app/(public)/huong-dan/page";
 import Policy from "@/app/(public)/chinh-sach/page";
 import Login from "@/app/(public)/login/page";
+import Forgot from "@/app/(public)/forgot-password/page";
+import Reset from "@/app/(public)/reset-password/page";
 import Register from "@/app/(public)/register/page";
 import NotFound from "@/app/not-found";
 import LessonPage from "@/app/(public)/bai-hoc/[id]/page";
@@ -131,6 +133,8 @@ const ROUTES: Route[] = [
   r("/chinh-sach", "public", C(Policy)),
   r("/login", "public", C(Login)),
   r("/register", "public", C(Register)),
+  r("/forgot-password", "public", C(Forgot)),
+  r("/reset-password", "public", C(Reset)),
   r("/teacher(?:/dashboard)?", "teacher", C(TDashboard)),
   r("/teacher/sgk", "teacher", C(TSgk)),
   r("/teacher/sgk/:ref", "teacher", (p) => <BookReader key={p.ref} refId={p.ref} role="teacher" />),

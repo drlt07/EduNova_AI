@@ -24,6 +24,8 @@ export function PublicFrame({ children }: { children: React.ReactNode }) {
   if (hydrated && user && !AUTH_PAGES.some((p) => pathname.startsWith(p))) {
     return <AppShell role={user.role} bleed>{children}</AppShell>;
   }
+  // Trang đăng nhập/đăng ký có khung riêng (AuthLayout): không thanh menu, không chân trang
+  if (AUTH_PAGES.some((p) => pathname.startsWith(p))) return <>{children}</>;
   return (
     <div className="flex min-h-screen flex-col">
       <SiteHeader />
