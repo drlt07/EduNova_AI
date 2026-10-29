@@ -38,7 +38,7 @@ export default function TeacherCoursesPage() {
         <Button onClick={() => setOpen(true)}><Plus /> Tạo khóa học</Button>
       </div>
       {courses.length === 0 ? (
-        <EmptyState icon={BookMarked} title="Chưa có khóa học" description="Tạo khóa học → thêm module (bài học, mô phỏng, bài kiểm tra) → giao cho lớp. Có thể dựng sẵn module theo SGK." action={<Button onClick={() => setOpen(true)}><Plus /> Tạo khóa học</Button>} />
+        <EmptyState icon={BookMarked} title="Chưa có khóa học" description="Tạo khóa học → thêm chủ đề → bài học → hoạt động (kiến thức, mô phỏng, kiểm tra) → giao cho lớp. Có thể dựng sẵn theo mục lục SGK." action={<Button onClick={() => setOpen(true)}><Plus /> Tạo khóa học</Button>} />
       ) : (
         <>
           <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
@@ -61,7 +61,7 @@ export default function TeacherCoursesPage() {
                     <span className={cn("grid size-12 shrink-0 place-items-center rounded-xl bg-gradient-to-br text-white", GRADE_BG[c.grade])}><span className="text-center leading-none"><b className="block text-lg">{c.grade}</b><span className="text-[9px] font-semibold tracking-wider">TIN HỌC</span></span></span>
                     <span className="min-w-0 flex-1">
                       <span className="block truncate font-semibold text-fg">{c.title}</span>
-                      <span className="block truncate text-sm text-muted">{c.topics.length} module · {items} nội dung · {classes.length ? `Lớp ${classes.join(", ")}` : "chưa có lớp"}</span>
+                      <span className="block truncate text-sm text-muted">{c.topics.length} chủ đề · {allLessons(c).length} bài · {items} hoạt động · {classes.length ? `Lớp ${classes.join(", ")}` : "chưa có lớp"}</span>
                     </span>
                     {c.status === "published" ? <Badge tone="success">Đang dạy</Badge> : <Badge>Bản nháp</Badge>}
                     <ChevronRight className="size-5 shrink-0 text-muted transition-transform group-hover:translate-x-0.5" aria-hidden />
@@ -91,7 +91,7 @@ function CreateCourseDialog({ open, onOpenChange, onCreate }: { open: boolean; o
   const fit = classes.filter((c) => c.grade === grade);
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent title="Tạo khóa học" description="Khóa học gắn với khối lớp và các lớp sẽ học. Có thể dựng sẵn module theo chủ đề SGK, sau đó thêm hoặc sắp xếp nội dung.">
+      <DialogContent title="Tạo khóa học" description="Khóa học gắn với khối lớp và các lớp sẽ học. Có thể dựng sẵn chủ đề, bài học và hoạt động theo mục lục SGK rồi chỉnh tiếp.">
         <form
           className="space-y-3"
           onSubmit={(e) => {
@@ -128,7 +128,7 @@ function CreateCourseDialog({ open, onOpenChange, onCreate }: { open: boolean; o
             )}
           </fieldset>
           <Field label="Mô tả" htmlFor="nc-desc"><Textarea id="nc-desc" rows={2} value={description} onChange={(e) => setDescription(e.target.value)} /></Field>
-          <Checkbox label={book === "kntt" ? "Dựng sẵn module theo chủ đề SGK (bài học, mô phỏng, bài kiểm tra)" : "Dựng sẵn chủ đề và bài theo chương trình"} checked={scaffold} onChange={(e) => setScaffold(e.target.checked)} />
+          <Checkbox label={book === "kntt" ? "Dựng sẵn chủ đề → bài học → hoạt động theo mục lục SGK" : "Dựng sẵn chủ đề và bài theo chương trình"} checked={scaffold} onChange={(e) => setScaffold(e.target.checked)} />
           <Checkbox label="Học lần lượt: hoàn thành bài trước mới mở bài sau" checked={sequential} onChange={(e) => setSequential(e.target.checked)} />
           <div className="flex justify-end pt-2"><Button type="submit"><Plus /> Tạo khóa học</Button></div>
         </form>

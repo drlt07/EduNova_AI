@@ -1,15 +1,15 @@
 "use client";
 /**
- * Khóa học (kiểu Canvas Modules): danh sách module mở rộng được; mỗi module chứa bài học, mô phỏng, học liệu, bài tập,
- * bài kiểm tra theo thứ tự giáo viên sắp. Tab Học sinh (tiến độ), Kết quả (sổ điểm bài thuộc khóa học), Cài đặt (lớp, phát hành).
+ * Khóa học: Chủ đề → Bài học → Hoạt động học tập (kiến thức, mô phỏng, kiểm tra…), mỗi cấp mở rộng/thu gọn được,
+ * thêm/sắp xếp/giao đúng theo cấp. Tab Học sinh (tiến độ), Kết quả (sổ điểm bài thuộc khóa học), Cài đặt (lớp, phát hành).
  */
 import Link from "next/link";
 import { Suspense, useMemo, useState } from "react";
 import { useParams, usePathname, useRouter, useSearchParams } from "next/navigation";
-import { ArrowLeft, ChevronDown, ChevronUp, Eye, Lock, Pencil, Plus, Send, Trash2, Undo2, Users } from "lucide-react";
+import { ArrowLeft, BookOpen, ChevronDown, ChevronUp, Eye, Lock, Pencil, Plus, Send, Trash2, Undo2, Users } from "lucide-react";
 import { toast } from "sonner";
-import type { Course, CourseBlock, CourseBlockKind, CourseProgress, CourseTopic } from "@/lib/domain/types";
-import { ITEM_LABEL, courseCompletion, lessonCells, moduleItems, moveItem, newBlock, newLesson, newTopic, reorderModule, validateForPublish, type CellState, type ItemType } from "@/lib/courses/course";
+import type { Course, CourseBlock, CourseBlockKind, CourseLesson, CourseProgress, CourseTopic } from "@/lib/domain/types";
+import { ACTIVITY_LABEL, activityTitle, activityType, courseCompletion, lessonCells, moveItem, newBlock, newLesson, newTopic, validateForPublish, type ActivityType, type CellState } from "@/lib/courses/course";
 import { classStudents, teacherClasses } from "@/lib/store/scoped";
 import { useSessionData } from "@/lib/store/use-role";
 import { cn, formatDate } from "@/lib/utils";
@@ -31,20 +31,6 @@ const TABS: { id: Tab; label: string }[] = [
   { id: "ket-qua", label: "Kết quả" },
   { id: "cai-dat", label: "Cài đặt" },
 ];
-const ADD: { type: ItemType; kind: CourseBlockKind; extra?: Partial<CourseBlock> }[] = [
-  { type: "lesson", kind: "text" },
-  { type: "sim", kind: "simulation" },
-  { type: "exercise", kind: "practice", extra: { title: "Bài tập" } },
-  { type: "test", kind: "practice", extra: { title: "Bài kiểm tra", final: true, tutorLevel: "exam" } },
-  { type: "code", kind: "python" },
-  { type: "doc", kind: "file" },
-  { type: "media", kind: "media" },
-];
-const CHIP: Record<ItemType, string> = {
-  lesson: "bg-blue/10 text-blue-fg", sim: "bg-cyan/15 text-cyan-fg", test: "bg-violet/15 text-violet-fg", exercise: "bg-warning/15 text-warning-fg",
-  code: "bg-success/15 text-success-fg", doc: "bg-surface-2 text-muted", media: "bg-surface-2 text-muted",
-};
-
 export default function CourseEditorPage() {
   return <Suspense fallback={<PageSkeleton />}><Inner /></Suspense>;
 }
@@ -78,8 +64,8 @@ function Editor({ course }: { course: Course }) {
     );
   }
 
-  function addModule() {
-    const t = newTopic(`Module ${course.topics.length + 1}: Module mới`);
+  function addTopic() {
+    const t = newTopic(`Chủ đề ${course.topics.length + 1}. Chủ đề mới`);
     d.updateCourse(course.id, { topics: [...course.topics, t] });
     setOpen((o) => [...o, t.id]);
   }
@@ -95,13 +81,13 @@ function Editor({ course }: { course: Course }) {
         </div>
         <div className="flex flex-wrap gap-2">
           <Button variant="ghost" onClick={() => setPreview(true)}><Eye /> Xem như học sinh</Button>
-          {tab === "noi-dung" && <Button onClick={addModule}><Plus /> Thêm Module</Button>}
+          {tab === "noi-dung" && <Button onClick={addTopic}><Plus /> Thêm chủ đề</Button>}
         </div>
       </div>
       <nav className="mb-5 flex gap-1 overflow-x-auto border-b border-line" role="tablist" aria-label="Khóa học">
         {TABS.map((t) => <button key={t.id} type="button" role="tab" aria-selected={tab === t.id} onClick={() => setTab(t.id)} className={cn("-mb-px shrink-0 border-b-2 px-3 py-2.5 text-sm font-semibold", tab === t.id ? "border-fg text-fg" : "border-transparent text-muted hover:text-fg")}>{t.label}</button>)}
       </nav>
-      {tab === "noi-dung" && <Modules course={course} open={open} setOpen={setOpen} />}
+      {tab === "noi-dung" && <Topics course={course} open={open} setOpen={setOpen} />}
       {tab === "hoc-sinh" && <ProgressTab course={course} onOpenLesson={(lid) => { const t = course.topics.find((x) => x.lessons.some((l) => l.id === lid)); if (t) setOpen((o) => [...new Set([...o, t.id])]); setTab("noi-dung"); }} />}
       {tab === "ket-qua" && (classes.length ? <Gradebook courseId={course.id} classIds={course.classIds} /> : <EmptyState icon={Users} title="Khóa học chưa giao cho lớp nào" description="Chọn lớp ở tab Cài đặt để xem kết quả." />)}
       {tab === "cai-dat" && <Settings course={course} />}
@@ -109,116 +95,195 @@ function Editor({ course }: { course: Course }) {
   );
 }
 
-/* ---------- Nội dung: danh sách module ---------- */
+const ADD: { type: ActivityType; kind: CourseBlockKind; extra?: Partial<CourseBlock> }[] = [
+  { type: "knowledge", kind: "text", extra: { title: "Kiến thức" } },
+  { type: "sim", kind: "simulation" },
+  { type: "test", kind: "practice", extra: { title: "Bài kiểm tra cuối bài", final: true, tutorLevel: "exam" } },
+  { type: "exercise", kind: "practice", extra: { title: "Bài tập" } },
+  { type: "code", kind: "python" },
+  { type: "doc", kind: "file" },
+  { type: "media", kind: "media" },
+];
+const CHIP: Record<ActivityType, string> = {
+  knowledge: "bg-blue/10 text-blue-fg", sim: "bg-cyan/15 text-cyan-fg", test: "bg-violet/15 text-violet-fg", exercise: "bg-warning/15 text-warning-fg",
+  code: "bg-success/15 text-success-fg", doc: "bg-surface-2 text-muted", media: "bg-surface-2 text-muted",
+};
+/** Hoạt động giao được (máy chấm): mô phỏng, bộ câu hỏi, bài lập trình. */
+const taskOf = (b: CourseBlock): AssignPreset | undefined =>
+  b.kind === "simulation" && b.labSlug ? { kind: "lab", ref: b.labSlug } : b.kind === "practice" && b.practiceSetId ? { kind: "quiz", ref: b.practiceSetId } : b.kind === "python" && b.exerciseId ? { kind: "code", ref: b.exerciseId } : undefined;
 
-function Modules({ course, open, setOpen }: { course: Course; open: string[]; setOpen: (fn: (o: string[]) => string[]) => void }) {
+/* ---------- Nội dung: Chủ đề → Bài học → Hoạt động ---------- */
+
+function Topics({ course, open, setOpen }: { course: Course; open: string[]; setOpen: (fn: (o: string[]) => string[]) => void }) {
   const { d } = useSessionData();
   const [rename, setRename] = useState<string | null>(null);
+  const [openLesson, setOpenLesson] = useState<string[]>(() => course.topics[0]?.lessons.slice(0, 1).map((l) => l.id) ?? []);
   const [openItem, setOpenItem] = useState<string | null>(null);
   const [adding, setAdding] = useState<string | null>(null);
-  const [drag, setDrag] = useState<{ topic: string; index: number } | null>(null);
-  const [assign, setAssign] = useState<{ preset: AssignPreset; sgkRef?: string } | null>(null);
+  const [drag, setDrag] = useState<{ lesson: string; index: number } | null>(null);
+  const [assign, setAssign] = useState<{ preset?: AssignPreset; sgkRef?: string } | null>(null);
   const setTopics = (topics: CourseTopic[]) => d.updateCourse(course.id, { topics });
   const patchTopic = (id: string, fn: (t: CourseTopic) => CourseTopic) => setTopics(course.topics.map((t) => (t.id === id ? fn(t) : t)));
-  const delivered = (kind: string, ref?: string) => (ref ? d.assignments.filter((a) => course.classIds.includes(a.classId) && a.status !== "draft" && a.task?.kind === kind && a.task.ref === ref) : []);
+  const patchLesson = (id: string, fn: (l: CourseLesson) => CourseLesson) => setTopics(course.topics.map((t) => ({ ...t, lessons: t.lessons.map((l) => (l.id === id ? fn(l) : l)) })));
+  const delivered = (p?: AssignPreset) => (p ? d.assignments.filter((a) => course.classIds.includes(a.classId) && a.status !== "draft" && a.task?.kind === p.kind && a.task.ref === p.ref) : []);
+  const toggle = (set: (fn: (o: string[]) => string[]) => void, id: string, on: boolean) => set((o) => (on ? o.filter((x) => x !== id) : [...o, id]));
 
-  function addItem(t: CourseTopic, spec: (typeof ADD)[number]) {
-    const b = newBlock(spec.kind, { ...(spec.type === "lesson" ? { title: "Bài học mới" } : {}), ...spec.extra });
-    if (spec.type === "lesson" || !t.lessons.length) {
-      patchTopic(t.id, (x) => ({ ...x, lessons: [...x.lessons, newLesson(spec.type === "lesson" ? "Bài học mới" : t.title, undefined, [b])] }));
-    } else {
-      patchTopic(t.id, (x) => ({ ...x, lessons: x.lessons.map((l, i) => (i === x.lessons.length - 1 ? { ...l, blocks: [...l.blocks, b] } : l)) }));
-    }
+  function addLesson(t: CourseTopic) {
+    const l = newLesson(`Bài ${t.lessons.length + 1}. Bài học mới`, undefined, [newBlock("text", { title: "Kiến thức" })]);
+    patchTopic(t.id, (x) => ({ ...x, lessons: [...x.lessons, l] }));
+    setOpen((o) => [...new Set([...o, t.id])]);
+    setOpenLesson((o) => [...o, l.id]);
+    setRename(l.id);
+  }
+  function addActivity(l: CourseLesson, spec: (typeof ADD)[number]) {
+    const b = newBlock(spec.kind, spec.extra);
+    patchLesson(l.id, (x) => ({ ...x, blocks: spec.type === "test" ? [...x.blocks, b] : [...x.blocks.filter((y) => !y.final), b, ...x.blocks.filter((y) => y.final)] }));
     setAdding(null);
     setOpenItem(b.id);
   }
 
-  if (!course.topics.length) return <EmptyState title="Khóa học chưa có module" description="Bấm “Thêm Module” để bắt đầu; mỗi module gồm bài học, mô phỏng và bài kiểm tra." />;
+  if (!course.topics.length) return <EmptyState title="Khóa học chưa có chủ đề" description="Bấm “Thêm chủ đề” để bắt đầu: chủ đề → bài học → hoạt động (kiến thức, mô phỏng, kiểm tra)." />;
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       {course.topics.map((t, ti) => {
-        const items = moduleItems(t);
         const isOpen = open.includes(t.id);
+        const acts = t.lessons.reduce((n, l) => n + l.blocks.length, 0);
         return (
-          <section key={t.id} className="overflow-hidden rounded-2xl border border-line bg-surface" aria-label={t.title}>
-            <div className="flex items-center gap-2 bg-surface-2/60 px-3 py-2.5">
+          <section key={t.id} className="overflow-hidden rounded-2xl border border-line bg-surface shadow-sm" aria-label={t.title}>
+            {/* Cấp 1: Chủ đề */}
+            <div className="flex items-center gap-2 border-b border-line bg-gradient-to-r from-blue/10 to-transparent px-4 py-3">
               {rename === t.id ? (
-                <form className="flex flex-1 gap-2" onSubmit={(e) => { e.preventDefault(); const v = new FormData(e.currentTarget).get("n")?.toString().trim(); if (v) patchTopic(t.id, (x) => ({ ...x, title: v })); setRename(null); }}>
-                  <Input name="n" aria-label="Tên module" defaultValue={t.title} autoFocus className="h-9" />
-                  <Button type="submit" size="sm">Lưu</Button>
-                  <Button type="button" size="sm" variant="ghost" onClick={() => setRename(null)}>Hủy</Button>
-                </form>
+                <RenameForm value={t.title} label="Tên chủ đề" onSave={(v) => { patchTopic(t.id, (x) => ({ ...x, title: v })); setRename(null); }} onCancel={() => setRename(null)} />
               ) : (
                 <>
-                  <button type="button" aria-expanded={isOpen} onClick={() => setOpen((o) => (isOpen ? o.filter((x) => x !== t.id) : [...o, t.id]))} className="flex min-w-0 flex-1 items-center gap-2 text-left">
-                    <ChevronDown className={cn("size-4 shrink-0 text-muted transition-transform", !isOpen && "-rotate-90")} aria-hidden />
-                    <span className="truncate font-bold text-fg">{t.title}</span>
-                    <span className="shrink-0 text-sm text-muted">{items.length} nội dung</span>
+                  <button type="button" aria-expanded={isOpen} onClick={() => toggle(setOpen, t.id, isOpen)} className="flex min-w-0 flex-1 items-center gap-2 text-left">
+                    <ChevronDown className={cn("size-5 shrink-0 text-muted transition-transform", !isOpen && "-rotate-90")} aria-hidden />
+                    <span className="min-w-0">
+                      <span className="block truncate text-base font-bold text-fg">{t.title}</span>
+                      <span className="block text-xs text-muted">{t.lessons.length} bài học · {acts} hoạt động</span>
+                    </span>
                   </button>
-                  <Button size="sm" variant="ghost" onClick={() => { setOpen((o) => [...new Set([...o, t.id])]); setAdding(t.id); }}><Plus /> Thêm nội dung</Button>
-                  <RowMenu label={`Thao tác module ${t.title}`}>
-                    <MenuItem onClick={() => setRename(t.id)}><Pencil /> Đổi tên</MenuItem>
-                    {ti > 0 && <MenuItem onClick={() => setTopics(moveItem(course.topics, ti, ti - 1))}><ChevronUp /> Đưa lên</MenuItem>}
-                    {ti < course.topics.length - 1 && <MenuItem onClick={() => setTopics(moveItem(course.topics, ti, ti + 1))}><ChevronDown /> Đưa xuống</MenuItem>}
-                    <MenuItem danger onClick={() => { if (window.confirm(`Xóa "${t.title}" cùng ${items.length} nội dung?`)) setTopics(course.topics.filter((x) => x.id !== t.id)); }}><Trash2 /> Xóa module</MenuItem>
+                  <Button size="sm" variant="secondary" onClick={() => addLesson(t)}><Plus /> Thêm bài học</Button>
+                  <RowMenu label={`Thao tác chủ đề ${t.title}`}>
+                    <MenuItem onClick={() => setRename(t.id)}><Pencil /> Đổi tên chủ đề</MenuItem>
+                    {ti > 0 && <MenuItem onClick={() => setTopics(moveItem(course.topics, ti, ti - 1))}><ChevronUp /> Đưa chủ đề lên</MenuItem>}
+                    {ti < course.topics.length - 1 && <MenuItem onClick={() => setTopics(moveItem(course.topics, ti, ti + 1))}><ChevronDown /> Đưa chủ đề xuống</MenuItem>}
+                    <MenuItem danger onClick={() => { if (window.confirm(`Xóa "${t.title}" cùng ${t.lessons.length} bài học?`)) setTopics(course.topics.filter((x) => x.id !== t.id)); }}><Trash2 /> Xóa chủ đề</MenuItem>
                   </RowMenu>
                 </>
               )}
             </div>
+
             {isOpen && (
-              <div className="p-2">
-                {items.length === 0 && <p className="px-2 py-3 text-sm text-muted">Module trống. Thêm bài học, mô phỏng hoặc bài kiểm tra.</p>}
-                <ol className="space-y-1.5">
-                  {items.map((it, i) => {
-                    const ref = it.block.kind === "simulation" ? ["lab", it.block.labSlug] : it.block.kind === "practice" ? ["quiz", it.block.practiceSetId] : it.block.kind === "python" ? ["code", it.block.exerciseId] : null;
-                    const done = ref ? delivered(ref[0]!, ref[1]) : [];
-                    return (
-                      <BlockEditor
-                        key={it.block.id}
-                        block={it.block}
-                        grade={course.grade}
-                        index={i}
-                        count={items.length}
-                        open={openItem === it.block.id}
-                        dragging={drag?.topic === t.id && drag.index === i}
-                        label={it.title}
-                        chip={ITEM_LABEL[it.type]}
-                        actions={
-                          <span className="flex shrink-0 items-center gap-1.5">
-                            <span className={cn("hidden rounded-md px-2 py-0.5 text-xs font-semibold sm:inline", CHIP[it.type])}>{ITEM_LABEL[it.type]}</span>
-                            {done.length > 0 && <span className="hidden rounded-md bg-success/10 px-2 py-0.5 text-xs text-success-fg md:inline" title={done.map((a) => `${d.classes.find((c) => c.id === a.classId)?.name}: hạn ${formatDate(a.dueAt)}`).join(", ")}>Đã giao · hạn {formatDate(done[0].dueAt)}</span>}
-                            {ref?.[1] && <Button size="sm" variant="ghost" onClick={() => setAssign({ preset: { kind: ref[0] as AssignPreset["kind"], ref: ref[1]! }, sgkRef: it.lesson.sgkRef })}><Send /> Giao</Button>}
-                          </span>
-                        }
-                        onToggle={() => setOpenItem(openItem === it.block.id ? null : it.block.id)}
-                        onChange={(p) => patchTopic(t.id, (x) => ({ ...x, lessons: x.lessons.map((l) => ({ ...l, blocks: l.blocks.map((b) => (b.id === it.block.id ? { ...b, ...p } : b)) })) }))}
-                        onMove={(to) => patchTopic(t.id, (x) => reorderModule(x, i, to))}
-                        onDelete={() => { if (window.confirm(`Xóa "${it.title}"?`)) patchTopic(t.id, (x) => ({ ...x, lessons: x.lessons.map((l) => ({ ...l, blocks: l.blocks.filter((b) => b.id !== it.block.id) })).filter((l) => l.blocks.length) })); }}
-                        onDragStart={() => setDrag({ topic: t.id, index: i })}
-                        onDragEnd={() => setDrag(null)}
-                        onDropHere={() => { if (drag?.topic === t.id) patchTopic(t.id, (x) => reorderModule(x, drag.index, i)); setDrag(null); }}
-                      />
-                    );
-                  })}
-                </ol>
-                {adding === t.id ? (
-                  <div className="mt-2 rounded-xl border border-dashed border-line p-3">
-                    <p className="mb-2 text-sm font-medium text-fg">Thêm vào {t.title.split(":")[0]}</p>
-                    <div className="flex flex-wrap gap-2">
-                      {ADD.map((a) => <button key={a.type} type="button" onClick={() => addItem(t, a)} className={cn("rounded-lg px-3 py-1.5 text-sm font-semibold", CHIP[a.type])}>{ITEM_LABEL[a.type]}</button>)}
-                      <Button size="sm" variant="ghost" onClick={() => setAdding(null)}>Hủy</Button>
-                    </div>
-                  </div>
-                ) : (
-                  <button type="button" onClick={() => setAdding(t.id)} className="mt-2 flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold text-muted hover:bg-surface-2 hover:text-fg"><Plus className="size-4" aria-hidden /> Thêm nội dung</button>
-                )}
-              </div>
+              <ol className="space-y-2 p-3">
+                {t.lessons.length === 0 && <li className="px-2 py-3 text-sm text-muted">Chủ đề chưa có bài học. Bấm “Thêm bài học”.</li>}
+                {t.lessons.map((l, li) => {
+                  const lOpen = openLesson.includes(l.id);
+                  const counts = { knowledge: 0, sim: 0, test: 0, other: 0 };
+                  for (const b of l.blocks) { const k = activityType(b); if (k === "knowledge" || k === "sim" || k === "test") counts[k]++; else counts.other++; }
+                  const test = l.blocks.find((b) => b.final);
+                  return (
+                    /* Cấp 2: Bài học */
+                    <li key={l.id} className={cn("rounded-xl border bg-bg/60", lOpen ? "border-blue/30" : "border-line")}>
+                      <div className="flex items-center gap-2 px-3 py-2.5">
+                        {rename === l.id ? (
+                          <RenameForm value={l.title} label="Tên bài học" onSave={(v) => { patchLesson(l.id, (x) => ({ ...x, title: v })); setRename(null); }} onCancel={() => setRename(null)} />
+                        ) : (
+                          <>
+                            <button type="button" aria-expanded={lOpen} onClick={() => toggle(setOpenLesson, l.id, lOpen)} className="flex min-w-0 flex-1 items-center gap-2 text-left">
+                              <ChevronDown className={cn("size-4 shrink-0 text-muted transition-transform", !lOpen && "-rotate-90")} aria-hidden />
+                              <BookOpen className="size-4 shrink-0 text-blue-fg" aria-hidden />
+                              <span className="truncate text-sm font-semibold text-fg">{l.title}</span>
+                            </button>
+                            <span className="hidden items-center gap-1 sm:flex" aria-label={`${l.blocks.length} hoạt động`}>
+                              {counts.knowledge > 0 && <span className={cn("rounded px-1.5 py-0.5 text-[11px] font-semibold", CHIP.knowledge)}>Kiến thức</span>}
+                              {counts.sim > 0 && <span className={cn("rounded px-1.5 py-0.5 text-[11px] font-semibold", CHIP.sim)}>Mô phỏng{counts.sim > 1 ? ` ×${counts.sim}` : ""}</span>}
+                              {counts.test > 0 && <span className={cn("rounded px-1.5 py-0.5 text-[11px] font-semibold", CHIP.test)}>Kiểm tra</span>}
+                              {counts.other > 0 && <span className="rounded bg-surface-2 px-1.5 py-0.5 text-[11px] text-muted">+{counts.other}</span>}
+                            </span>
+                            <Button size="sm" variant="ghost" title="Giao hoạt động của bài này cho lớp" onClick={() => setAssign({ preset: test ? taskOf(test) : l.blocks.map(taskOf).find(Boolean), sgkRef: l.sgkRef })}><Send /> Giao bài</Button>
+                            <RowMenu label={`Thao tác bài ${l.title}`}>
+                              <MenuItem onClick={() => { setOpenLesson((o) => [...new Set([...o, l.id])]); setAdding(l.id); }}><Plus /> Thêm hoạt động</MenuItem>
+                              <MenuItem onClick={() => setRename(l.id)}><Pencil /> Đổi tên bài</MenuItem>
+                              {li > 0 && <MenuItem onClick={() => patchTopic(t.id, (x) => ({ ...x, lessons: moveItem(x.lessons, li, li - 1) }))}><ChevronUp /> Đưa bài lên</MenuItem>}
+                              {li < t.lessons.length - 1 && <MenuItem onClick={() => patchTopic(t.id, (x) => ({ ...x, lessons: moveItem(x.lessons, li, li + 1) }))}><ChevronDown /> Đưa bài xuống</MenuItem>}
+                              <MenuItem danger onClick={() => { if (window.confirm(`Xóa "${l.title}" cùng ${l.blocks.length} hoạt động?`)) patchTopic(t.id, (x) => ({ ...x, lessons: x.lessons.filter((y) => y.id !== l.id) })); }}><Trash2 /> Xóa bài</MenuItem>
+                            </RowMenu>
+                          </>
+                        )}
+                      </div>
+
+                      {lOpen && (
+                        /* Cấp 3: Hoạt động học tập, thụt vào trong bài */
+                        <div className="ml-6 border-l-2 border-blue/20 pb-3 pl-4 pr-3">
+                          <ol className="space-y-1.5" aria-label={`Hoạt động của ${l.title}`}>
+                            {l.blocks.map((b, i) => {
+                              const k = activityType(b);
+                              const p = taskOf(b);
+                              const done = delivered(p);
+                              return (
+                                <BlockEditor
+                                  key={b.id}
+                                  compact
+                                  block={b}
+                                  grade={course.grade}
+                                  index={i}
+                                  count={l.blocks.length}
+                                  open={openItem === b.id}
+                                  dragging={drag?.lesson === l.id && drag.index === i}
+                                  label={activityTitle(b)}
+                                  chip={ACTIVITY_LABEL[k]}
+                                  actions={
+                                    <span className="flex shrink-0 items-center gap-1.5">
+                                      <span className={cn("hidden rounded-md px-2 py-0.5 text-xs font-semibold sm:inline", CHIP[k])}>{ACTIVITY_LABEL[k]}</span>
+                                      {done.length > 0 && <span className="hidden rounded-md bg-success/10 px-2 py-0.5 text-xs text-success-fg md:inline" title={done.map((a) => `${d.classes.find((c) => c.id === a.classId)?.name}: hạn ${formatDate(a.dueAt)}`).join(", ")}>Đã giao · {formatDate(done[0].dueAt)}</span>}
+                                      {p && <Button size="sm" variant="ghost" className="h-7 px-2" onClick={() => setAssign({ preset: p, sgkRef: l.sgkRef })} aria-label={`Giao ${activityTitle(b)}`}><Send className="size-3.5" /> Giao</Button>}
+                                    </span>
+                                  }
+                                  onToggle={() => setOpenItem(openItem === b.id ? null : b.id)}
+                                  onChange={(patch) => patchLesson(l.id, (x) => ({ ...x, blocks: x.blocks.map((y) => (y.id === b.id ? { ...y, ...patch } : y)) }))}
+                                  onMove={(to) => patchLesson(l.id, (x) => ({ ...x, blocks: moveItem(x.blocks, i, to) }))}
+                                  onDelete={() => { if (window.confirm(`Xóa hoạt động "${activityTitle(b)}"?`)) patchLesson(l.id, (x) => ({ ...x, blocks: x.blocks.filter((y) => y.id !== b.id) })); }}
+                                  onDragStart={() => setDrag({ lesson: l.id, index: i })}
+                                  onDragEnd={() => setDrag(null)}
+                                  onDropHere={() => { if (drag?.lesson === l.id) patchLesson(l.id, (x) => ({ ...x, blocks: moveItem(x.blocks, drag.index, i) })); setDrag(null); }}
+                                />
+                              );
+                            })}
+                          </ol>
+                          {adding === l.id ? (
+                            <div className="mt-2 rounded-lg border border-dashed border-line p-2.5">
+                              <p className="mb-2 text-xs font-medium text-muted">Thêm hoạt động vào {l.title}</p>
+                              <div className="flex flex-wrap gap-1.5">
+                                {ADD.map((a) => <button key={a.type} type="button" disabled={a.type === "test" && !!test} title={a.type === "test" && test ? "Bài đã có bài kiểm tra" : undefined} onClick={() => addActivity(l, a)} className={cn("rounded-md px-2.5 py-1 text-xs font-semibold disabled:opacity-40", CHIP[a.type])}>{ACTIVITY_LABEL[a.type]}</button>)}
+                                <Button size="sm" variant="ghost" className="h-7" onClick={() => setAdding(null)}>Hủy</Button>
+                              </div>
+                            </div>
+                          ) : (
+                            <button type="button" onClick={() => setAdding(l.id)} className="mt-1.5 flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-semibold text-muted hover:bg-surface-2 hover:text-fg"><Plus className="size-3.5" aria-hidden /> Thêm hoạt động</button>
+                          )}
+                        </div>
+                      )}
+                    </li>
+                  );
+                })}
+              </ol>
             )}
           </section>
         );
       })}
       <AssignDialog open={!!assign} onOpenChange={(o) => !o && setAssign(null)} preset={assign?.preset} sgkRef={assign?.sgkRef} courseId={course.id} classId={course.classIds[0]} title="Giao bài" />
     </div>
+  );
+}
+
+function RenameForm({ value, label, onSave, onCancel }: { value: string; label: string; onSave: (v: string) => void; onCancel: () => void }) {
+  return (
+    <form className="flex flex-1 gap-2" onSubmit={(e) => { e.preventDefault(); const v = new FormData(e.currentTarget).get("n")?.toString().trim(); if (v) onSave(v); else onCancel(); }}>
+      <Input name="n" aria-label={label} defaultValue={value} autoFocus className="h-9" />
+      <Button type="submit" size="sm">Lưu</Button>
+      <Button type="button" size="sm" variant="ghost" onClick={onCancel}>Hủy</Button>
+    </form>
   );
 }
 

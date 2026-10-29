@@ -36,14 +36,14 @@ export function newTopic(title: string, topicId?: string, lessons: CourseLesson[
 }
 
 /**
- * Khung khóa học theo khối lớp + bộ sách: mỗi chủ đề SGK là một module gồm bài học, mô phỏng và bài kiểm tra. Bộ KNTT dựng đúng mục lục SGK; mỗi bài có
+ * Khung khóa học theo khối lớp + bộ sách: chủ đề → bài học → hoạt động (kiến thức, mô phỏng, kiểm tra). Bộ KNTT dựng đúng mục lục SGK; mỗi bài có
  * tóm tắt kiến thức, các mô phỏng gắn theo chương trình và bài kiểm tra cuối bài (bộ câu hỏi của bài).
  */
 export function scaffoldTopics(grade: Grade, book: TextbookId): CourseTopic[] {
   if (book === "kntt") {
     return SGK_KNTT[grade].map((t) =>
       newTopic(
-        `Module ${t.no}: ${t.title}`,
+        `Chủ đề ${t.no}. ${t.title}`,
         undefined,
         t.lessons.map((l) => {
           const id = sgkLessonId(l);
@@ -139,33 +139,17 @@ export function courseCompletion(course: Course, ctx: ProgressContext): { done: 
 /** Bài kiểm tra cuối bài (khối luyện tập đánh dấu final). */
 export const finalTest = (l: CourseLesson) => l.blocks.find((b) => b.kind === "practice" && b.final);
 
-export type ItemType = "lesson" | "sim" | "test" | "exercise" | "code" | "doc" | "media";
-export const ITEM_LABEL: Record<ItemType, string> = { lesson: "Bài học", sim: "Mô phỏng", test: "Bài kiểm tra", exercise: "Bài tập", code: "Lập trình", doc: "Học liệu", media: "Video / hình" };
-const GENERIC = new Set(["Tóm tắt kiến thức", "Nội dung kiến thức"]);
+/** Loại hoạt động học tập trong một bài. */
+export type ActivityType = "knowledge" | "sim" | "test" | "exercise" | "code" | "doc" | "media";
+export const ACTIVITY_LABEL: Record<ActivityType, string> = { knowledge: "Kiến thức", sim: "Mô phỏng", test: "Kiểm tra", exercise: "Bài tập", code: "Lập trình", doc: "Học liệu", media: "Video / hình" };
 
-/** Một nội dung trong module (một khối của bài), với nhãn hiển thị gọn. */
-export interface ModuleItem { lesson: CourseLesson; block: CourseBlock; type: ItemType; title: string }
-
-export function moduleItems(t: CourseTopic): ModuleItem[] {
-  return t.lessons.flatMap((lesson) => lesson.blocks.map((block) => {
-    const type: ItemType = block.kind === "text" ? "lesson" : block.kind === "simulation" ? "sim" : block.kind === "practice" ? (block.final ? "test" : "exercise") : block.kind === "python" ? "code" : block.kind === "file" ? "doc" : "media";
-    const short = lesson.title.replace(/^Bài \d+\.\s*/, "");
-    const title = type === "lesson" && GENERIC.has(block.title) ? lesson.title : type === "test" && block.title === "Bài kiểm tra cuối bài" ? `Kiểm tra: ${short}` : block.title.replace(/^Mô phỏng:\s*/, "");
-    return { lesson, block, type, title };
-  }));
+export function activityType(b: CourseBlock): ActivityType {
+  return b.kind === "text" ? "knowledge" : b.kind === "simulation" ? "sim" : b.kind === "practice" ? (b.final ? "test" : "exercise") : b.kind === "python" ? "code" : b.kind === "file" ? "doc" : "media";
 }
 
-/**
- * Sắp xếp lại nội dung trong module như một danh sách phẳng: nội dung chuyển chỗ thuộc về bài của nội dung đứng
- * trước nó (hoặc sau nó nếu ở đầu), giữ nguyên thứ tự các bài.
- */
-export function reorderModule(t: CourseTopic, from: number, to: number): CourseTopic {
-  const flat = t.lessons.flatMap((l) => l.blocks.map((b) => ({ lessonId: l.id, b })));
-  const next = moveItem(flat, from, to);
-  if (next === flat) return t;
-  const moved = next[to];
-  moved.lessonId = (next[to - 1] ?? next[to + 1] ?? moved).lessonId;
-  return { ...t, lessons: t.lessons.map((l) => ({ ...l, blocks: next.filter((x) => x.lessonId === l.id).map((x) => x.b) })) };
+/** Tên hoạt động hiển thị gọn (bỏ tiền tố trùng với nhãn loại). */
+export function activityTitle(b: CourseBlock): string {
+  return b.title.replace(/^Mô phỏng:\s*/, "") || ACTIVITY_LABEL[activityType(b)];
 }
 
 export type CellState = "done" | "doing" | "todo" | "locked";

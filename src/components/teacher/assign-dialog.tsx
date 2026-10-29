@@ -72,13 +72,13 @@ function AssignForm({ preset, sgkRef, suggest, classId, studentIds, courseId, on
   const [courseSel, setCourseSel] = useState(courseId ?? courses[0]?.id ?? "");
   const [pickRef, setPickRef] = useState<string | undefined>(sgkRef);
   const course = courses.find((c) => c.id === courseSel);
-  /** Nội dung giao được của khóa học (mô phỏng, bộ câu hỏi, bài lập trình), theo module. */
+  /** Nội dung giao được của khóa học (mô phỏng, bộ câu hỏi, bài lập trình), theo chủ đề → bài. */
   const courseItems = (course?.topics ?? []).map((t) => ({
-    module: t.title,
+    topic: t.title,
     list: t.lessons.flatMap((l) => l.blocks.flatMap((b) => {
       const k = b.kind === "simulation" ? ["lab", b.labSlug] : b.kind === "practice" ? ["quiz", b.practiceSetId] : b.kind === "python" ? ["code", b.exerciseId] : [];
       const it = k[1] ? items.find((i) => i.kind === k[0] && i.ref === k[1]) : undefined;
-      return it ? [{ it: { ...it, title: b.final ? `Bài kiểm tra: ${l.title.replace(/^Bài \d+\.\s*/, "")}` : it.title }, sgkRef: l.sgkRef }] : [];
+      return it ? [{ lessonNo: /^Bài (\d+)/.exec(l.title)?.[1], it: { ...it, title: b.final ? `Bài kiểm tra: ${l.title.replace(/^Bài \d+\.\s*/, "")}` : it.title }, sgkRef: l.sgkRef }] : [];
     })),
   })).filter((m) => m.list.length);
   const [kind, setKind] = useState<Kind>(preset?.kind ?? "lab");
@@ -158,11 +158,11 @@ function AssignForm({ preset, sgkRef, suggest, classId, studentIds, courseId, on
               <div className="max-h-64 space-y-2 overflow-y-auto pr-1" role="radiogroup" aria-label="Bài trong khóa học">
                 {courseItems.length === 0 && <p className="text-sm text-muted">Khóa học chưa có mô phỏng hay bài kiểm tra để giao.</p>}
                 {courseItems.map((m) => (
-                  <div key={m.module}>
-                    <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-muted">{m.module}</p>
-                    {m.list.map(({ it, sgkRef: r }) => {
+                  <div key={m.topic}>
+                    <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-muted">{m.topic}</p>
+                    {m.list.map(({ it, sgkRef: r, lessonNo }) => {
                       const on = pick?.kind === it.kind && pick.ref === it.ref && pickRef === r;
-                      return <button key={`${it.kind}:${it.ref}:${r}`} type="button" role="radio" aria-checked={on} onClick={() => { setPick(it); setPickRef(r); }} className={cn("mb-1 flex w-full items-center gap-2 rounded-lg border px-3 py-1.5 text-left text-sm", on ? "border-cyan bg-cyan/10" : "border-line hover:border-cyan/40")}><span className="w-20 shrink-0 text-xs text-muted">{it.kind === "lab" ? "Mô phỏng" : it.kind === "quiz" ? (it.title.startsWith("Bài kiểm tra") ? "Kiểm tra" : "Bài tập") : "Lập trình"}</span><span className="min-w-0 flex-1 truncate font-medium text-fg">{it.title}</span></button>;
+                      return <button key={`${it.kind}:${it.ref}:${r}`} type="button" role="radio" aria-checked={on} onClick={() => { setPick(it); setPickRef(r); }} className={cn("mb-1 flex w-full items-center gap-2 rounded-lg border px-3 py-1.5 text-left text-sm", on ? "border-cyan bg-cyan/10" : "border-line hover:border-cyan/40")}><span className="w-12 shrink-0 text-xs font-semibold text-blue-fg">{lessonNo ? `Bài ${lessonNo}` : "—"}</span><span className="w-20 shrink-0 text-xs text-muted">{it.kind === "lab" ? "Mô phỏng" : it.kind === "quiz" ? (it.title.startsWith("Bài kiểm tra") ? "Kiểm tra" : "Bài tập") : "Lập trình"}</span><span className="min-w-0 flex-1 truncate font-medium text-fg">{it.title}</span></button>;
                     })}
                   </div>
                 ))}

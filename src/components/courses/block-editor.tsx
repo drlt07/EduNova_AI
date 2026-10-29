@@ -76,10 +76,12 @@ export interface BlockEditorProps {
   chip?: string;
   /** Thao tác thêm trên dòng (vd Giao bài) */
   actions?: React.ReactNode;
+  /** Dòng nhỏ gọn (hoạt động lồng trong bài) */
+  compact?: boolean;
 }
 
 /** Thẻ chỉnh một khối nội dung: kéo thả hoặc nút lên/xuống để sắp xếp, mở ra để sửa chi tiết. */
-export function BlockEditor({ block, grade, index, count, open, dragging, onToggle, onChange, onMove, onDelete, onDragStart, onDragEnd, onDropHere, label, chip, actions }: BlockEditorProps) {
+export function BlockEditor({ block, grade, index, count, open, dragging, onToggle, onChange, onMove, onDelete, onDragStart, onDragEnd, onDropHere, label, chip, actions, compact }: BlockEditorProps) {
   const id = useId();
   const Icon = BLOCK_ICON[block.kind];
   const labs = [...LAB_TEMPLATES].sort((a, b) => Number(!a.grades.includes(grade)) - Number(!b.grades.includes(grade)));
@@ -93,19 +95,19 @@ export function BlockEditor({ block, grade, index, count, open, dragging, onTogg
       onDragEnd={onDragEnd}
       onDragOver={(e) => e.preventDefault()}
       onDrop={(e) => { e.preventDefault(); onDropHere(); }}
-      className={cn("rounded-2xl border bg-surface transition-opacity", dragging ? "border-cyan/60 opacity-50" : "border-line")}
+      className={cn("border bg-surface transition-opacity", compact ? "rounded-xl" : "rounded-2xl", dragging ? "border-cyan/60 opacity-50" : "border-line")}
     >
-      <div className="flex items-center gap-2 p-3">
+      <div className={cn("flex items-center gap-2", compact ? "px-2 py-1.5" : "p-3")}>
         <GripVertical className="size-4 shrink-0 cursor-grab text-muted" aria-hidden />
-        <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-cyan/10 text-cyan-fg"><Icon className="size-4" aria-hidden /></span>
+        <span className={cn("grid shrink-0 place-items-center rounded-lg bg-cyan/10 text-cyan-fg", compact ? "size-7" : "size-8")}><Icon className={compact ? "size-3.5" : "size-4"} aria-hidden /></span>
         <button type="button" onClick={onToggle} aria-expanded={open} aria-controls={`${id}-body`} className="min-w-0 flex-1 text-left">
-          <span className="block truncate text-sm font-medium text-fg">{label ?? (block.title || BLOCK_LABEL[block.kind])}</span>
-          <span className="block text-xs text-muted">{chip ?? (block.final ? "Bài kiểm tra cuối bài" : BLOCK_LABEL[block.kind])} · {block.required ? "bắt buộc" : "không bắt buộc"}</span>
+          <span className={cn("block truncate font-medium text-fg", compact ? "text-[13px]" : "text-sm")}>{label ?? (block.title || BLOCK_LABEL[block.kind])}</span>
+          <span className="block text-xs text-muted">{compact ? "" : `${chip ?? (block.final ? "Bài kiểm tra cuối bài" : BLOCK_LABEL[block.kind])} · `}{block.required ? "bắt buộc" : "không bắt buộc"}</span>
         </button>
         {actions}
-        <Button size="icon" variant="ghost" disabled={index === 0} onClick={() => onMove(index - 1)} aria-label={`Đưa "${block.title}" lên`}><ChevronUp /></Button>
-        <Button size="icon" variant="ghost" disabled={index === count - 1} onClick={() => onMove(index + 1)} aria-label={`Đưa "${block.title}" xuống`}><ChevronDown /></Button>
-        <Button size="icon" variant="ghost" onClick={onDelete} aria-label={`Xóa "${block.title}"`}><Trash2 /></Button>
+        <Button size="icon" variant="ghost" className={compact ? "size-7" : undefined} disabled={index === 0} onClick={() => onMove(index - 1)} aria-label={`Đưa "${block.title}" lên`}><ChevronUp /></Button>
+        <Button size="icon" variant="ghost" className={compact ? "size-7" : undefined} disabled={index === count - 1} onClick={() => onMove(index + 1)} aria-label={`Đưa "${block.title}" xuống`}><ChevronDown /></Button>
+        <Button size="icon" variant="ghost" className={compact ? "size-7" : undefined} onClick={onDelete} aria-label={`Xóa "${block.title}"`}><Trash2 /></Button>
       </div>
       {open && (
         <div id={`${id}-body`} className="space-y-3 border-t border-line p-4">
