@@ -9,7 +9,7 @@ Một bài học hoặc mô phỏng giao được cho nhiều lớp, mỗi lớp
 | Mục | Route chính | Trang con (cùng mục) | Việc làm ở đây |
 |---|---|---|---|
 | Hôm nay | `/teacher/dashboard` | — | Tiết sắp dạy, việc cần xử lý (bài cần chấm, em chưa nộp), mở tiếp bài đang dạy |
-| Bài học | `/teacher/sgk` | `/teacher/sgk/[ref]`, `/teacher/courses*` | Chọn lớp → chủ đề → bài; tab Kiến thức · Mô phỏng · Luyện tập · Đã giao; nút "Giao cho lớp" ở từng hoạt động |
+| Khóa học | `/teacher/sgk` | `/teacher/sgk/[ref]`, `/teacher/courses*` | Chọn lớp → chủ đề → bài; tab Kiến thức · Mô phỏng · Luyện tập · Đã giao; nút "Giao cho lớp" ở từng hoạt động |
 | Lớp của tôi | `/teacher/classes` | `/teacher/classes/[id]`, `/teacher/assignments`, `/teacher/assignments/[id]`, `/teacher/assessment`, `/teacher/results`, `/teacher/analytics` | Danh sách lớp, học sinh, bài đã giao, chấm bài, sổ điểm, chi tiết từng em |
 | Trợ lý KHBD AI | `/teacher/lesson-planner` | `/teacher/lesson-planner/*` | Soạn, sửa, lưu, xuất kế hoạch bài dạy (độc lập) |
 | Thư viện | `/teacher/sims` | `/teacher/kho`, `/teacher/bank`, `/teacher/library`, `/teacher/resources`, `/teacher/labs`, `/teacher/activity-builder` | Kho mô phỏng, ngân hàng luyện tập, học liệu và tài nguyên tự tạo; xem trước, gắn vào bài học |
@@ -19,7 +19,7 @@ Một bài học hoặc mô phỏng giao được cho nhiều lớp, mỗi lớp
 | Mục | Route chính | Trang con | Việc làm ở đây |
 |---|---|---|---|
 | Bài của tôi | `/student/missions` (trang đầu) | `/student/missions/[id]` | Hoạt động thầy cô giao: hạn, số lần làm, kết quả |
-| Bài học | `/student/sgk` | `/student/sgk/[ref]`, `/student/courses*` | Khám phá bài đã mở; mỗi bài có Học · Mô phỏng · Luyện tập |
+| Khóa học | `/student/sgk` | `/student/sgk/[ref]`, `/student/courses*` | Khám phá bài đã mở; mỗi bài có Học · Mô phỏng · Luyện tập |
 | Luyện tập | `/student/practice` | `/student/practice/[id]`, `/student/code` | Bộ câu hỏi, bài lập trình đã mở |
 | Mô phỏng | `/student/games` | `/student/kho*`, `/labs/[slug]` | Mô phỏng được giao theo bài và kho mô phỏng đời sống |
 | Tiến độ | `/student/progress` | `/student/profile` | Kết quả và tiến độ cá nhân |

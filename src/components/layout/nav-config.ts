@@ -31,7 +31,7 @@ export const NAV: Record<Role, NavItem[]> = {
   // Giáo viên: 5 mục. Bài học là trung tâm (giao hoạt động ngay trong bài); các trang cũ được gom vào mục hợp lý qua `match`.
   teacher: [
     { href: "/teacher/dashboard", label: "Hôm nay", icon: Home },
-    { href: "/teacher/sgk", label: "Bài học", icon: BookMarked, match: ["/teacher/courses", "/curriculum", "/explore", "/bai-hoc"] },
+    { href: "/teacher/sgk", label: "Khóa học", icon: BookMarked, match: ["/teacher/courses", "/curriculum", "/explore", "/bai-hoc"] },
     { href: "/teacher/classes", label: "Lớp của tôi", icon: Users, badge: "todos", match: ["/teacher/assignments", "/teacher/assessment", "/teacher/results", "/teacher/analytics"] },
     { href: "/teacher/lesson-planner", label: "Trợ lý KHBD AI", icon: NotebookPen },
     { href: "/teacher/sims", label: "Thư viện", icon: Library, match: ["/teacher/kho", "/teacher/bank", "/teacher/library", "/teacher/resources", "/teacher/labs", "/teacher/activity-builder", "/labs", "/thuat-toan"] },
@@ -39,7 +39,7 @@ export const NAV: Record<Role, NavItem[]> = {
   // Học sinh: bài được giao trước, rồi bài học, luyện tập, mô phỏng, tiến độ và AI Gia sư.
   student: [
     { href: "/student/missions", label: "Bài của tôi", icon: ClipboardCheck, match: ["/student/dashboard"] },
-    { href: "/student/sgk", label: "Bài học", icon: BookMarked, match: ["/student/courses", "/student/learning", "/curriculum", "/explore", "/bai-hoc"] },
+    { href: "/student/sgk", label: "Khóa học", icon: BookMarked, match: ["/student/courses", "/student/learning", "/curriculum", "/explore", "/bai-hoc"] },
     { href: "/student/practice", label: "Luyện tập", icon: Dumbbell, match: ["/student/code", "/student/projects"] },
     { href: "/student/games", label: "Mô phỏng", icon: FlaskConical, match: ["/student/kho", "/labs", "/thuat-toan"] },
     { href: "/student/progress", label: "Tiến độ", icon: BarChart3, match: ["/student/profile", "/student/portfolio"] },

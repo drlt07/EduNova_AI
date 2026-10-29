@@ -49,7 +49,7 @@ function Shelf({ role }: { role: Role }) {
     <div>
       <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-fg">Bài học</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-fg">Khóa học</h1>
           <p className="mt-1 text-muted">{teacher ? "Chọn lớp → chủ đề → bài. Mỗi bài có kiến thức, mô phỏng, luyện tập và nút giao cho lớp." : "Học từng bài, làm mô phỏng và câu hỏi luyện tập ngay trong bài."}</p>
         </div>
         {teacher && <Button asChild variant="ghost" size="sm"><Link href="/teacher/courses"><BookMarked /> Khóa học tự soạn</Link></Button>}
@@ -133,7 +133,7 @@ function BookToc({ grade, role }: { grade: Grade; role: Role }) {
       <div className="mb-6 flex flex-wrap items-end gap-4">
         <span className={cn("hidden size-20 shrink-0 place-items-center rounded-2xl bg-gradient-to-br text-3xl font-extrabold text-white sm:grid", GRADE_BG[grade])}>{grade}</span>
         <div className="min-w-0 flex-1 basis-64">
-          <Link href={base(role)} className="inline-flex items-center gap-1 text-sm font-medium text-muted hover:text-fg"><ArrowLeft className="size-4" aria-hidden /> Tất cả lớp</Link>
+          <Link href={base(role)} className="inline-flex items-center gap-1 text-sm font-medium text-muted hover:text-fg"><ArrowLeft className="size-4" aria-hidden /> Tất cả khóa học</Link>
           <h1 className="mt-1 text-3xl font-bold tracking-tight text-fg">{book.title}</h1>
           <p className="text-sm text-muted">{book.subtitle} · {topics.length} chủ đề · {lessons.length} bài · {teacher ? `${contentCount(grade)} bài có nội dung` : <b className="text-fg">thầy cô đã mở {opened.length} bài</b>}</p>
         </div>

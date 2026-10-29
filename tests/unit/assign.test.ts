@@ -87,7 +87,7 @@ describe("Cấu hình giao bài: số lần làm và cách tính điểm", () =>
 
 describe("Điều hướng", () => {
   it("giáo viên có đúng 5 mục, bài học là trung tâm", () => {
-    expect(NAV.teacher.map((i) => i.label)).toEqual(["Hôm nay", "Bài học", "Lớp của tôi", "Trợ lý KHBD AI", "Thư viện"]);
+    expect(NAV.teacher.map((i) => i.label)).toEqual(["Hôm nay", "Khóa học", "Lớp của tôi", "Trợ lý KHBD AI", "Thư viện"]);
   });
   it("trang cũ vẫn thuộc một mục (không mất chức năng)", () => {
     const all = NAV.teacher.flatMap((i) => [i.href, ...(i.match ?? [])]);

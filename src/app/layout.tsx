@@ -1,12 +1,12 @@
 import type { Metadata, Viewport } from "next";
-import { Be_Vietnam_Pro } from "next/font/google";
+import { Roboto } from "next/font/google";
 import { Providers } from "@/components/layout/providers";
 import "./globals.css";
 
-const appFont = Be_Vietnam_Pro({
+const appFont = Roboto({
   variable: "--font-app",
   subsets: ["latin", "vietnamese"],
-  weight: ["400", "500", "600", "700", "800"],
+  weight: ["400", "500", "700", "900"],
   display: "swap",
 });
 

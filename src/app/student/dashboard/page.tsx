@@ -19,7 +19,7 @@ import { AnimatedBar, CountUp, FadeIn, Stagger, StaggerItem } from "@/components
 
 /** Bốn chức năng còn lại của học sinh (Trang chủ là trang này). */
 const FUNCTIONS = [
-  { href: "/student/sgk", icon: BookOpen, label: "Bài học", desc: "Học từng bài: kiến thức, mô phỏng, luyện tập." },
+  { href: "/student/sgk", icon: BookOpen, label: "Khóa học", desc: "Tin học 10, 11, 12: học từng bài với kiến thức, mô phỏng, luyện tập." },
   { href: "/student/games", icon: Gamepad2, label: "Mô phỏng", desc: "Khám phá thuật toán, máy tính, mạng qua tình huống tương tác." },
   { href: "/student/practice", icon: Code2, label: "Luyện tập", desc: "Lập trình, trắc nghiệm, HTML/CSS; SQL và mạng ảo sắp có." },
   { href: "/student/tutor", icon: Sparkles, label: "AI Gia sư", desc: "Giải thích, gợi mở từng bước, chỉ ra lỗi và gợi ý bài luyện." },

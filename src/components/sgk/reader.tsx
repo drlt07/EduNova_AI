@@ -114,7 +114,7 @@ export function BookReader({ refId, role }: { refId: string; role: Role }) {
   const ids = content?.sections.map((s) => s.id) ?? [];
   useReadTracking(ids, (id) => markRead(userId, refId, id));
 
-  if (!e) return <EmptyState icon={BookOpen} title="Không tìm thấy bài" action={<Button asChild><Link href={base(role)}>Về Bài học</Link></Button>} />;
+  if (!e) return <EmptyState icon={BookOpen} title="Không tìm thấy bài" action={<Button asChild><Link href={base(role)}>Về Khóa học</Link></Button>} />;
   const teacher = role === "teacher";
   const book = bookOf(e.grade);
   if (!teacher && !access.can(lessonKey(refId))) return <LockedLesson e={e} />;
@@ -134,7 +134,7 @@ export function BookReader({ refId, role }: { refId: string; role: Role }) {
   return (
     <TutorScope title={`${book.title} · Bài ${e.lesson.no}. ${e.lesson.title}`} topic="general" level={teacher ? "free" : "guided"}>
       <nav aria-label="Vị trí" className="mb-3 flex flex-wrap items-center gap-1 text-xs text-muted">
-        <Link href={base(role)} className="hover:text-fg">Bài học</Link><ChevronRight className="size-3" aria-hidden />
+        <Link href={base(role)} className="hover:text-fg">Khóa học</Link><ChevronRight className="size-3" aria-hidden />
         <Link href={`${base(role)}?lop=${e.grade}`} className="hover:text-fg">{book.title}</Link><ChevronRight className="size-3" aria-hidden />
         <span>Chủ đề {e.topic.no}. {e.topic.title}</span><ChevronRight className="size-3" aria-hidden />
         <span className="font-medium text-fg">Bài {e.lesson.no}</span>
