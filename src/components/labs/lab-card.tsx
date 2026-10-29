@@ -65,7 +65,7 @@ export function SimCard({ href, art, grades, level, minutes, missions, topic, ti
         <LabArt slug={art} className={cn("size-full brightness-[.85] transition-transform duration-500 group-hover:scale-105", dim && "saturate-[0.5]")} />
         <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/25 to-slate-950/45" />
         <div className="absolute inset-x-4 top-4 flex items-start gap-1.5">
-          {grades.map((g) => <span key={g} className="rounded-lg bg-[#2563eb] px-2.5 py-1 text-xs font-bold uppercase tracking-wide text-white">Lớp {g}</span>)}
+          {grades.map((g) => <span key={g} className="rounded-lg bg-brand px-2.5 py-1 text-xs font-bold uppercase tracking-wide text-white">Lớp {g}</span>)}
           <span className={cn("rounded-lg px-2.5 py-1 text-xs font-semibold", LEVEL_TONE[level])}>{LAB_LEVELS[level]}</span>
           {pill && <span className={cn("ml-auto rounded-lg px-2.5 py-1 text-xs font-medium backdrop-blur", pill.done ? "bg-[#10b981]/90 text-white" : "bg-slate-950/60 text-white")}>{pill.done && <CheckCircle2 className="mr-1 inline size-3.5 align-[-2px]" aria-hidden />}{pill.label}</span>}
         </div>

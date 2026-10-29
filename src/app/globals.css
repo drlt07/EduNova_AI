@@ -13,20 +13,20 @@
   --fg: #0f172a;
   --muted: #64748b;
   --cyan: #06b6d4;
-  --blue: #2563eb;
+  --blue: #f97316;
   --violet: #7c3aed;
   --success: #059669;
   --warning: #d97706;
   --danger: #e11d48;
-  --ring: #2563eb;
-  /* màu thương hiệu: nút chính, trạng thái đang chọn (chữ trắng trên nền ≥ 4.5:1) */
-  --brand: #2563eb;
-  --brand-hover: #1d4ed8;
+  --ring: #ea580c;
+  /* màu thương hiệu (tông cam theo logo): nút chính, trạng thái đang chọn (chữ trắng trên nền 4.5:1) */
+  --brand: #d2480a;
+  --brand-hover: #b93d0a;
   --brand-ink: #ffffff;
   --grid: rgba(15, 23, 42, 0.04);
   /* màu chữ trên nền sáng: tương phản ≥ 4.5:1 */
   --cyan-fg: #0e7490;
-  --blue-fg: #1d4ed8;
+  --blue-fg: #c2410c;
   --violet-fg: #6d28d9;
   --success-fg: #047857;
   --warning-fg: #b45309;
@@ -44,19 +44,19 @@
   --fg: #f1f5f9;
   --muted: #94a3b8;
   --cyan: #22d3ee;
-  --blue: #60a5fa;
+  --blue: #fb923c;
   --violet: #a78bfa;
   --success: #34d399;
   --warning: #fbbf24;
   --danger: #fb7185;
-  --ring: #60a5fa;
-  --brand: #60a5fa;
-  --brand-hover: #93c5fd;
+  --ring: #fb923c;
+  --brand: #fb923c;
+  --brand-hover: #fdba74;
   --brand-ink: #0b1120;
   --grid: rgba(148, 163, 184, 0.06);
   /* màu chữ trên nền tối: tương phản ≥ 4.5:1 */
   --cyan-fg: #22d3ee;
-  --blue-fg: #93c5fd;
+  --blue-fg: #fdba74;
   --violet-fg: #c4b5fd;
   --success-fg: #34d399;
   --warning-fg: #fbbf24;
@@ -124,7 +124,7 @@ body {
 }
 
 .text-gradient {
-  background: linear-gradient(100deg, var(--cyan), var(--blue) 45%, var(--violet));
+  background: linear-gradient(100deg, #e11d48, #ea580c 50%, #f59e0b);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -250,10 +250,3 @@ html[data-contrast="high"] {
 @keyframes sim-glow { 50% { opacity: 0.45; } }
 .sim-glow { animation: sim-glow 1.8s ease-in-out infinite; }
 
-/* Trang đăng nhập: hộp rơi lặp lại trên băng chuyền mini */
-@keyframes nova-drop {
-  0%, 6% { transform: translateY(-34px); opacity: 0; }
-  14%, 82% { transform: none; opacity: 1; }
-  92%, 100% { transform: none; opacity: 0; }
-}
-.nova-drop { animation: nova-drop 6s cubic-bezier(.3,1.3,.5,1) infinite both; transform-box: fill-box; }

@@ -28,5 +28,5 @@ export function AuthSubmit({ children, disabled, className }: { children: React.
 
 /** Lối vào kho mô phỏng không cần tài khoản. */
 export function AuthAlt() {
-  return <p className="mt-5 text-center text-sm text-muted">Chỉ muốn xem thử? <Link href="/kho" className="font-semibold text-teal-700 hover:underline dark:text-teal-300">Khám phá kho mô phỏng</Link></p>;
+  return <p className="mt-5 text-center text-sm text-muted">Chỉ muốn xem thử? <Link href="/kho" className="font-semibold text-blue-fg hover:underline">Khám phá kho mô phỏng</Link></p>;
 }

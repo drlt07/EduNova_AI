@@ -30,7 +30,7 @@ function newSim() {
  * Cảnh giao lộ 3D thu nhỏ cho Hero, chạy đúng engine của Smart Traffic City (xe dừng đèn đỏ, đèn tự chuyển).
  * Chỉ dựng WebGL trên màn hình rộng; điện thoại và chế độ giảm chuyển động dùng hình minh họa tĩnh.
  */
-export function HeroTraffic() {
+export function HeroTraffic({ className }: { className?: string } = {}) {
   const desktop = useSyncExternalStore(subscribeDesktop, () => window.matchMedia(DESKTOP).matches, () => false);
   const reduced = useReducedMotion();
   const [initial] = useState(newSim);
@@ -54,7 +54,7 @@ export function HeroTraffic() {
   const live = desktop && !reduced;
 
   return (
-    <div ref={box} className="relative aspect-[16/10] overflow-hidden rounded-2xl bg-[#cfe9ff]">
+    <div ref={box} className={className ?? "relative aspect-[16/10] overflow-hidden rounded-2xl bg-[#cfe9ff]"}>
       {live ? (
         <div className="pointer-events-none absolute inset-0" aria-hidden>
           <Scene3D sim={sim} phase={phase} selectedCar={null} onSelectCar={noop} onLightClick={noop} onTick={onTick} preview />

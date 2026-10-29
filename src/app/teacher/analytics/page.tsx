@@ -128,7 +128,7 @@ function Report() {
       <section className="mb-6 overflow-hidden rounded-3xl bg-[#0f172a] p-5 text-white shadow-lg shadow-slate-900/10 sm:p-6" aria-labelledby="cd-h">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="flex items-start gap-3">
-            <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-[#06b6d4] to-[#2563eb]"><Sparkles className="size-5" aria-hidden /></span>
+            <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-[#f59e0b] to-[#ea580c]"><Sparkles className="size-5" aria-hidden /></span>
             <div>
               <h2 id="cd-h" className="text-lg font-bold">Chẩn đoán {scopeName}</h2>
               <p className="text-sm text-slate-300">Đọc chéo yêu cầu cần đạt, lỗi kiểm thử, nhiệm vụ và mô phỏng; việc cần xử lý xếp trước.</p>

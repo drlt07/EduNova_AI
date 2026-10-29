@@ -21,7 +21,7 @@ type Status = "new" | "doing" | "done";
 interface Tile { id: string; kind: Kind; title: string; sub: string; href: string; status: Status; result?: string; group: string; due?: string }
 
 const KIND: Record<Kind, { label: string; icon: React.ComponentType<{ className?: string }>; bg: string }> = {
-  quiz: { label: "Trắc nghiệm", icon: ListChecks, bg: "from-[#2563eb] to-[#06b6d4]" },
+  quiz: { label: "Trắc nghiệm", icon: ListChecks, bg: "from-[#ea580c] to-[#f59e0b]" },
   proc: { label: "Trắc nghiệm + thao tác", icon: MousePointerClick, bg: "from-[#0d9488] to-[#22c55e]" },
   code: { label: "Lập trình Python", icon: Code2, bg: "from-[#1e293b] to-[#475569]" },
   teacher: { label: "Thầy cô soạn", icon: ClipboardList, bg: "from-[#7c3aed] to-[#db2777]" },

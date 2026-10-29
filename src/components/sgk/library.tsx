@@ -37,7 +37,7 @@ export function SgkLibrary({ role }: { role: Role }) {
   return <Shelf role={role} />;
 }
 
-const GRADE_BG: Record<Grade, string> = { 10: "from-[#2563eb] to-[#06b6d4]", 11: "from-[#4f46e5] to-[#7c3aed]", 12: "from-[#7c3aed] to-[#db2777]" };
+const GRADE_BG: Record<Grade, string> = { 10: "from-[#ea580c] to-[#f59e0b]", 11: "from-[#e11d48] to-[#f97316]", 12: "from-[#c2410c] to-[#db2777]" };
 
 /** Bài học theo khối: Tin học 10/11/12 → chủ đề → bài, trong bài có mô phỏng và câu hỏi luyện tập. */
 function Shelf({ role }: { role: Role }) {

@@ -40,7 +40,7 @@ export function SiteHeader() {
           {NAV.map((n) => {
             const active = isActive(pathname, n);
             return n.featured ? (
-              <Link key={n.href} href={n.href} aria-current={active ? "page" : undefined} className={cn("mx-1 inline-flex items-center gap-1.5 rounded-full border border-cyan/40 bg-cyan/10 px-3.5 py-1.5 text-sm font-semibold text-cyan-fg transition-colors hover:bg-cyan/20", active && "bg-cyan/20 ring-1 ring-cyan/40")}>
+              <Link key={n.href} href={n.href} aria-current={active ? "page" : undefined} className={cn("mx-1 inline-flex items-center gap-1.5 rounded-full border border-orange-400/50 bg-orange-500/10 px-3.5 py-1.5 text-sm font-semibold text-blue-fg transition-colors hover:bg-orange-500/20", active && "bg-orange-500/20 ring-1 ring-orange-400/50")}>
                 <Gamepad2 className="size-4" aria-hidden /> {n.label}
               </Link>
             ) : (
@@ -63,7 +63,7 @@ export function SiteHeader() {
       {open && (
         <nav id="mobile-nav" aria-label="Điều hướng di động" className="border-t border-line px-4 pb-4 lg:hidden">
           {NAV.map((n) => (
-            <Link key={n.href} href={n.href} onClick={() => setOpen(false)} aria-current={isActive(pathname, n) ? "page" : undefined} className={cn("flex items-center gap-2 rounded-lg px-3 py-3 text-sm font-medium hover:bg-surface-2", n.featured ? "text-cyan-fg" : "text-fg")}>
+            <Link key={n.href} href={n.href} onClick={() => setOpen(false)} aria-current={isActive(pathname, n) ? "page" : undefined} className={cn("flex items-center gap-2 rounded-lg px-3 py-3 text-sm font-medium hover:bg-surface-2", n.featured ? "text-blue-fg" : "text-fg")}>
               {n.featured && <Gamepad2 className="size-4" aria-hidden />} {n.label}
             </Link>
           ))}

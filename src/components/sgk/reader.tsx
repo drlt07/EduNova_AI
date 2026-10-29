@@ -32,14 +32,14 @@ import { useAccess } from "@/lib/access/use-access";
 type Role = "teacher" | "student";
 type TabId = "noi-dung" | "mo-phong" | "cau-hoi" | "lap-trinh" | "nhiem-vu" | "luyen-tap";
 const TAB_META: Record<TabId, { label: string; icon: React.ComponentType<{ className?: string }>; on: string }> = {
-  "noi-dung": { label: "Kiến thức", icon: FileText, on: "bg-blue-600 text-white" },
+  "noi-dung": { label: "Kiến thức", icon: FileText, on: "bg-brand text-brand-ink" },
   "mo-phong": { label: "Mô phỏng", icon: FlaskConical, on: "bg-violet-600 text-white" },
   "cau-hoi": { label: "Luyện tập", icon: ListChecks, on: "bg-emerald-600 text-white" },
   "lap-trinh": { label: "Lập trình", icon: Code2, on: "bg-slate-800 text-white" },
   "luyen-tap": { label: "Luyện tập", icon: ListChecks, on: "bg-emerald-600 text-white" },
   "nhiem-vu": { label: "Đã giao & kết quả", icon: ClipboardList, on: "bg-slate-800 text-white" },
 };
-const GRADE_BG: Record<number, string> = { 10: "from-[#2563eb] to-[#06b6d4]", 11: "from-[#4f46e5] to-[#7c3aed]", 12: "from-[#7c3aed] to-[#db2777]" };
+const GRADE_BG: Record<number, string> = { 10: "from-[#ea580c] to-[#f59e0b]", 11: "from-[#e11d48] to-[#f97316]", 12: "from-[#c2410c] to-[#db2777]" };
 /** Mỗi bài: Kiến thức · Mô phỏng · Luyện tập (gồm câu hỏi và lập trình); giáo viên có thêm tab hoạt động đã giao và kết quả. */
 const TEACHER_TABS: TabId[] = ["noi-dung", "mo-phong", "luyen-tap", "nhiem-vu"];
 const STUDENT_TABS: TabId[] = ["noi-dung", "mo-phong", "luyen-tap"];
@@ -214,9 +214,9 @@ export function BookReader({ refId, role }: { refId: string; role: Role }) {
           {teacher && picks.size > 0 && <PickedStrip e={e} picks={picks} onPresent={content ? () => setPresent(true) : undefined} />}
           {content ? (
             <>
-              <section className="rounded-2xl border border-blue-500/25 bg-blue-500/5 p-4">
-                <h2 className="flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-blue-700 dark:text-blue-300"><Target className="size-4" aria-hidden /> Yêu cầu cần đạt</h2>
-                <ol className="mt-3 space-y-2 text-sm text-fg">{content.objectives.map((o, i) => <li key={o} className="flex gap-2.5"><span className="grid size-6 shrink-0 place-items-center rounded-full bg-blue-600 text-xs font-bold text-white">{i + 1}</span><span className="pt-0.5">{o}</span></li>)}</ol>
+              <section className="rounded-2xl border border-orange-500/25 bg-orange-500/5 p-4">
+                <h2 className="flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-orange-700 dark:text-orange-300"><Target className="size-4" aria-hidden /> Yêu cầu cần đạt</h2>
+                <ol className="mt-3 space-y-2 text-sm text-fg">{content.objectives.map((o, i) => <li key={o} className="flex gap-2.5"><span className="grid size-6 shrink-0 place-items-center rounded-full bg-brand text-xs font-bold text-brand-ink">{i + 1}</span><span className="pt-0.5">{o}</span></li>)}</ol>
               </section>
               <section className="mt-4 flex gap-3 rounded-2xl border border-amber-400/30 bg-gradient-to-br from-amber-400/15 to-orange-400/5 p-4">
                 <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-amber-500 text-lg text-white" aria-hidden>💡</span>
