@@ -110,15 +110,26 @@ export function SimLibrary({ hrefFor, progressOf, filter, extra, emptyText = "Kh
       </div>
       {groups.length === 0 && other.length === 0 && <EmptyState icon={SearchX} title={q ? "Không có mô phỏng phù hợp" : "Chưa có mô phỏng"} description={q ? "Thử từ khóa khác." : emptyText} />}
       <div className="space-y-10">
-        {groups.map((gr) => (
-          <section key={gr.ref} aria-labelledby={`sim-${gr.ref}`}>
-            <div className="mb-4 border-b-2 border-line pb-2">
-              <p className="text-xs font-semibold uppercase tracking-wide text-muted">{gr.topic}</p>
-              <h3 id={`sim-${gr.ref}`} className="mt-0.5 flex flex-wrap items-baseline gap-2 text-xl font-bold text-fg"><span className="rounded-lg bg-brand/10 px-2 py-0.5 text-base text-blue-fg">Bài {gr.no}</span>{gr.title}</h3>
-            </div>
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">{gr.labs.map((l) => card(l, gr.ref))}</div>
-          </section>
-        ))}
+        {[...new Set(groups.map((gr) => gr.topic))].map((topic) => {
+          const inTopic = groups.filter((gr) => gr.topic === topic);
+          const id = `sim-${inTopic[0].ref}`;
+          return (
+            <section key={topic} aria-labelledby={id}>
+              <div className="mb-4 flex flex-wrap items-end justify-between gap-2 border-b-2 border-line pb-2">
+                <h3 id={id} className="text-xl font-bold text-fg">{topic}</h3>
+                <span className="text-xs font-medium text-muted">{inTopic.length} bài · {inTopic.reduce((n, gr) => n + gr.labs.length, 0)} mô phỏng</span>
+              </div>
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
+                {inTopic.flatMap((gr) => gr.labs.map((l) => (
+                  <div key={`${gr.ref}-${l.slug}`} className="flex min-w-0 flex-col gap-2">
+                    <p className="flex items-baseline gap-2 text-sm font-semibold text-fg"><span className="shrink-0 rounded-lg bg-brand/10 px-2 py-0.5 text-blue-fg">Bài {gr.no}</span><span className="truncate" title={gr.title}>{gr.title}</span></p>
+                    {card(l, gr.ref)}
+                  </div>
+                )))}
+              </div>
+            </section>
+          );
+        })}
         {other.length > 0 && (
           <section aria-labelledby="sim-other">
             <h3 id="sim-other" className="mb-4 flex items-center gap-2 border-b-2 border-line pb-2 text-xl font-bold text-fg"><FlaskConical className="size-5 text-muted" aria-hidden /> Mô phỏng mở rộng</h3>
