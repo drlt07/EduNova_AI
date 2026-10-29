@@ -9,7 +9,7 @@ import { Logo } from "@/components/layout/logo";
 export function AuthLayout({ eyebrow, title, subtitle, foot, children }: { eyebrow?: React.ReactNode; title: React.ReactNode; subtitle?: string; foot?: React.ReactNode; children: React.ReactNode }) {
   return (
     <div className="flex min-h-screen bg-surface">
-      <aside aria-label="Minh họa vòng lặp" className="hidden w-[48%] max-w-[760px] shrink-0 p-4 lg:block">
+      <aside aria-label="Minh họa vòng lặp" className="sticky top-0 hidden h-screen w-[48%] max-w-[760px] shrink-0 self-start p-4 lg:block">
         <LoopScene />
       </aside>
       <div className="flex min-w-0 flex-1 flex-col px-6 pb-[var(--corner-safe)] pt-8 sm:px-12">
@@ -56,64 +56,72 @@ function loopCss() {
   return css;
 }
 
-/** Cảnh minh họa: đoạn mã for, giá trị i, băng chuyền có cánh tay đặt hộp, màn hình in kết quả — lặp lại mãi. */
+const BOX = ["#FF5F6D", "#FFB33F", "#14B8A6", "#38BDF8", "#A78BFA"];
+
+/** Cảnh minh họa (tông sáng): đoạn mã for, giá trị i, băng chuyền có cánh tay đặt hộp, màn hình in kết quả — lặp lại mãi. */
 function LoopScene() {
   return (
-    <div className="relative flex h-full flex-col overflow-hidden rounded-[28px] bg-[#0a1020] text-white">
+    <div className="relative flex h-full flex-col overflow-hidden rounded-[28px] bg-gradient-to-br from-[#fff4e8] via-[#fff0f3] to-[#e6f6ff] text-slate-900">
       <style>{loopCss()}</style>
-      <div aria-hidden className="absolute -left-24 -top-24 size-96 rounded-full bg-blue-600/30 blur-3xl" />
-      <div aria-hidden className="absolute -bottom-32 -right-20 size-[420px] rounded-full bg-cyan-500/20 blur-3xl" />
-      <div aria-hidden className="absolute inset-0 opacity-[0.07] [background-image:radial-gradient(#fff_1px,transparent_1px)] [background-size:22px_22px]" />
+      <div aria-hidden className="absolute -left-20 -top-24 size-80 rounded-full bg-[#FFB33F]/30 blur-3xl" />
+      <div aria-hidden className="absolute -right-16 top-1/3 size-72 rounded-full bg-[#FF5F6D]/20 blur-3xl" />
+      <div aria-hidden className="absolute -bottom-24 left-1/4 size-96 rounded-full bg-[#38BDF8]/25 blur-3xl" />
+      <div aria-hidden className="absolute inset-0 opacity-[0.35] [background-image:radial-gradient(#ffffff_1.2px,transparent_1.2px)] [background-size:22px_22px]" />
 
       <div className="relative px-10 pt-10">
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-300">Tin học 10 · Câu lệnh lặp</p>
-        <p className="mt-3 text-[28px] font-bold leading-tight">Một dòng lệnh,<br />năm lần lặp.</p>
-        <p className="mt-2 max-w-sm text-sm text-slate-300">Ở EduNova, mỗi khái niệm đều chạy được: em nhìn thấy vòng lặp làm việc trước khi tự viết.</p>
+        <p className="inline-flex items-center gap-2 rounded-full bg-white/80 px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] text-[#e11d48] shadow-sm">Tin học 10 · Câu lệnh lặp</p>
+        <p className="mt-4 text-[30px] font-bold leading-tight">Một dòng lệnh,<br /><span className="bg-gradient-to-r from-[#f43f5e] to-[#f59e0b] bg-clip-text text-transparent">năm lần lặp.</span></p>
+        <p className="mt-2 max-w-sm text-sm text-slate-600">Ở EduNova, mỗi khái niệm đều chạy được: em nhìn thấy vòng lặp làm việc trước khi tự viết.</p>
       </div>
 
       <svg viewBox="0 0 600 470" className="relative mt-auto h-auto w-full" role="img" aria-label="Vòng lặp for i in range(5): cánh tay robot lần lượt đặt hộp vào ô 0 đến 4 và in kết quả">
+        <defs>
+          <filter id="nv-sh" x="-10%" y="-10%" width="120%" height="140%"><feDropShadow dx="0" dy="6" stdDeviation="8" floodColor="#0f172a" floodOpacity="0.10" /></filter>
+        </defs>
         {/* đoạn mã */}
-        <g transform="translate(40 10)">
-          <rect width="330" height="92" rx="14" fill="#ffffff" fillOpacity="0.06" stroke="#ffffff" strokeOpacity="0.1" />
-          <text x="20" y="38" fontSize="17" fontFamily="ui-monospace,monospace" fill="#e2e8f0"><tspan fill="#7dd3fc">for</tspan> i <tspan fill="#7dd3fc">in</tspan> <tspan fill="#fcd34d">range</tspan>(5):</text>
-          <rect x="12" y="52" width="306" height="28" rx="6" fill="#fbbf24" fillOpacity="0.16" className="nv" style={{ animationName: "nv-line" }} />
-          <text x="20" y="72" fontSize="17" fontFamily="ui-monospace,monospace" fill="#e2e8f0">    dat_hop(i)</text>
+        <g transform="translate(40 10)" filter="url(#nv-sh)">
+          <rect width="330" height="92" rx="16" fill="#fff" />
+          <text x="20" y="38" fontSize="17" fontFamily="ui-monospace,monospace" fill="#334155"><tspan fill="#0284c7" fontWeight="700">for</tspan> i <tspan fill="#0284c7" fontWeight="700">in</tspan> <tspan fill="#e11d48">range</tspan>(5):</text>
+          <rect x="12" y="52" width="306" height="28" rx="7" fill="#FFB33F" fillOpacity="0.22" className="nv" style={{ animationName: "nv-line" }} />
+          <text x="20" y="72" fontSize="17" fontFamily="ui-monospace,monospace" fill="#334155">    dat_hop(i)</text>
         </g>
         {/* giá trị i */}
-        <g transform="translate(400 10)">
-          <rect width="160" height="92" rx="14" fill="#22d3ee" fillOpacity="0.12" stroke="#22d3ee" strokeOpacity="0.4" />
-          <text x="24" y="36" fontSize="13" fill="#a5f3fc" letterSpacing="2">BIẾN i</text>
-          {Array.from({ length: N }, (_, k) => <text key={k} x="24" y="78" fontSize="38" fontWeight="800" fontFamily="ui-monospace,monospace" fill="#fff" className="nv nv-i" style={{ animationName: `nv-i${k}`, animationTimingFunction: "linear" }}>{k}</text>)}
+        <g transform="translate(400 10)" filter="url(#nv-sh)">
+          <rect width="160" height="92" rx="16" fill="#14B8A6" />
+          <text x="24" y="34" fontSize="12" fontWeight="700" fill="#ccfbf1" letterSpacing="2">BIẾN i</text>
+          {Array.from({ length: N }, (_, k) => <text key={k} x="24" y="78" fontSize="40" fontWeight="800" fontFamily="ui-monospace,monospace" fill="#fff" className="nv nv-i" style={{ animationName: `nv-i${k}`, animationTimingFunction: "linear" }}>{k}</text>)}
         </g>
-        {/* cánh tay robot */}
-        <rect x="40" y="126" width="520" height="8" rx="4" fill="#334155" />
+        {/* ray và cánh tay robot */}
+        <rect x="40" y="126" width="520" height="8" rx="4" fill="#cbd5e1" />
         <g className="nv nv-arm" style={{ animationName: "nv-arm", animationTimingFunction: "cubic-bezier(.45,0,.2,1)" }}>
-          <rect x="-22" y="118" width="44" height="22" rx="6" fill="#3b82f6" />
+          <rect x="-22" y="118" width="44" height="22" rx="7" fill="#0f766e" />
+          <circle cx="-9" cy="129" r="3" fill="#5eead4" />
           <rect x="-4" y="140" width="8" height="58" fill="#94a3b8" />
-          <rect x="-24" y="196" width="48" height="10" rx="3" fill="#2563eb" />
-          <path d="M-19 206 l-5 16 M19 206 l5 16" stroke="#2563eb" strokeWidth="5" strokeLinecap="round" />
+          <rect x="-24" y="196" width="48" height="10" rx="4" fill="#0f766e" />
+          <path d="M-19 206 l-5 16 M19 206 l5 16" stroke="#0f766e" strokeWidth="5" strokeLinecap="round" />
         </g>
-        {/* băng chuyền + hộp */}
-        <path d="M30 278 H570 l-14 26 H44Z" fill="#1e293b" />
-        <rect x="44" y="304" width="512" height="14" rx="4" fill="#0f172a" />
-        {Array.from({ length: 11 }, (_, k) => <circle key={k} cx={52 + k * 50} cy="311" r="4" fill="#475569" />)}
+        {/* băng chuyền + hộp nhiều màu */}
+        <path d="M30 278 H570 l-14 26 H44Z" fill="#e2e8f0" />
+        <rect x="44" y="304" width="512" height="14" rx="5" fill="#cbd5e1" />
+        {Array.from({ length: 11 }, (_, k) => <circle key={k} cx={52 + k * 50} cy="311" r="4" fill="#fff" />)}
         {Array.from({ length: N }, (_, k) => (
           <g key={k}>
-            <text x={SLOT_X(k)} y="340" textAnchor="middle" fontSize="13" fontFamily="ui-monospace,monospace" fill="#64748b">ô {k}</text>
+            <text x={SLOT_X(k)} y="340" textAnchor="middle" fontSize="13" fontWeight="600" fontFamily="ui-monospace,monospace" fill="#64748b">ô {k}</text>
             <g className="nv" style={{ animationName: `nv-box${k}` }}>
-              <path d={`M${SLOT_X(k) - 22} 238 l8 -8 h44 l-8 8z`} fill="#fde68a" />
-              <path d={`M${SLOT_X(k) + 22} 238 l8 -8 v40 l-8 8z`} fill="#b45309" />
-              <rect x={SLOT_X(k) - 22} y="238" width="44" height="40" rx="3" fill="#f59e0b" />
-              <text x={SLOT_X(k)} y="265" textAnchor="middle" fontSize="16" fontWeight="800" fill="#451a03">{k}</text>
+              <path d={`M${SLOT_X(k) - 22} 238 l8 -8 h44 l-8 8z`} fill="#fff" fillOpacity="0.55" />
+              <path d={`M${SLOT_X(k) + 22} 238 l8 -8 v40 l-8 8z`} fill="#000" fillOpacity="0.15" />
+              <rect x={SLOT_X(k) - 22} y="238" width="44" height="40" rx="4" fill={BOX[k]} />
+              <path d={`M${SLOT_X(k) - 22} 238 l8 -8 h44 l-8 8z`} fill={BOX[k]} fillOpacity="0.75" />
+              <text x={SLOT_X(k)} y="265" textAnchor="middle" fontSize="16" fontWeight="800" fill="#fff">{k}</text>
             </g>
           </g>
         ))}
         {/* màn hình kết quả */}
-        <g transform="translate(40 362)">
-          <rect width="520" height="96" rx="12" fill="#020617" stroke="#ffffff" strokeOpacity="0.08" />
-          <text x="16" y="22" fontSize="11" fill="#64748b" letterSpacing="2">KẾT QUẢ</text>
+        <g transform="translate(40 362)" filter="url(#nv-sh)">
+          <rect width="520" height="96" rx="16" fill="#fff" />
+          <text x="18" y="24" fontSize="11" fontWeight="700" fill="#94a3b8" letterSpacing="2">KẾT QUẢ</text>
           {Array.from({ length: N }, (_, k) => (
-            <text key={k} x={16 + (k % 3) * 168} y={k < 3 ? 50 : 78} fontSize="14" fontFamily="ui-monospace,monospace" fill="#86efac" className="nv" style={{ animationName: `nv-out${k}` }}>✓ đặt hộp ô {k}</text>
+            <text key={k} x={18 + (k % 3) * 168} y={k < 3 ? 52 : 80} fontSize="14" fontWeight="600" fontFamily="ui-monospace,monospace" fill="#047857" className="nv" style={{ animationName: `nv-out${k}` }}>✓ đặt hộp ô {k}</text>
           ))}
         </g>
       </svg>

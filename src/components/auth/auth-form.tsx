@@ -20,18 +20,13 @@ export function AuthField({ label, htmlFor, error, hint, icon: Icon, children }:
 
 export function AuthSubmit({ children, disabled, className }: { children: React.ReactNode; disabled?: boolean; className?: string }) {
   return (
-    <button type="submit" disabled={disabled} className={cn("inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-brand text-[15px] font-bold text-brand-ink shadow-lg shadow-brand/20 transition hover:bg-brand-hover focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand/30 disabled:opacity-60", className)}>
+    <button type="submit" disabled={disabled} className={cn("inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#e11d48] to-[#ea580c] text-[15px] font-bold text-white shadow-lg shadow-rose-500/25 transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-rose-400/40 disabled:opacity-60", className)}>
       {children}
     </button>
   );
 }
 
-/** Dải "hoặc" và lối vào kho mô phỏng không cần tài khoản. */
+/** Lối vào kho mô phỏng không cần tài khoản. */
 export function AuthAlt() {
-  return (
-    <>
-      <div className="my-6 flex items-center gap-3 text-xs text-muted"><span className="h-px flex-1 bg-line" />hoặc<span className="h-px flex-1 bg-line" /></div>
-      <Link href="/kho" className="flex h-12 w-full items-center justify-center rounded-xl border border-line text-sm font-semibold text-fg transition hover:border-brand/40 hover:bg-brand/5">Khám phá kho mô phỏng, không cần tài khoản</Link>
-    </>
-  );
+  return <p className="mt-5 text-center text-sm text-muted">Chỉ muốn xem thử? <Link href="/kho" className="font-semibold text-teal-700 hover:underline dark:text-teal-300">Khám phá kho mô phỏng</Link></p>;
 }

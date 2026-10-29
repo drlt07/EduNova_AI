@@ -12,6 +12,7 @@ import { AUTH_MODE } from "@/lib/supabase/config";
 import { AuthLayout } from "@/components/auth/auth-layout";
 import { PasswordLogin } from "@/components/auth/password-login";
 import { LocalLogin } from "@/components/auth/local-login";
+import { SocialAuth } from "@/components/auth/social-auth";
 import type { Role, User } from "@/lib/domain/types";
 
 const hourNow = () => new Date().getHours();
@@ -55,6 +56,7 @@ export function LoginClient() {
       {AUTH_MODE === "supabase" && params.get("link") === "expired" && (
         <p role="alert" className="mb-5 rounded-xl border border-warning/30 bg-warning/5 px-4 py-3 text-sm text-fg">Liên kết trong thư đã hết hạn hoặc đã dùng. Hãy đăng nhập, hoặc dùng Quên mật khẩu để nhận liên kết mới.</p>
       )}
+      <SocialAuth mode="login" />
       {AUTH_MODE === "supabase"
         ? <PasswordLogin key={rem?.email ?? "new"} next={next} remembered={rem} onSwitch={switchAccount} />
         : <LocalLogin key={rem?.email ?? "new"} remembered={rem} onSwitch={switchAccount} onEnter={enter} />}
