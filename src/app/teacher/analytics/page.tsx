@@ -1,8 +1,8 @@
 "use client";
 import Link from "next/link";
 import { Suspense, useMemo, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { AlertTriangle, ArrowRight, BookOpen, CheckCheck, Copy, Download, Eye, Info, Lightbulb, ListChecks, NotebookPen, Send, Sparkles, ThumbsUp, X } from "lucide-react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { AlertTriangle, ArrowRight, LayoutDashboard, BookOpen, CheckCheck, Copy, Download, Eye, Info, Lightbulb, ListChecks, NotebookPen, Send, Sparkles, ThumbsUp, X } from "lucide-react";
 import { toast } from "sonner";
 import { exportAssessmentsCsv, refinementInput, type RefinementSuggestion } from "@/lib/analytics/compute";
 import { completionRows, errorRows, insights, insightsText, labRetries, METRIC_HELP, metrics, objectiveRows, supportGroups, type Insight, type Row } from "@/lib/analytics/report";
@@ -19,6 +19,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { ErrorState, Notice, PageSkeleton } from "@/components/ui/feedback";
 import { Select } from "@/components/ui/form";
 import { TutorInsightsCard } from "@/components/teacher/tutor-insights";
+import { BiDashboard } from "@/components/teacher/bi-dashboard";
 import { AssignDialog, type AssignPreset } from "@/components/teacher/assign-dialog";
 import { lessonAssignables } from "@/components/sgk/reader";
 
@@ -34,6 +35,8 @@ function Report() {
   const { d, user } = useSessionData();
   const params = useSearchParams();
   const router = useRouter();
+  const pathname = usePathname();
+  const view = params.get("xem") === "chan-doan" ? "chan-doan" : "tong-quan";
   const classes = teacherClasses(d, user.id);
   const [classId, setClassId] = useState(classes.some((c) => c.id === params.get("class")) ? params.get("class")! : "");
   const [drill, setDrill] = useState<MetricKey | null>(null);
@@ -100,11 +103,19 @@ function Report() {
 
   return (
     <>
-      <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
+      <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-fg">Kết quả học tập</h1>
-          <p className="mt-1 text-muted">Lớp nào, bài nào, yêu cầu nào đang yếu; em nào cần hỗ trợ; giao bài củng cố ngay tại đây.</p>
+          <p className="mt-1 text-muted">Bảng tổng quan số liệu các lớp; chuyển sang Chẩn đoán để xem việc cần xử lý và giao bài củng cố.</p>
         </div>
+        <nav aria-label="Chế độ xem" className="flex gap-1 rounded-xl border border-line bg-surface p-1">
+          {([["tong-quan", "Tổng quan", LayoutDashboard], ["chan-doan", "Chẩn đoán & hành động", Sparkles]] as const).map(([v, l, I]) => (
+            <button key={v} type="button" aria-pressed={view === v} onClick={() => router.replace(v === "tong-quan" ? pathname : `${pathname}?xem=${v}`, { scroll: false })} className={cn("flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-semibold", view === v ? "bg-brand text-brand-ink" : "text-muted hover:text-fg")}><I className="size-4" aria-hidden /> {l}</button>
+          ))}
+        </nav>
+      </div>
+      {view === "tong-quan" ? <BiDashboard /> : <>
+      <div className="mb-5 flex flex-wrap items-end justify-end gap-3">
         <div className="flex flex-wrap gap-2">
           <Select aria-label="Chọn lớp" className="w-40" value={classId} onChange={(e) => setClassId(e.target.value)}>
             <option value="">Tất cả lớp</option>
@@ -308,6 +319,7 @@ function Report() {
           </DialogContent>
         )}
       </Dialog>
+      </>}
       <AssignDialog open={!!assign} onOpenChange={(o) => !o && setAssign(null)} title="Giao bài củng cố" classId={assign?.classId} studentIds={assign?.studentIds} sgkRef={assign?.ref} suggest={assign?.suggest} />
     </>
   );

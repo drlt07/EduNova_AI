@@ -222,3 +222,15 @@ html[data-contrast="high"] {
   to { stroke-dashoffset: -22; }
 }
 .sim-flow { animation: sim-flow 1.2s linear infinite; }
+
+/* Bảng màu biểu đồ (đã kiểm tra mù màu và tương phản cho cả nền sáng/tối) */
+.viz {
+  --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a;
+  --grid: #e2e8f0; --axis: #94a3b8;
+  --seq-1: #cde2fb; --seq-2: #9ec5f4; --seq-3: #6da7ec; --seq-4: #3987e5; --seq-5: #256abf; --seq-6: #184f95; --seq-7: #0d366b;
+  --good: #0ca30c; --warn: #fab219; --crit: #d03b3b;
+}
+.dark .viz {
+  --s1: #3987e5; --s2: #d95926; --s3: #199e70;
+  --grid: #1f2937; --axis: #475569;
+}

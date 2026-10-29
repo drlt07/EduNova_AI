@@ -528,7 +528,15 @@ export const useApp = create<AppState>()(
     },
     {
       name: "edunova-v3",
-      version: 1,
+      version: 2,
+      // v2: thêm lịch sử luyện tập/mô phỏng mẫu 6 tuần; giữ dữ liệu cũ của người dùng, chỉ bổ sung bản ghi mẫu còn thiếu
+      migrate: (persisted, version) => {
+        const p = (persisted ?? {}) as Partial<AppState>;
+        if (version >= 2) return p as AppState;
+        const seed = buildSeed();
+        const add = <T extends { id: string }>(cur: T[] | undefined, extra: T[]) => { const have = new Set((cur ?? []).map((x) => x.id)); return [...(cur ?? []), ...extra.filter((x) => !have.has(x.id))]; };
+        return { ...p, practiceAttempts: add(p.practiceAttempts, seed.practiceAttempts), labResults: add(p.labResults, seed.labResults) } as AppState;
+      },
       storage: createJSONStorage(safeStorage),
       skipHydration: true,
       partialize: (s) => {

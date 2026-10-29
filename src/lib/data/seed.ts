@@ -43,6 +43,7 @@ import type {
 import { compileRule, gardenTestCases, runRule, runTests } from "@/lib/sim/smart-garden";
 import { SEED_CLASSES, SEED_ENROLLMENTS, SEED_USERS } from "./people";
 import { seedCourses } from "./courses-seed";
+import { seedHistory } from "./seed-history";
 import { codeKey, gradeLessons, lessonItems, lessonKey, setKey, type Unlock } from "@/lib/access/unlocks";
 
 /** Dữ liệu demo: lượt hỏi AI Gia sư của lớp 10A1 (chỉ dữ liệu tổng hợp, không có nội dung tin nhắn). */
@@ -161,6 +162,7 @@ function seedUnlocks(at: string): Unlock[] {
 }
 
 export function buildSeed(now: Date = new Date()): DemoData {
+  const hist = seedHistory(now, SEED_CLASSES, SEED_ENROLLMENTS, new Set(["s9|os-explorer", "s10|os-explorer", "s11|os-explorer", "s12|os-explorer", "s9|inside-computer-3d"]));
   const at = (days: number, hours = 0) => new Date(now.getTime() + days * 86_400_000 + hours * 3_600_000).toISOString();
 
   const ifPlan: LessonPlan = {
@@ -423,6 +425,7 @@ export function buildSeed(now: Date = new Date()): DemoData {
       seedGraded({ id: "lr-seed-2", studentId: "s10", labSlug: "os-explorer", mistakes: 8, seconds: 900, finishedAt: at(-1, 4) }, "Hệ điều hành là ứng dụng như Word, nó mở app lên."),
       { id: "lr-seed-3", studentId: "s11", labSlug: "os-explorer", score: 8, mistakes: 4, seconds: 660, finishedAt: at(-1, 5) },
       { id: "lr-seed-4", studentId: "s9", labSlug: "inside-computer-3d", score: 8.5, mistakes: 3, seconds: 720, finishedAt: at(-3) },
+      ...hist.labs,
     ],
     lessonLabs: [],
     unlocks: seedUnlocks(at(-20)),
@@ -466,6 +469,7 @@ export function buildSeed(now: Date = new Date()): DemoData {
         startedAt: at(-6, 1),
         finishedAt: at(-6, 1.2),
       },
+      ...hist.attempts,
     ],
     codeWorks: [],
     gameProgress: [
