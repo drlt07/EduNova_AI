@@ -20,13 +20,14 @@ import { EmptyState, PageSkeleton } from "@/components/ui/feedback";
 import { Field, Input } from "@/components/ui/form";
 import { Avatar } from "@/components/ui/misc";
 import { lessonAssignables } from "@/components/sgk/reader";
+import { Gradebook } from "@/components/teacher/gradebook";
 import { AssignDialog, type AssignPreset } from "@/components/teacher/assign-dialog";
 import { ClassFormDialog } from "@/components/teacher/class-form-dialog";
 import { ClassInsights } from "@/components/teacher/dashboard-panels";
 import { UnlockChips } from "@/components/teacher/unlock-chips";
 import { classUnlocks, gradeLessons, lessonItems, lessonKey, nextLockedLesson, setKey, codeKey } from "@/lib/access/unlocks";
 
-const TABS = [["tong-quan", "Tổng quan"], ["bai-hoc", "Bài học & mở bài"], ["nhiem-vu", "Nhiệm vụ"], ["hoc-sinh", "Học sinh"], ["ket-qua", "Kết quả"]] as const;
+const TABS = [["tong-quan", "Tổng quan"], ["hoc-sinh", "Học sinh"], ["nhiem-vu", "Bài đã giao"], ["ket-qua", "Kết quả"], ["bai-hoc", "Mở bài cho lớp"]] as const;
 type Tab = (typeof TABS)[number][0];
 const CELL_STYLE: Record<CellStatus, string> = {
   "not-joined": "bg-surface-2 text-muted",
@@ -116,7 +117,7 @@ function ClassDetail() {
             <Button size="icon" variant="ghost" aria-label="Tạo mã mới" onClick={() => { d.regenerateInvite(cls.id); toast.success("Đã tạo mã mới, mã cũ hết hiệu lực"); }}><RefreshCw /></Button>
           </div>
           <div className="flex gap-1.5">
-            <Button size="sm" onClick={() => setAssign({})}><Send /> Giao nhiệm vụ</Button>
+            <Button size="sm" onClick={() => setAssign({})}><Send /> Giao bài</Button>
             <Button size="sm" variant="secondary" onClick={() => setDialog("edit")}><Pencil /> Sửa lớp</Button>
             <Button size="icon" variant="ghost" aria-label="Xóa lớp" onClick={() => setDialog("delete")}><Trash2 /></Button>
           </div>
@@ -142,7 +143,7 @@ function ClassDetail() {
                   <p className="text-sm text-muted">Chủ đề {next.topic.no}. {next.topic.title}{next.content ? ` · ${next.content.periods} tiết` : " · chưa có nội dung"}</p>
                   <div className="mt-3 flex flex-wrap gap-2">
                     <Button asChild size="sm"><Link href={`/teacher/sgk/${next.ref}`}><MonitorPlay /> Mở bài, trình chiếu</Link></Button>
-                    <Button size="sm" variant="secondary" onClick={() => assignFromLesson(next.ref)}><Send /> Giao nhiệm vụ của bài</Button>
+                    <Button size="sm" variant="secondary" onClick={() => assignFromLesson(next.ref)}><Send /> Giao hoạt động của bài</Button>
                     <Button size="sm" variant="ghost" onClick={() => { d.toggleTaught(user.id, cls.id, next.ref); toast.success(`Đã đánh dấu dạy xong Bài ${next.lesson.no}`); }}><CheckCircle2 /> Đánh dấu đã dạy</Button>
                   </div>
                 </>
@@ -199,7 +200,7 @@ function ClassDetail() {
       )}
 
       {tab === "nhiem-vu" && (
-        asg.length === 0 ? <EmptyState icon={Send} title="Lớp chưa có nhiệm vụ" action={<Button onClick={() => setAssign({})}><Send /> Giao nhiệm vụ</Button>} /> : (
+        asg.length === 0 ? <EmptyState icon={Send} title="Lớp chưa có bài được giao" description="Mở một bài học, chọn mô phỏng hoặc luyện tập rồi bấm “Giao cho lớp”." action={<Button asChild><Link href="/teacher/sgk">Mở Bài học</Link></Button>} /> : (
           <ul className="divide-y divide-line rounded-2xl border border-line bg-surface">
             {asg.map((a) => {
               const cells = students.map((u) => cellStatus(d, a, u.id).status);
@@ -217,7 +218,7 @@ function ClassDetail() {
                     <div className="mb-1 flex justify-between text-xs"><span className="text-fg"><b>{done}</b>/{target} xong</span>{late > 0 && <span className="text-danger-fg">{late} quá hạn</span>}</div>
                     <div className="h-1.5 rounded-full bg-surface-2"><div className="h-full rounded-full bg-success" style={{ width: `${(done / Math.max(1, target)) * 100}%` }} /></div>
                   </div>
-                  <Button asChild size="sm" variant="ghost"><Link href={a.task ? "/teacher/assignments" : `/teacher/assessment?assignment=${a.id}`}>{a.task ? "Kết quả" : "Chấm bài"}</Link></Button>
+                  <Button asChild size="sm" variant="ghost"><Link href={`/teacher/assignments/${a.id}`}>Xem kết quả</Link></Button>
                 </li>
               );
             })}
@@ -259,6 +260,7 @@ function ClassDetail() {
         </section>
       )}
 
+      {tab === "ket-qua" && <div className="mb-6"><Gradebook classIds={[cls.id]} /></div>}
       {tab === "ket-qua" && (
         <div className="grid items-start gap-6 lg:grid-cols-2">
           <section className="rounded-2xl border border-line bg-surface p-5">

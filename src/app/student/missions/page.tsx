@@ -2,7 +2,8 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { CalendarClock, Code2, FolderKanban, Gamepad2, ListChecks, Target, UserRound } from "lucide-react";
-import { taskHref, taskOutcome } from "@/lib/teacher/assign";
+import { taskOutcome } from "@/lib/teacher/assign";
+import { bookEntry } from "@/lib/sgk/book";
 import { MISSION_STATUS_LABEL, studentMissions, type MissionStatus } from "@/lib/store/student";
 import { useSessionData } from "@/lib/store/use-role";
 import { formatDate, relativeDays } from "@/lib/utils";
@@ -58,8 +59,7 @@ export default function MissionsPage() {
   const list = all.filter((m) => tab === "all" || GROUPS[tab].includes(m.status));
   return (
     <>
-      <Link href="/student/courses" className="mb-2 inline-block text-sm font-medium text-cyan-fg hover:underline">← Khóa học của tôi</Link>
-      <PageHeader title="Nhiệm vụ của tôi" description="Nhiệm vụ thầy cô giao và những việc em tự chọn luyện." />
+      <PageHeader title="Bài của tôi" description="Bài thầy cô giao: hạn nộp, số lần làm và kết quả. Mỗi bài cũng có ngay trong bài học tương ứng." />
       <div role="group" aria-label="Nguồn nhiệm vụ" className="mb-4 inline-flex gap-1 rounded-xl border border-line bg-surface-2 p-1">
         {[["teacher", `Giáo viên giao (${all.length})`], ["self", `Em tự chọn (${self.length})`]].map(([v, l]) => (
           <button key={v} type="button" aria-pressed={source === v} onClick={() => setSource(v)} className={source === v ? "rounded-lg bg-surface px-3 py-1.5 text-sm font-medium text-fg shadow-sm" : "rounded-lg px-3 py-1.5 text-sm font-medium text-muted"}>{l}</button>
@@ -94,28 +94,26 @@ export default function MissionsPage() {
       <div className="mt-5">
         {list.length === 0 ? <EmptyState icon={Target} title="Không có nhiệm vụ ở mục này" description={all.length === 0 ? "Lớp của bạn chưa được giao nhiệm vụ nào." : undefined} /> : (
           <ul className="grid gap-4 lg:grid-cols-2">
-            {list.map(({ assignment: a, status, labConfig, klass, activity, lessonPlan }) => {
+            {list.map(({ assignment: a, status, labConfig, activity, lessonPlan }) => {
               const st = MISSION_STATUS_LABEL[status];
               const lab = labConfig && getLab(labConfig.labTemplateId);
               const teacher = d.users.find((u) => u.id === a.ownerId);
               const lesson = lessonPlan && getLesson(lessonPlan.lessonId);
               return (
                 <li key={a.id} className="flex flex-col rounded-2xl border border-line bg-surface p-5">
-                  <div className="flex flex-wrap gap-1.5">
+                  <div className="flex flex-wrap items-center gap-1.5 text-xs text-muted">
                     <Badge tone={st.tone}>{st.label}</Badge>
-                    <Badge tone="blue">{klass?.name}</Badge>
-                    {labConfig && <Badge tone="cyan">{MODE_LABEL[labConfig.mode]}</Badge>}
-                    {lab && <Badge>{lab.title}</Badge>}
-                    {a.task && <Badge tone="cyan">{TASK_LABEL[a.task.kind]}</Badge>}
+                    <span>{a.task ? TASK_LABEL[a.task.kind] : labConfig ? `${lab?.title ?? "Mô phỏng"} · ${MODE_LABEL[labConfig.mode]}` : "Hoạt động"}</span>
+                    {a.sgkRef && bookEntry(a.sgkRef) && <Link href={`/student/sgk/${a.sgkRef}`} className="font-medium text-blue-fg hover:underline">· Bài {bookEntry(a.sgkRef)!.lesson.no}</Link>}
                   </div>
                   <p className="mt-3 font-semibold text-fg">{a.title}</p>
                   {a.note ? <p className="mt-1 line-clamp-3 text-sm text-fg">“{a.note}”</p> : <p className="mt-1 line-clamp-2 text-sm text-muted">{activity?.instructions ?? (a.task ? TASK_HINT[a.task.kind] : "")}</p>}
-                  {a.task && taskOutcome(d, user.id, a).text && <p className="mt-1 text-sm font-semibold text-success-fg">Kết quả: {taskOutcome(d, user.id, a).text}</p>}
+                  {a.task && (() => { const o = taskOutcome(d, user.id, a); return (o.text || a.maxAttempts) ? <p className="mt-1 text-sm text-muted">{o.text && <b className="text-success-fg">Kết quả: {o.text}</b>}{o.text && a.maxAttempts ? " · " : ""}{a.maxAttempts ? `đã làm ${o.used ?? 0}/${a.maxAttempts} lần` : ""}</p> : null; })()}
                   <p className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted"><span className="flex items-center gap-1"><UserRound className="size-3.5" aria-hidden /> {teacher?.name ?? "Giáo viên"}</span>{lesson && <span>Độ khó: {DIFFICULTY_LABEL[lesson.difficulty]}</span>}</p>
                   <p className="mt-1 flex items-center gap-1 text-xs text-muted"><CalendarClock className="size-3.5" aria-hidden /> Hạn {formatDate(a.dueAt, true)} ({relativeDays(a.dueAt)})</p>
                   <div className="mt-auto pt-4">
                     <Button asChild size="sm" variant={status === "not_started" || status === "in_progress" || status === "paused" ? "primary" : "secondary"}>
-                      <Link href={a.task && a.task.kind !== "lab" ? taskHref(a.task) : `/student/missions/${a.id}`} data-testid={`mission-${a.id}`}>
+                      <Link href={`/student/missions/${a.id}`} data-testid={`mission-${a.id}`}>
                         {status === "not_started" || status === "overdue" ? "Bắt đầu" : status === "in_progress" ? "Tiếp tục làm" : status === "paused" ? "Tiếp tục" : a.task ? "Làm lại" : "Xem kết quả"}
                       </Link>
                     </Button>

@@ -1,57 +1,66 @@
 "use client";
 import Link from "next/link";
-import { useState } from "react";
 import { usePathname } from "next/navigation";
-import { Plus } from "lucide-react";
 import { teacherSubmissions } from "@/lib/store/scoped";
 import { useSessionData } from "@/lib/store/use-role";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
 import { labReviewQueue } from "@/components/teacher/lab-review";
-import { AssignDialog } from "@/components/teacher/assign-dialog";
 
-const TABS = [
-  { href: "/teacher/assignments", label: "Đã giao" },
-  { href: "/teacher/bank", label: "Thư viện bài tập", match: ["/teacher/bank", "/teacher/activity-builder", "/teacher/resources"] },
-  { href: "/teacher/assessment", label: "Chờ chấm", count: true },
-  { href: "/teacher/results", label: "Sổ điểm" },
-];
+interface SectionTab { href: string; label: string; match?: string[]; count?: number }
 
-/**
- * Đầu trang chung của "Bài tập & Đánh giá": một tiêu đề, một nút "Giao bài mới" (chọn nguồn trong hộp thoại) và một
- * thanh tab ngang. Các tab là khu vực chức năng, không phải các bước phải làm lần lượt.
- */
-export function AssessTabs({ subtitle = "Quản lý bài tập và kết quả của các lớp", actions }: { subtitle?: string; actions?: React.ReactNode }) {
+/** Đầu trang của một mục trong sidebar: tiêu đề, mô tả ngắn và các tab con (khu vực chức năng, không phải các bước). */
+function SectionHeader({ title, subtitle, tabs, actions }: { title: string; subtitle: string; tabs: SectionTab[]; actions?: React.ReactNode }) {
   const pathname = usePathname();
-  const { d, user } = useSessionData();
-  const [open, setOpen] = useState(false);
-  const pending = teacherSubmissions(d, user.id).filter((s) => s.status === "submitted").length + labReviewQueue(d, user.id).length;
   return (
     <>
       <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-fg">Bài tập & Đánh giá</h1>
-          <p className="mt-1 text-muted">{subtitle}</p>
+          <h1 className="text-2xl font-bold tracking-tight text-fg">{title}</h1>
+          <p className="mt-1 text-sm text-muted">{subtitle}</p>
         </div>
-        <div className="flex flex-wrap gap-2">{actions}<Button onClick={() => setOpen(true)}><Plus /> Giao bài mới</Button></div>
+        {actions && <div className="flex flex-wrap gap-2">{actions}</div>}
       </div>
-      <nav aria-label="Bài tập & Đánh giá" className="mb-5 overflow-x-auto border-b border-line">
+      <nav aria-label={title} className="mb-5 overflow-x-auto border-b border-line">
         <ul className="flex w-max gap-1">
-          {TABS.map((t) => {
-            const on = (t.match ?? [t.href]).some((m) => pathname.startsWith(m));
+          {tabs.map((t) => {
+            const on = (t.match ?? [t.href]).some((m) => pathname === m || pathname.startsWith(`${m}/`));
             return (
               <li key={t.href}>
                 <Link href={t.href} aria-current={on ? "page" : undefined} className={cn("-mb-px flex items-center gap-2 border-b-2 px-3 py-2.5 text-sm font-semibold transition-colors", on ? "border-fg text-fg" : "border-transparent text-muted hover:text-fg")}>
                   {t.label}
-                  {t.count && pending > 0 && <span className="rounded-full bg-warning/20 px-1.5 text-xs font-bold text-warning-fg">{pending}</span>}
+                  {!!t.count && <span className="rounded-full bg-warning/20 px-1.5 text-xs font-bold text-warning-fg">{t.count}</span>}
                 </Link>
               </li>
             );
           })}
         </ul>
       </nav>
-      <AssignDialog open={open} onOpenChange={setOpen} title="Giao bài mới" />
     </>
+  );
+}
+
+/** Lớp của tôi: lớp học, bài đã giao (mọi lớp), chờ chấm, sổ điểm. */
+export function ClassesHeader({ subtitle = "Lớp, học sinh, bài đã giao và kết quả", actions }: { subtitle?: string; actions?: React.ReactNode }) {
+  const { d, user } = useSessionData();
+  const pending = teacherSubmissions(d, user.id).filter((s) => s.status === "submitted").length + labReviewQueue(d, user.id).length;
+  return (
+    <SectionHeader title="Lớp của tôi" subtitle={subtitle} actions={actions} tabs={[
+      { href: "/teacher/classes", label: "Lớp học" },
+      { href: "/teacher/assignments", label: "Bài đã giao" },
+      { href: "/teacher/assessment", label: "Chờ chấm", count: pending },
+      { href: "/teacher/results", label: "Sổ điểm" },
+    ]} />
+  );
+}
+
+/** Thư viện: kho mô phỏng, ngân hàng luyện tập, học liệu và tài nguyên tự tạo. */
+export function LibraryHeader({ subtitle = "Tài nguyên dùng lại cho mọi bài học và lớp", actions }: { subtitle?: string; actions?: React.ReactNode }) {
+  return (
+    <SectionHeader title="Thư viện" subtitle={subtitle} actions={actions} tabs={[
+      { href: "/teacher/sims", label: "Mô phỏng", match: ["/teacher/sims", "/teacher/kho"] },
+      { href: "/teacher/bank", label: "Ngân hàng luyện tập", match: ["/teacher/bank", "/teacher/activity-builder"] },
+      { href: "/teacher/library", label: "Học liệu", match: ["/teacher/library", "/teacher/resources", "/teacher/labs"] },
+    ]} />
   );
 }
 

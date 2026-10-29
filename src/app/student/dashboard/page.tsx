@@ -19,8 +19,8 @@ import { AnimatedBar, CountUp, FadeIn, Stagger, StaggerItem } from "@/components
 
 /** Bốn chức năng còn lại của học sinh (Trang chủ là trang này). */
 const FUNCTIONS = [
-  { href: "/student/courses", icon: BookOpen, label: "Khóa học của tôi", desc: "Học các bài và làm nhiệm vụ thầy cô giao." },
-  { href: "/student/games", icon: Gamepad2, label: "Tình huống mô phỏng", desc: "Khám phá thuật toán, máy tính, mạng qua tình huống tương tác." },
+  { href: "/student/sgk", icon: BookOpen, label: "Bài học", desc: "Học từng bài: kiến thức, mô phỏng, luyện tập." },
+  { href: "/student/games", icon: Gamepad2, label: "Mô phỏng", desc: "Khám phá thuật toán, máy tính, mạng qua tình huống tương tác." },
   { href: "/student/practice", icon: Code2, label: "Luyện tập", desc: "Lập trình, trắc nghiệm, HTML/CSS; SQL và mạng ảo sắp có." },
   { href: "/student/tutor", icon: Sparkles, label: "AI Gia sư", desc: "Giải thích, gợi mở từng bước, chỉ ra lỗi và gợi ý bài luyện." },
 ];
@@ -69,7 +69,7 @@ export default function StudentDashboard() {
           </motion.p>
           <div className="mt-5 flex flex-wrap gap-2">
             {data.cont[0] ? <Button asChild><Link href={data.cont[0].href}><PlayCircle className="size-4" /> Học tiếp: {data.cont[0].title}</Link></Button> : <Button asChild><Link href="/student/courses"><BookOpen className="size-4" /> Vào khóa học</Link></Button>}
-            <Button asChild variant="secondary"><Link href="/student/games"><Gamepad2 className="size-4" /> Tình huống mô phỏng</Link></Button>
+            <Button asChild variant="secondary"><Link href="/student/games"><Gamepad2 className="size-4" /> Mô phỏng</Link></Button>
           </div>
           <dl className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
             {([["Bài đã học", data.stats.lessons], ["Lượt luyện tập", data.stats.practice], ["Bài code đạt", data.stats.code], ["Huy hiệu", data.stats.badges]] as const).map(([k, v]) => (

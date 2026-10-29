@@ -3,12 +3,16 @@ import Link from "next/link";
 import { useState } from "react";
 import { CalendarClock, Code2, FlaskConical, ListChecks, Search, Send, UserRound, Wand2 } from "lucide-react";
 import { toast } from "sonner";
-import type { Assignment, HintMode } from "@/lib/domain/types";
+import type { Assignment, Grade, HintMode } from "@/lib/domain/types";
+import { findSgk } from "@/lib/data/sgk-kntt";
+import { gradeLessons } from "@/lib/access/unlocks";
+import { bookEntry } from "@/lib/sgk/book";
+import { lessonAssignables } from "@/lib/teacher/lesson-items";
 import { LAB_TEMPLATES } from "@/lib/data/labs";
 import { PRACTICE_SETS } from "@/lib/data/practice";
 import { CODING_EXERCISES } from "@/lib/data/coding-exercises";
 import { SCORED_LABS } from "@/lib/sim/lab-score";
-import { dueFor, fmtDue, type DueChoice, type TaskKind } from "@/lib/teacher/assign";
+import { SCORING_LABEL, dueFor, fmtDue, type DueChoice, type TaskKind } from "@/lib/teacher/assign";
 import { classStudents, teacherClasses } from "@/lib/store/scoped";
 import { useSessionData } from "@/lib/store/use-role";
 import { cn, matchesQuery } from "@/lib/utils";
@@ -66,21 +70,13 @@ function AssignForm({ preset, sgkRef, suggest, classId, studentIds, courseId, on
 
   const suggested = (suggest ?? []).flatMap((s) => items.filter((i) => i.kind === s.kind && i.ref === s.ref));
   const presetItem = preset && items.find((i) => i.kind === preset.kind && i.ref === preset.ref);
-  const courses = d.courses.filter((c) => c.ownerId === user.id);
-  type Source = "course" | "library" | "new";
-  const [source, setSource] = useState<Source>(courseId ? "course" : preset || suggest?.length ? "library" : courses.length ? "course" : "library");
-  const [courseSel, setCourseSel] = useState(courseId ?? courses[0]?.id ?? "");
-  const [pickRef, setPickRef] = useState<string | undefined>(sgkRef);
-  const course = courses.find((c) => c.id === courseSel);
-  /** Nội dung giao được của khóa học (mô phỏng, bộ câu hỏi, bài lập trình), theo chủ đề → bài. */
-  const courseItems = (course?.topics ?? []).map((t) => ({
-    topic: t.title,
-    list: t.lessons.flatMap((l) => l.blocks.flatMap((b) => {
-      const k = b.kind === "simulation" ? ["lab", b.labSlug] : b.kind === "practice" ? ["quiz", b.practiceSetId] : b.kind === "python" ? ["code", b.exerciseId] : [];
-      const it = k[1] ? items.find((i) => i.kind === k[0] && i.ref === k[1]) : undefined;
-      return it ? [{ lessonNo: /^Bài (\d+)/.exec(l.title)?.[1], it: { ...it, title: b.final ? `Bài kiểm tra: ${l.title.replace(/^Bài \d+\.\s*/, "")}` : it.title }, sgkRef: l.sgkRef }] : [];
-    })),
-  })).filter((m) => m.list.length);
+  type Source = "lesson" | "library" | "new";
+  const [source, setSource] = useState<Source>(preset && !sgkRef ? "library" : "lesson");
+  const [lessonGrade, setLessonGrade] = useState<Grade>(() => (sgkRef ? findSgk(sgkRef)?.grade : undefined) ?? classes.find((c) => c.id === classId)?.grade ?? classes[0]?.grade ?? 10);
+  const [lessonRef, setLessonRef] = useState<string>(() => sgkRef ?? gradeLessons(lessonGrade)[0]?.ref ?? "");
+  const entry = lessonRef ? bookEntry(lessonRef) : undefined;
+  /** Hoạt động giao được của bài đang chọn. */
+  const lessonList = entry ? lessonAssignables(d, user.id, entry).flatMap((x) => items.filter((i) => i.kind === x.kind && i.ref === x.ref)) : [];
   const [kind, setKind] = useState<Kind>(preset?.kind ?? "lab");
   const [pick, setPick] = useState<Item | undefined>(presetItem);
   const [q, setQ] = useState("");
@@ -94,6 +90,8 @@ function AssignForm({ preset, sgkRef, suggest, classId, studentIds, courseId, on
   const [custom, setCustom] = useState("");
   const [note, setNote] = useState("");
   const [tutor, setTutor] = useState(true);
+  const [maxAttempts, setMaxAttempts] = useState(0);
+  const [scoring, setScoring] = useState<"best" | "last" | "first">("best");
   /** undefined = cả lớp; mảng = chỉ các em được chọn (khi giao cho đúng một lớp). */
   const [only, setOnly] = useState<string[] | undefined>(studentIds);
   const [now] = useState(() => new Date());
@@ -113,9 +111,8 @@ function AssignForm({ preset, sgkRef, suggest, classId, studentIds, courseId, on
       const dup = !(chosen.length === 1 && only?.length) && d.assignments.some((a) => a.classId === c.id && a.status === "open" && !a.studentIds && (pick.kind === "activity" ? a.activityId === pick.ref : a.task?.kind === pick.kind && a.task.ref === pick.ref));
       if (dup) { toast.warning(`${c.name} đã có nhiệm vụ này đang mở, bỏ qua`); continue; }
       const target = chosen.length === 1 && only?.length ? { studentIds: only } : {};
-      const effSgk = source === "course" ? pickRef : sgkRef;
-      const effCourse = source === "course" ? courseSel : courseId;
-      const base = { ownerId: user.id, ...(effSgk ? { sgkRef: effSgk } : {}), ...(effCourse ? { courseId: effCourse } : {}), ...target, classId: c.id, title: pick.title, dueAt: dueOf(c)!.toISOString(), hintMode: (tutor ? "guided" : "off") as HintMode, ...(note.trim() ? { note: note.trim() } : {}) };
+      const effSgk = source === "lesson" ? lessonRef : sgkRef;
+      const base = { ownerId: user.id, ...(effSgk ? { sgkRef: effSgk } : {}), ...(courseId ? { courseId } : {}), ...(pick.kind !== "activity" && maxAttempts ? { maxAttempts } : {}), ...(pick.kind !== "activity" && scoring !== "best" ? { scoring } : {}), ...target, classId: c.id, title: pick.title, dueAt: dueOf(c)!.toISOString(), hintMode: (tutor ? "guided" : "off") as HintMode, ...(note.trim() ? { note: note.trim() } : {}) };
       if (pick.kind === "activity") {
         const act = activities.find((a) => a.id === pick.ref);
         const cfg = act && d.labConfigs.find((x) => x.id === act.labConfigId);
@@ -140,35 +137,35 @@ function AssignForm({ preset, sgkRef, suggest, classId, studentIds, courseId, on
         <section>
           <h3 className="mb-2 text-sm font-semibold text-fg">1. Chọn nguồn bài tập</h3>
           <div className="mb-3 grid grid-cols-3 gap-1 rounded-xl border border-line bg-surface-2/50 p-1" role="tablist" aria-label="Nguồn bài tập">
-            {([["course", "Từ khóa học"], ["library", "Từ thư viện"], ["new", "Tạo bài mới"]] as const).map(([id, l]) => (
+            {([["lesson", "Từ bài học"], ["library", "Từ thư viện"], ["new", "Tạo bài mới"]] as const).map(([id, l]) => (
               <button key={id} type="button" role="tab" aria-selected={source === id} onClick={() => { setSource(id); setPick(undefined); }} className={cn("rounded-lg px-2 py-1.5 text-sm font-semibold", source === id ? "bg-surface text-fg shadow-sm" : "text-muted hover:text-fg")}>{l}</button>
             ))}
           </div>
           {source === "new" && (
             <div className="grid gap-2 sm:grid-cols-2">
-              <Link href="/teacher/bank?tao=1" className="rounded-xl border border-line p-3 hover:border-cyan/40"><ListChecks className="mb-1 size-5 text-blue-fg" aria-hidden /><p className="font-semibold text-fg">Bộ câu hỏi mới</p><p className="text-xs text-muted">Soạn trong Thư viện bài tập, lưu xong quay lại giao.</p></Link>
+              <Link href="/teacher/bank?tao=1" className="rounded-xl border border-line p-3 hover:border-cyan/40"><ListChecks className="mb-1 size-5 text-blue-fg" aria-hidden /><p className="font-semibold text-fg">Bộ câu hỏi mới</p><p className="text-xs text-muted">Soạn trong Thư viện › Ngân hàng luyện tập, lưu xong quay lại giao.</p></Link>
               <Link href="/teacher/activity-builder" className="rounded-xl border border-line p-3 hover:border-cyan/40"><Wand2 className="mb-1 size-5 text-violet-fg" aria-hidden /><p className="font-semibold text-fg">Hoạt động chấm tay</p><p className="text-xs text-muted">Nhiệm vụ có tiêu chí chấm, thầy cô chấm.</p></Link>
             </div>
           )}
-          {source === "course" && (courses.length === 0 ? <p className="rounded-lg border border-dashed border-line p-3 text-sm text-muted">Chưa có khóa học. <Link href="/teacher/courses" className="font-medium text-cyan-fg hover:underline">Tạo khóa học</Link> hoặc giao từ thư viện.</p> : (
+          {source === "lesson" && (
             <div className="space-y-2">
-              <select aria-label="Khóa học" className="h-10 w-full rounded-xl border border-line bg-surface px-3 text-sm text-fg" value={courseSel} onChange={(e) => { setCourseSel(e.target.value); setPick(undefined); const c = courses.find((x) => x.id === e.target.value); if (c?.classIds.length && !classId) setClassIds(c.classIds.filter((x) => classes.some((k) => k.id === x))); }}>
-                {courses.map((c) => <option key={c.id} value={c.id}>{c.title}</option>)}
-              </select>
-              <div className="max-h-64 space-y-2 overflow-y-auto pr-1" role="radiogroup" aria-label="Bài trong khóa học">
-                {courseItems.length === 0 && <p className="text-sm text-muted">Khóa học chưa có mô phỏng hay bài kiểm tra để giao.</p>}
-                {courseItems.map((m) => (
-                  <div key={m.topic}>
-                    <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-muted">{m.topic}</p>
-                    {m.list.map(({ it, sgkRef: r, lessonNo }) => {
-                      const on = pick?.kind === it.kind && pick.ref === it.ref && pickRef === r;
-                      return <button key={`${it.kind}:${it.ref}:${r}`} type="button" role="radio" aria-checked={on} onClick={() => { setPick(it); setPickRef(r); }} className={cn("mb-1 flex w-full items-center gap-2 rounded-lg border px-3 py-1.5 text-left text-sm", on ? "border-cyan bg-cyan/10" : "border-line hover:border-cyan/40")}><span className="w-12 shrink-0 text-xs font-semibold text-blue-fg">{lessonNo ? `Bài ${lessonNo}` : "—"}</span><span className="w-20 shrink-0 text-xs text-muted">{it.kind === "lab" ? "Mô phỏng" : it.kind === "quiz" ? (it.title.startsWith("Bài kiểm tra") ? "Kiểm tra" : "Bài tập") : "Lập trình"}</span><span className="min-w-0 flex-1 truncate font-medium text-fg">{it.title}</span></button>;
-                    })}
-                  </div>
-                ))}
+              <div className="grid gap-2 sm:grid-cols-[120px_1fr]">
+                <select aria-label="Khối lớp" className="h-10 rounded-xl border border-line bg-surface px-3 text-sm text-fg" value={lessonGrade} onChange={(e) => { const g = Number(e.target.value) as Grade; setLessonGrade(g); setLessonRef(gradeLessons(g)[0]?.ref ?? ""); setPick(undefined); }}>
+                  {[10, 11, 12].map((g) => <option key={g} value={g}>Tin học {g}</option>)}
+                </select>
+                <select aria-label="Bài học" className="h-10 min-w-0 rounded-xl border border-line bg-surface px-3 text-sm text-fg" value={lessonRef} onChange={(e) => { setLessonRef(e.target.value); setPick(undefined); }}>
+                  {gradeLessons(lessonGrade).map((x) => <option key={x.ref} value={x.ref}>Bài {x.lesson.no}. {x.lesson.title}</option>)}
+                </select>
               </div>
+              <ul className="max-h-64 space-y-1 overflow-y-auto pr-1" role="radiogroup" aria-label="Hoạt động của bài">
+                {lessonList.length === 0 && <li className="rounded-lg border border-dashed border-line p-3 text-sm text-muted">Bài này chưa có mô phỏng hay bài luyện tập để giao. Gắn thêm ở tab Mô phỏng của bài, hoặc chọn từ thư viện.</li>}
+                {lessonList.map((it) => {
+                  const on = pick?.kind === it.kind && pick.ref === it.ref;
+                  return <li key={`${it.kind}:${it.ref}`}><button type="button" role="radio" aria-checked={on} onClick={() => setPick(it)} className={cn("flex w-full items-center gap-2 rounded-lg border px-3 py-2 text-left text-sm", on ? "border-cyan bg-cyan/10" : "border-line hover:border-cyan/40")}><span className="w-20 shrink-0 text-xs font-semibold text-muted">{it.kind === "lab" ? "Mô phỏng" : it.kind === "quiz" ? "Luyện tập" : "Lập trình"}</span><span className="min-w-0 flex-1 truncate font-medium text-fg">{it.title}</span><span className="hidden shrink-0 text-xs text-muted sm:inline">{it.meta}</span></button></li>;
+                })}
+              </ul>
             </div>
-          ))}
+          )}
           {source === "library" && <>
           <div className="mb-2 flex flex-wrap gap-1" role="tablist" aria-label="Loại nội dung">
             {KINDS.map((k) => (
@@ -259,6 +256,21 @@ function AssignForm({ preset, sgkRef, suggest, classId, studentIds, courseId, on
             <p className="mt-2 text-xs text-muted">{chosen.map((c) => `${c.name}: ${fmtDue(dueOf(c)!)}`).join(" · ") || "Chọn lớp để xem hạn"}</p>
           )}
         </section>
+
+        {pick && pick.kind !== "activity" && (
+          <section>
+            <h3 className="mb-2 text-sm font-semibold text-fg">4. Số lần làm và cách tính điểm</h3>
+            <div className="grid gap-2 sm:grid-cols-2">
+              <select aria-label="Số lần làm" className="h-10 rounded-xl border border-line bg-surface px-3 text-sm text-fg" value={maxAttempts} onChange={(e) => setMaxAttempts(Number(e.target.value))}>
+                <option value={0}>Không giới hạn số lần</option>
+                {[1, 2, 3, 5].map((n) => <option key={n} value={n}>Tối đa {n} lần</option>)}
+              </select>
+              <select aria-label="Cách tính điểm" className="h-10 rounded-xl border border-line bg-surface px-3 text-sm text-fg" value={scoring} onChange={(e) => setScoring(e.target.value as typeof scoring)}>
+                {(Object.keys(SCORING_LABEL) as (keyof typeof SCORING_LABEL)[]).map((k) => <option key={k} value={k}>Tính {SCORING_LABEL[k].toLowerCase()}</option>)}
+              </select>
+            </div>
+          </section>
+        )}
 
         <section className="space-y-2">
           <Textarea aria-label="Lời dặn cho học sinh" className="min-h-[60px]" placeholder="Lời dặn (không bắt buộc), ví dụ: Làm xong rồi chụp màn hình kết quả ping dán vào vở." value={note} onChange={(e) => setNote(e.target.value)} />

@@ -534,19 +534,25 @@ export const useApp = create<AppState>()(
     },
     {
       name: "edunova-v3",
-      version: 5,
+      version: 6,
       // v2: thêm lịch sử luyện tập/mô phỏng mẫu 6 tuần; v3: khóa học mẫu theo chương → bài → hoạt động + bài kiểm tra cuối bài,
       // bài giao mẫu cho lớp 10A2. Giữ dữ liệu cũ của người dùng, chỉ bổ sung (hoặc làm mới khóa học mẫu) bản ghi mẫu.
       migrate: (persisted, version) => {
         const p = (persisted ?? {}) as Partial<AppState>;
-        if (version >= 5) return p as AppState;
+        if (version >= 6) return p as AppState;
         const seed = buildSeed();
         const add = <T extends { id: string }>(cur: T[] | undefined, extra: T[]) => { const have = new Set((cur ?? []).map((x) => x.id)); return [...(cur ?? []), ...extra.filter((x) => !have.has(x.id))]; };
         const out: Partial<AppState> = { ...p };
         if (version < 2) Object.assign(out, { practiceAttempts: add(p.practiceAttempts, seed.practiceAttempts), labResults: add(p.labResults, seed.labResults) });
-        // v5: khóa học mẫu theo chủ đề → bài học → hoạt động
-        const seedIds = new Set(seed.courses.map((c) => c.id));
-        out.courses = [...seed.courses, ...(p.courses ?? []).filter((c) => !seedIds.has(c.id))];
+        // v6: lịch sử mẫu (id pa-h-/lr-h-) sinh lại để không có bản ghi ở tương lai
+        const hist = (id: string) => id.startsWith("pa-h-") || id.startsWith("lr-h-");
+        out.practiceAttempts = [...(out.practiceAttempts ?? []).filter((x) => !hist(x.id)), ...seed.practiceAttempts.filter((x) => hist(x.id))];
+        out.labResults = [...(out.labResults ?? []).filter((x) => !hist(x.id)), ...seed.labResults.filter((x) => hist(x.id))];
+        // v5: khóa học mẫu theo chủ đề → bài học → hoạt động (chỉ làm mới khi dữ liệu cũ hơn v5, để giữ chỉnh sửa của thầy cô)
+        if (version < 5) {
+          const seedIds = new Set(seed.courses.map((c) => c.id));
+          out.courses = [...seed.courses, ...(p.courses ?? []).filter((c) => !seedIds.has(c.id))];
+        }
         out.assignments = add(p.assignments, seed.assignments).map((a) => a.courseId || !seed.assignments.find((x) => x.id === a.id)?.courseId ? a : { ...a, courseId: seed.assignments.find((x) => x.id === a.id)!.courseId });
         const has = new Set((p.unlocks ?? []).map((u) => `${u.classId}|${u.key}`));
         out.unlocks = [...(p.unlocks ?? []), ...seed.unlocks.filter((u) => !has.has(`${u.classId}|${u.key}`))];

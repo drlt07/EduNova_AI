@@ -15,7 +15,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { EmptyState, Notice, PageSkeleton } from "@/components/ui/feedback";
 import { Field, Select, Textarea } from "@/components/ui/form";
 import { Avatar } from "@/components/ui/misc";
-import { AssessTabs } from "@/components/teacher/assess-tabs";
+import { ClassesHeader } from "@/components/teacher/assess-tabs";
 import { LabReviewQueue } from "@/components/teacher/lab-review";
 import { EventTimeline } from "@/components/labs/event-timeline";
 
@@ -46,7 +46,7 @@ function AssessmentInner() {
 
   return (
     <>
-      <AssessTabs />
+      <ClassesHeader subtitle="Chờ chấm: bài nộp chấm theo tiêu chí và bài mô phỏng cần duyệt lại" />
       <LabReviewQueue />
       <h2 className="mb-3 text-lg font-bold text-fg">Bài nộp chấm theo tiêu chí</h2>
       <div className="grid gap-6 xl:grid-cols-[340px_minmax(0,1fr)]">

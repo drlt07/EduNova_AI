@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ArrowLeft, ArrowRight, BookMarked, BookOpen, Library, CheckCircle2, ClipboardList, Code2, FileText, FlaskConical, ListChecks, Lock, Play, Send } from "lucide-react";
+import { ArrowLeft, ArrowRight, BookMarked, BookOpen, CheckCircle2, ClipboardList, Code2, FileText, FlaskConical, ListChecks, Lock, Play, Send } from "lucide-react";
 import type { Grade } from "@/lib/domain/types";
 import { ALGO_IDS } from "@/lib/data/hsg";
 import { CODING_EXERCISES } from "@/lib/data/coding-exercises";
@@ -39,7 +39,7 @@ export function SgkLibrary({ role }: { role: Role }) {
 
 const GRADE_BG: Record<Grade, string> = { 10: "from-[#2563eb] to-[#06b6d4]", 11: "from-[#4f46e5] to-[#7c3aed]", 12: "from-[#7c3aed] to-[#db2777]" };
 
-/** Danh sách khóa học theo khối: mỗi khóa là các bài theo chương trình, trong bài có mô phỏng và câu hỏi luyện tập. */
+/** Bài học theo khối: Tin học 10/11/12 → chủ đề → bài, trong bài có mô phỏng và câu hỏi luyện tập. */
 function Shelf({ role }: { role: Role }) {
   const { d, user } = useSessionData();
   const last = useLastRead();
@@ -49,10 +49,10 @@ function Shelf({ role }: { role: Role }) {
     <div>
       <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-fg">Khóa học</h1>
-          <p className="mt-1 text-muted">{teacher ? "Mỗi bài có mô phỏng, câu hỏi luyện tập nhiều dạng và nhiệm vụ giao cho lớp." : "Học từng bài, làm mô phỏng và câu hỏi luyện tập ngay trong bài."}</p>
+          <h1 className="text-2xl font-bold tracking-tight text-fg">Bài học</h1>
+          <p className="mt-1 text-muted">{teacher ? "Chọn lớp → chủ đề → bài. Mỗi bài có kiến thức, mô phỏng, luyện tập và nút giao cho lớp." : "Học từng bài, làm mô phỏng và câu hỏi luyện tập ngay trong bài."}</p>
         </div>
-        {teacher && <span className="flex flex-wrap gap-2"><Button asChild variant="secondary"><Link href="/teacher/library"><Library /> Thư viện học liệu</Link></Button><Button asChild variant="ghost"><Link href="/teacher/courses"><BookMarked /> Khóa học tự soạn</Link></Button></span>}
+        {teacher && <Button asChild variant="ghost" size="sm"><Link href="/teacher/courses"><BookMarked /> Khóa học tự soạn</Link></Button>}
       </div>
 
       {last?.e && (
@@ -91,13 +91,13 @@ function Shelf({ role }: { role: Role }) {
                   <p className="mt-3 text-xs text-muted">{sets} bộ câu hỏi luyện tập · {contentCount(b.grade)} bài có nội dung</p>
                   <div className="mt-2 h-1.5 rounded-full bg-surface-2"><div className="h-full rounded-full bg-brand" style={{ width: `${(done / lessons.length) * 100}%` }} /></div>
                   <p className="mt-1 text-xs text-muted">{teacher ? `Đã dạy ${done}/${lessons.length} bài` : `Em đã học ${done}/${lessons.length} bài`}</p>
-                  <span className="mt-4 inline-flex items-center gap-1.5 self-start rounded-xl bg-brand/10 px-4 py-2 text-sm font-semibold text-blue-fg transition-colors group-hover:bg-brand group-hover:text-brand-ink">Vào khóa học <ArrowRight className="size-4" aria-hidden /></span>
+                  <span className="mt-4 inline-flex items-center gap-1.5 self-start rounded-xl bg-brand/10 px-4 py-2 text-sm font-semibold text-blue-fg transition-colors group-hover:bg-brand group-hover:text-brand-ink">Mở <ArrowRight className="size-4" aria-hidden /></span>
                 </div>
               </Link>
             </li>
           );
         })}
-        <li>
+        {!teacher && <li>
           <Link href="/thuat-toan" className="group flex h-full flex-col overflow-hidden rounded-2xl border border-line bg-surface shadow-sm transition-all hover:-translate-y-1 hover:shadow-xl hover:shadow-slate-900/10">
             <div className="grid h-36 grid-cols-4 content-center gap-2 bg-gradient-to-br from-[#b45309] to-[#f59e0b] p-4">{(["bubble", "bfs", "dijkstra", "knapsack"] as const).map((id) => <AlgoThumb key={id} id={id} className="h-auto w-full rounded-md bg-white/90" />)}</div>
             <div className="flex flex-1 flex-col p-5">
@@ -106,7 +106,7 @@ function Shelf({ role }: { role: Role }) {
               <span className="mt-4 inline-flex items-center gap-1.5 self-start rounded-xl bg-brand/10 px-4 py-2 text-sm font-semibold text-blue-fg transition-colors group-hover:bg-brand group-hover:text-brand-ink">Mở chuyên đề <ArrowRight className="size-4" aria-hidden /></span>
             </div>
           </Link>
-        </li>
+        </li>}
       </ul>
     </div>
   );
@@ -133,7 +133,7 @@ function BookToc({ grade, role }: { grade: Grade; role: Role }) {
       <div className="mb-6 flex flex-wrap items-end gap-4">
         <span className={cn("hidden size-20 shrink-0 place-items-center rounded-2xl bg-gradient-to-br text-3xl font-extrabold text-white sm:grid", GRADE_BG[grade])}>{grade}</span>
         <div className="min-w-0 flex-1 basis-64">
-          <Link href={base(role)} className="inline-flex items-center gap-1 text-sm font-medium text-muted hover:text-fg"><ArrowLeft className="size-4" aria-hidden /> Tất cả khóa học</Link>
+          <Link href={base(role)} className="inline-flex items-center gap-1 text-sm font-medium text-muted hover:text-fg"><ArrowLeft className="size-4" aria-hidden /> Tất cả lớp</Link>
           <h1 className="mt-1 text-3xl font-bold tracking-tight text-fg">{book.title}</h1>
           <p className="text-sm text-muted">{book.subtitle} · {topics.length} chủ đề · {lessons.length} bài · {teacher ? `${contentCount(grade)} bài có nội dung` : <b className="text-fg">thầy cô đã mở {opened.length} bài</b>}</p>
         </div>
@@ -219,11 +219,11 @@ function LessonPreview({ e, role }: { e: BookEntry; role: Role }) {
   const progress = d.bookProgress.find((p) => p.userId === user.id && p.ref === e.ref);
   const sim = sims[0];
   const parts: { tab: string; label: string; n: number; icon: React.ComponentType<{ className?: string }> }[] = [
-    { tab: "", label: "mục nội dung", n: e.content?.sections.length ?? 0, icon: FileText },
+    { tab: "", label: "mục kiến thức", n: e.content?.sections.length ?? 0, icon: FileText },
     { tab: "mo-phong", label: "mô phỏng", n: sims.length, icon: FlaskConical },
-    { tab: teacher ? "cau-hoi" : "luyen-tap", label: "câu hỏi, bộ trắc nghiệm", n: checks + quizzes, icon: ListChecks },
-    { tab: teacher ? "lap-trinh" : "luyen-tap", label: "bài lập trình", n: code, icon: Code2 },
-    ...(teacher ? [{ tab: "nhiem-vu", label: "nhiệm vụ đã giao", n: tasks, icon: ClipboardList }] : []),
+    { tab: "luyen-tap", label: "câu hỏi luyện tập", n: checks + quizzes, icon: ListChecks },
+    { tab: "luyen-tap", label: "bài lập trình", n: code, icon: Code2 },
+    ...(teacher ? [{ tab: "nhiem-vu", label: "hoạt động đã giao", n: tasks, icon: ClipboardList }] : []),
   ];
   return (
     <article className="rounded-2xl border border-line bg-surface p-6">

@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { LibraryHeader } from "@/components/teacher/assess-tabs";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { BookPlus, Copy, Eye, FlaskConical, Library, NotebookPen, Sparkles } from "lucide-react";
@@ -92,13 +93,12 @@ export default function LibraryPage() {
 
   return (
     <>
-      <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-fg">Thư viện học liệu</h1>
-          <p className="mt-1 text-muted">Tìm và dùng lại KHBD, thiết lập mô phỏng, học liệu của mình và đồng nghiệp.</p>
-        </div>
-        {currentLesson && <p className="rounded-xl bg-surface-2/60 px-3 py-2 text-sm text-muted">Bài đang dạy: <b className="text-fg">Bài {currentLesson.lesson.no}. {currentLesson.lesson.title}</b></p>}
-      </div>
+      <LibraryHeader subtitle="Học liệu, KHBD và thiết lập mô phỏng của mình và đồng nghiệp; gắn vào bài đang dạy" actions={<>
+        <Button asChild variant="secondary" size="sm"><Link href="/teacher/resources">Câu hỏi & phiếu học tập</Link></Button>
+        <Button asChild variant="secondary" size="sm"><Link href="/teacher/labs">Thiết lập mô phỏng</Link></Button>
+        <Button asChild variant="ghost" size="sm"><Link href="/thuat-toan">Chuyên đề HSG</Link></Button>
+      </>} />
+      {currentLesson && <p className="mb-3 text-sm text-muted">Bài đang dạy: <b className="text-fg">Bài {currentLesson.lesson.no}. {currentLesson.lesson.title}</b></p>}
       <div className="mb-2 flex w-fit gap-1 overflow-x-auto rounded-xl border border-line bg-surface p-1" role="tablist" aria-label="Phạm vi">
         {SCOPES.map((s) => <button key={s.id} type="button" role="tab" aria-selected={scope === s.id} onClick={() => setScope(s.id)} className={cn("shrink-0 rounded-lg px-3 py-1.5 text-sm font-medium", scope === s.id ? "bg-fg text-bg" : "text-muted hover:text-fg")}>{s.label}</button>)}
       </div>

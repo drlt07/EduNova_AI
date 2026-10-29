@@ -27,7 +27,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { EmptyState, PageSkeleton } from "@/components/ui/feedback";
 import { Field, Input, Select } from "@/components/ui/form";
 import { LabArt } from "@/components/labs/lab-art";
-import { AssessTabs } from "@/components/teacher/assess-tabs";
+import { LibraryHeader } from "@/components/teacher/assess-tabs";
 import { AssignDialog, type AssignPreset } from "@/components/teacher/assign-dialog";
 import { QuizEditor, type QuizDraft } from "@/components/courses/lesson-panel";
 
@@ -90,7 +90,7 @@ function Bank() {
 
   return (
     <>
-      <AssessTabs subtitle="Thư viện bài tập: tài nguyên dùng lại cho mọi khóa học và lớp." actions={<><Button variant="secondary" asChild><Link href="/teacher/activity-builder"><Wand2 /> Hoạt động chấm tay</Link></Button><Button variant="secondary" onClick={() => setPicking(true)}><Plus /> Tạo bộ câu hỏi</Button></>} />
+      <LibraryHeader subtitle="Ngân hàng luyện tập: bộ câu hỏi, bài lập trình, mô phỏng chấm tự động. Giao cho lớp ngay tại đây hoặc từ bài học." actions={<><Button variant="secondary" asChild><Link href="/teacher/activity-builder"><Wand2 /> Hoạt động chấm tay</Link></Button><Button variant="secondary" onClick={() => setPicking(true)}><Plus /> Tạo bộ câu hỏi</Button></>} />
 
       <div className="mb-4 flex flex-col gap-2 sm:flex-row">
         <label className="relative min-w-0 flex-1">

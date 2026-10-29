@@ -277,6 +277,10 @@ export interface Assignment {
   studentIds?: string[];
   /** Giao từ khóa học này (bài tập thuộc khóa học); trống = giao độc lập. */
   courseId?: string;
+  /** Số lần làm tối đa được tính điểm (trống = không giới hạn). */
+  maxAttempts?: number;
+  /** Lần nào được tính điểm: cao nhất (mặc định), gần nhất hay lần đầu. */
+  scoring?: "best" | "last" | "first";
 }
 
 export interface ClassRoom {

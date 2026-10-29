@@ -1,11 +1,10 @@
 "use client";
-import { MiniSimPreview } from "@/components/landing/hero-visuals";
-import { PageHero } from "@/components/layout/page-hero";
+import { LibraryHeader } from "@/components/teacher/assess-tabs";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { FlaskConical, History, Save, Wand2 } from "lucide-react";
+import { History, Save, Wand2 } from "lucide-react";
 import { toast } from "sonner";
 import { LAB_TEMPLATES } from "@/lib/data/labs";
 import type { LabConfiguration } from "@/lib/domain/types";
@@ -36,7 +35,7 @@ export default function LabStudioPage() {
 
   return (
     <>
-      <PageHero variant="app" eyebrow="Tài nguyên dùng chung" icon={FlaskConical} title="Kho mô phỏng" accent="cho tiết dạy" description="Chơi thử dưới vai trò học sinh, chọn màn chơi, thiết lập ngưỡng, mức độ và trường hợp kiểm tra để chèn vào khóa học hoặc giao cho lớp." stats={[{ value: LAB_TEMPLATES.length, label: "mô phỏng" }, { value: LAB_TEMPLATES.filter((l) => l.status !== "planned").length, label: "dùng được" }, { value: d.labConfigs.filter((c) => c.ownerId === user.id).length, label: "thiết lập của tôi" }, { value: "3D", label: "giao lộ thông minh" }]} visual={<MiniSimPreview href="/labs/smart-coding-city" cta="Chơi thử như học sinh" />} />
+      <LibraryHeader subtitle="Học liệu › Thiết lập mô phỏng: chơi thử như học sinh, đặt ngưỡng, mức độ, trường hợp kiểm tra rồi gắn vào bài học hoặc giao cho lớp." />
       <div className="grid gap-6 xl:grid-cols-[300px_minmax(0,1fr)]">
         <nav aria-label="Danh sách phòng thí nghiệm" className="space-y-2">
           {LAB_TEMPLATES.map((l) => (

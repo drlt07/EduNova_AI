@@ -61,34 +61,54 @@ export interface TaskOutcome {
   /** Tỉ lệ đạt 0..1, để tô màu. */
   ratio?: number;
   at?: string;
+  /** Số lần đã làm được tính (sau khi giao, trong giới hạn số lần). */
+  used?: number;
 }
 
-/** Kết quả nhiệm vụ của một em, chỉ tính bài làm sau khi giao. */
-export function taskOutcome(d: D, studentId: string, a: Pick<Assignment, "task" | "publishedAt">): TaskOutcome {
+export const SCORING_LABEL = { best: "Lần cao nhất", last: "Lần gần nhất", first: "Lần đầu" } as const;
+
+/** Chọn lần được tính điểm theo cấu hình bài giao; `items` đã xếp theo thời gian tăng dần. */
+function pickScored<T>(items: T[], value: (x: T) => number, a: Pick<Assignment, "maxAttempts" | "scoring">): T {
+  const scope = a.maxAttempts ? items.slice(0, a.maxAttempts) : items;
+  if (a.scoring === "first") return scope[0];
+  if (a.scoring === "last") return scope[scope.length - 1];
+  return scope.reduce((x, y) => (value(y) > value(x) ? y : x));
+}
+
+/** Kết quả nhiệm vụ của một em: chỉ tính bài làm sau khi giao, trong giới hạn số lần, theo cách tính điểm của bài giao. */
+export function taskOutcome(d: D, studentId: string, a: Pick<Assignment, "task" | "publishedAt" | "maxAttempts" | "scoring">): TaskOutcome {
   const t = a.task;
   if (!t) return { done: false };
+  const cap = <T,>(xs: T[]) => (a.maxAttempts ? Math.min(xs.length, a.maxAttempts) : xs.length);
   if (t.kind === "lab") {
-    const rs = d.labResults.filter((r) => r.studentId === studentId && r.labSlug === t.ref && r.finishedAt >= a.publishedAt);
+    const rs = d.labResults.filter((r) => r.studentId === studentId && r.labSlug === t.ref && r.finishedAt >= a.publishedAt).sort((x, y) => x.finishedAt.localeCompare(y.finishedAt));
     if (!rs.length) return { done: false };
-    const best = rs.reduce((x, y) => (y.score > x.score ? y : x));
-    return { done: true, text: `${fmtScore(best.score)} điểm`, ratio: best.score / 10, at: best.finishedAt };
+    const pick = pickScored(rs, (r) => r.score, a);
+    return { done: true, text: `${fmtScore(pick.score)} điểm`, ratio: pick.score / 10, at: pick.finishedAt, used: cap(rs) };
   }
   if (t.kind === "quiz") {
-    const rs = d.practiceAttempts.filter((p) => p.studentId === studentId && p.setId === t.ref && p.finishedAt >= a.publishedAt);
+    const rs = d.practiceAttempts.filter((p) => p.studentId === studentId && p.setId === t.ref && p.finishedAt >= a.publishedAt).sort((x, y) => x.finishedAt.localeCompare(y.finishedAt));
     if (!rs.length) return { done: false };
     const score = (p: (typeof rs)[number]) => {
       const sc = p.items.filter((i) => i.status !== "self");
       return { ok: sc.filter((i) => i.status === "correct").length, n: sc.length };
     };
-    const best = rs.map(score).reduce((x, y) => (y.ok / Math.max(1, y.n) > x.ok / Math.max(1, x.n) ? y : x));
-    const left = Math.max(...rs.map((p) => p.violations ?? 0));
-    const auto = rs.some((p) => p.autoSubmitted);
-    return { done: true, text: `${best.ok}/${best.n} câu đúng${auto ? " · bị nộp tự động vì rời tab" : left ? ` · rời tab ${left} lần` : ""}`, ratio: best.ok / Math.max(1, best.n), at: rs[0].finishedAt };
+    const pick = pickScored(rs, (p) => { const x = score(p); return x.ok / Math.max(1, x.n); }, a);
+    const best = score(pick);
+    const counted = a.maxAttempts ? rs.slice(0, a.maxAttempts) : rs;
+    const left = Math.max(...counted.map((p) => p.violations ?? 0));
+    const auto = pick.autoSubmitted;
+    return { done: true, text: `${best.ok}/${best.n} câu đúng${auto ? " · bị nộp tự động vì rời tab" : left ? ` · rời tab ${left} lần` : ""}`, ratio: best.ok / Math.max(1, best.n), at: pick.finishedAt, used: cap(rs) };
   }
   const w = d.codeWorks.find((c) => c.studentId === studentId && c.exerciseId === t.ref);
   if (!w?.lastRun || w.lastRun.at < a.publishedAt) return { done: false };
   const { passed, total } = w.lastRun;
-  return { done: passed === total, text: `Đạt ${passed}/${total} test`, ratio: passed / Math.max(1, total), at: w.lastRun.at };
+  return { done: passed === total, text: `Đạt ${passed}/${total} test`, ratio: passed / Math.max(1, total), at: w.lastRun.at, used: 1 };
+}
+
+/** Còn được làm (và tính điểm) không: chưa đóng và chưa hết số lần. */
+export function attemptsLeft(o: TaskOutcome, a: Pick<Assignment, "maxAttempts">): number | undefined {
+  return a.maxAttempts ? Math.max(0, a.maxAttempts - (o.used ?? 0)) : undefined;
 }
 
 /** Đường dẫn để học sinh làm nhiệm vụ. */

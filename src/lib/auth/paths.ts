@@ -1,6 +1,6 @@
 import type { Role } from "@/lib/domain/types";
 
-export const ROLE_HOME: Record<Role, string> = { teacher: "/teacher/dashboard", student: "/student/courses", admin: "/admin" };
+export const ROLE_HOME: Record<Role, string> = { teacher: "/teacher/dashboard", student: "/student/missions", admin: "/admin" };
 
 /**
  * Trang công khai nhưng là chức năng (mở mô phỏng, chương trình, bài học): phải đăng nhập mới dùng được.

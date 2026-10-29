@@ -17,7 +17,7 @@ export default function GamePage() {
   const { d, user } = useSessionData();
   const game = getGame(slug);
   if (!game) return <ErrorState page title="Không tìm thấy trò chơi" action={<Button asChild><Link href="/student/games">Về thư viện trò chơi</Link></Button>} />;
-  const back = <Button asChild variant="ghost" size="sm" className="mb-3"><Link href="/student/games"><ArrowLeft /> Tình huống mô phỏng</Link></Button>;
+  const back = <Button asChild variant="ghost" size="sm" className="mb-3"><Link href="/student/games"><ArrowLeft /> Mô phỏng</Link></Button>;
   if (game.slug === "smart-farm")
     return (
       <>

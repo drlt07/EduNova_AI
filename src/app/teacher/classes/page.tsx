@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { ClassesHeader } from "@/components/teacher/assess-tabs";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { AlertTriangle, ArrowRight, Plus, Users } from "lucide-react";
@@ -20,13 +21,7 @@ export default function ClassesPage() {
   const health = classHealth(d, user.id);
   return (
     <>
-      <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-fg">Lớp học của tôi</h1>
-          <p className="mt-1 text-muted">Mỗi lớp: dạy đến bài nào, nhiệm vụ của lớp, từng em đang thế nào.</p>
-        </div>
-        <Button onClick={() => setCreating(true)}><Plus /> Lớp mới</Button>
-      </div>
+      <ClassesHeader subtitle="Mỗi lớp: dạy đến bài nào, bài đã giao, từng em đang thế nào" actions={<Button onClick={() => setCreating(true)}><Plus /> Lớp mới</Button>} />
       {classes.length === 0 ? <EmptyState icon={Users} title="Chưa có lớp nào" description="Tạo lớp và chọn khối để có lộ trình bài học." action={<Button onClick={() => setCreating(true)}><Plus /> Tạo lớp</Button>} /> : (
         <ul className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
           {classes.map((c) => {

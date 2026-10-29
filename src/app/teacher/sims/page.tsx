@@ -1,13 +1,13 @@
 "use client";
 import { Suspense, useState } from "react";
+import { LibraryHeader } from "@/components/teacher/assess-tabs";
 import Link from "next/link";
-import { FlaskConical, Send } from "lucide-react";
+import { Send } from "lucide-react";
 import type { LabTemplate } from "@/lib/domain/types";
 import { assignedStudents, teacherClasses } from "@/lib/store/scoped";
 import { taskOutcome } from "@/lib/teacher/assign";
 import { useSessionData } from "@/lib/store/use-role";
 import { cn, formatDate } from "@/lib/utils";
-import { PageHero } from "@/components/layout/page-hero";
 import { Button } from "@/components/ui/button";
 import { PageSkeleton } from "@/components/ui/feedback";
 import { SimLibrary } from "@/components/labs/sim-library";
@@ -47,7 +47,7 @@ function TeacherSims() {
   };
   return (
     <>
-      <PageHero variant="app" eyebrow="Tình huống mô phỏng" icon={FlaskConical} title="Mô phỏng" accent="theo bài học" description="Bộ mô phỏng theo bài trong sách, chỉ giáo viên quản lí. Giao một mô phỏng cho lớp thì nó thành nhiệm vụ: học sinh phải làm xong trong bài của khóa học, máy tự chấm, thầy cô theo dõi tiến độ ngay tại đây." />
+      <LibraryHeader subtitle="Mô phỏng theo bài trong SGK. Giao cho lớp thì học sinh làm ngay trong bài, máy tự chấm." actions={<Button asChild variant="secondary" size="sm"><Link href="/teacher/kho">Mô phỏng đời sống</Link></Button>} />
       <SimLibrary hrefFor={(l) => `/labs/${l.slug}`} extra={extra} />
       <AssignDialog open={!!assign} onOpenChange={(o) => !o && setAssign(null)} preset={assign?.preset} sgkRef={assign?.ref} classId={assign?.classId} />
     </>

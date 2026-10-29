@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { dueFor, fmtDue, nextClassTime, taskOutcome } from "@/lib/teacher/assign";
+import { attemptsLeft, dueFor, fmtDue, nextClassTime, taskOutcome } from "@/lib/teacher/assign";
+import { NAV } from "@/components/layout/nav-config";
 
 // Thứ 4, 28/10/2026, 10:00 giờ máy.
 const WED = new Date(2026, 9, 28, 10, 0);
@@ -52,5 +53,57 @@ describe("kết quả nhiệm vụ máy chấm", () => {
   it("câu hỏi tính câu chấm được; code chưa đạt hết test thì chưa xong nhưng có kết quả", () => {
     expect(taskOutcome(d as never, "s1", { task: { kind: "quiz", ref: "if-basic" }, publishedAt: pub })).toMatchObject({ done: true, text: "1/2 câu đúng" });
     expect(taskOutcome(d as never, "s1", { task: { kind: "code", ref: "ex1" }, publishedAt: pub })).toMatchObject({ done: false, text: "Đạt 3/5 test" });
+  });
+});
+
+describe("Cấu hình giao bài: số lần làm và cách tính điểm", () => {
+  const at = (h: number) => new Date(Date.UTC(2026, 9, 1, h)).toISOString();
+  const base = { publishedAt: at(0), task: { kind: "lab" as const, ref: "binary-control" } };
+  const d = {
+    labResults: [
+      { id: "r1", studentId: "s", labSlug: "binary-control", score: 6, mistakes: 4, seconds: 300, finishedAt: at(1) },
+      { id: "r2", studentId: "s", labSlug: "binary-control", score: 9, mistakes: 1, seconds: 300, finishedAt: at(2) },
+      { id: "r3", studentId: "s", labSlug: "binary-control", score: 7, mistakes: 3, seconds: 300, finishedAt: at(3) },
+    ],
+    practiceAttempts: [],
+    codeWorks: [],
+  };
+  it("mặc định lấy lần cao nhất, không giới hạn", () => {
+    expect(taskOutcome(d, "s", base)).toMatchObject({ ratio: 0.9, used: 3 });
+  });
+  it("giới hạn 1 lần: chỉ lần đầu được tính", () => {
+    expect(taskOutcome(d, "s", { ...base, maxAttempts: 1 })).toMatchObject({ ratio: 0.6, used: 1 });
+  });
+  it("lần gần nhất / lần đầu trong giới hạn", () => {
+    expect(taskOutcome(d, "s", { ...base, scoring: "last" }).ratio).toBe(0.7);
+    expect(taskOutcome(d, "s", { ...base, maxAttempts: 2, scoring: "last" }).ratio).toBe(0.9);
+    expect(taskOutcome(d, "s", { ...base, scoring: "first" }).ratio).toBe(0.6);
+  });
+  it("số lần còn lại", () => {
+    expect(attemptsLeft(taskOutcome(d, "s", { ...base, maxAttempts: 2 }), { maxAttempts: 2 })).toBe(0);
+    expect(attemptsLeft(taskOutcome(d, "s", base), {})).toBeUndefined();
+  });
+});
+
+describe("Điều hướng", () => {
+  it("giáo viên có đúng 5 mục, bài học là trung tâm", () => {
+    expect(NAV.teacher.map((i) => i.label)).toEqual(["Hôm nay", "Bài học", "Lớp của tôi", "Trợ lý KHBD AI", "Thư viện"]);
+  });
+  it("trang cũ vẫn thuộc một mục (không mất chức năng)", () => {
+    const all = NAV.teacher.flatMap((i) => [i.href, ...(i.match ?? [])]);
+    for (const r of ["/teacher/courses", "/teacher/assignments", "/teacher/assessment", "/teacher/results", "/teacher/analytics", "/teacher/bank", "/teacher/kho", "/teacher/library"]) expect(all).toContain(r);
+  });
+  it("học sinh vào thẳng Bài của tôi", () => {
+    expect(NAV.student[0].href).toBe("/student/missions");
+  });
+});
+
+describe("Dữ liệu mẫu", () => {
+  it("mọi bài làm mẫu nằm trong quá khứ (bài vừa giao chưa có ai làm)", async () => {
+    const { buildSeed } = await import("@/lib/data/seed");
+    const now = new Date();
+    const d = buildSeed(now);
+    expect(d.labResults.every((r) => r.finishedAt <= now.toISOString())).toBe(true);
+    expect(d.practiceAttempts.every((p) => p.finishedAt <= now.toISOString())).toBe(true);
   });
 });

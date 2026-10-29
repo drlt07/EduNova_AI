@@ -1,9 +1,8 @@
 "use client";
-import { MiniSimPreview } from "@/components/landing/hero-visuals";
-import { PageHero } from "@/components/layout/page-hero";
 import Link from "next/link";
 import { Suspense, useMemo } from "react";
-import { Gamepad2, Trophy } from "lucide-react";
+import { Trophy } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import type { LabTemplate } from "@/lib/domain/types";
 import { GAMES } from "@/lib/data/games";
 import { fmtScore } from "@/lib/sim/lab-score";
@@ -33,8 +32,14 @@ function Games() {
 
   return (
     <>
-      <PageHero variant="app" eyebrow="Tình huống mô phỏng" icon={Gamepad2} title="Khám phá Tin học" accent="bằng cách thử" description="Các mô phỏng thầy cô đã giao, xếp theo bài học. Mỗi mô phỏng cũng nằm ngay trong bài của khóa học. Gặp khó, mở AI Gia sư bên cạnh mô phỏng." stats={[{ value: GAMES.filter((g) => g.status === "available").length, label: "chơi được ngay" }, { value: GAMES.length, label: "tình huống" }, { value: 3, label: "khối lớp" }, { value: "3D", label: "giao lộ thông minh" }]} visual={<MiniSimPreview href="/student/games/traffic-city" cta="Chơi ngay" />} />
-      <SimLibrary hrefFor={hrefFor} progressOf={progressOf} filter={assigned} emptyText="Thầy cô chưa giao mô phỏng nào ở khối này. Muốn thử thêm, em vào Kho mô phỏng ở trang chủ." />
+      <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-fg">Mô phỏng</h1>
+          <p className="mt-1 text-sm text-muted">Mô phỏng thầy cô đã giao, xếp theo bài học. Mỗi mô phỏng cũng nằm ngay trong bài.</p>
+        </div>
+        <Button asChild variant="secondary"><Link href="/student/kho">Mô phỏng đời sống</Link></Button>
+      </div>
+      <SimLibrary hrefFor={hrefFor} progressOf={progressOf} filter={assigned} emptyText="Thầy cô chưa giao mô phỏng nào ở khối này. Muốn thử thêm, em mở Mô phỏng đời sống." />
       <Link href="/thuat-toan" className="group mb-6 mt-12 flex flex-wrap items-center gap-4 rounded-2xl border border-warning/40 bg-gradient-to-r from-warning/20 via-warning/5 to-transparent p-4 transition-all hover:-translate-y-0.5 sm:p-5">
         <span className="hidden gap-2 sm:flex" aria-hidden>{(["bubble", "bfs", "dijkstra"] as const).map((id) => <AlgoThumb key={id} id={id} className="h-10 w-16 rounded-lg bg-surface" />)}</span>
         <span className="min-w-0 flex-1 basis-60">

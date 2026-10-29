@@ -48,7 +48,8 @@ export function seedHistory(now: Date, classes: ClassRoom[], enrollments: Enroll
               const q = getQuestion(qid);
               return { questionId: qid, objectiveId: q?.objectiveId ?? `SGK-${ref}`, status: (rnd("q", sid, qid, k, qi) < p ? "correct" : "wrong") as "correct" | "wrong", answer: "" };
             });
-            const start = new Date(now.getTime() + when * day + (8 + rnd("h", sid, ref, k) * 12) * 3_600_000);
+            // giờ trong ngày cộng thêm không được đẩy bản ghi sang tương lai (nếu không, bài vừa giao đã có người làm)
+            const start = new Date(Math.min(now.getTime() + when * day + (8 + rnd("h", sid, ref, k) * 12) * 3_600_000, now.getTime() - 3 * 3_600_000));
             attempts.push({ id: `pa-h-${sid}-${ref}-${k}`, studentId: sid, setId: set.id, mode: k ? "practice" : rnd("m", sid, ref) < 0.25 ? "exam" : "practice", items, startedAt: start.toISOString(), finishedAt: new Date(start.getTime() + (6 + rnd("min", sid, ref) * 14) * 60_000).toISOString() });
           }
         }
@@ -57,7 +58,7 @@ export function seedHistory(now: Date, classes: ClassRoom[], enrollments: Enroll
           const mistakes = Math.round((1 - ability) * 10 * rnd("mk", sid, slug) + rnd("mk2", sid) * 2);
           const score = Math.max(3, Math.min(10, Math.round((10 - mistakes * 0.7) * 2) / 2));
           const when = Math.min(-0.3, taughtDay + 1 + Math.floor(rnd("ld", sid, slug) * 5));
-          labs.push({ id: `lr-h-${sid}-${slug}`, studentId: sid, labSlug: slug, score, mistakes, seconds: Math.round(420 + rnd("s", sid, slug) * 900), finishedAt: new Date(now.getTime() + when * day + 14 * 3_600_000).toISOString() });
+          labs.push({ id: `lr-h-${sid}-${slug}`, studentId: sid, labSlug: slug, score, mistakes, seconds: Math.round(420 + rnd("s", sid, slug) * 900), finishedAt: new Date(Math.min(now.getTime() + when * day + 14 * 3_600_000, now.getTime() - 3_600_000)).toISOString() });
         }
       }
     });

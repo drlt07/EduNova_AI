@@ -23,7 +23,7 @@ import { ErrorState, Notice } from "@/components/ui/feedback";
 import { Field, Input, Textarea } from "@/components/ui/form";
 import { PageHeader } from "@/components/ui/misc";
 import { LabPreview } from "@/components/labs/lab-preview";
-import { taskHref, taskOutcome } from "@/lib/teacher/assign";
+import { SCORING_LABEL, attemptsLeft, taskHref, taskOutcome } from "@/lib/teacher/assign";
 import { DEFAULT_RULE_TEXT, SmartGardenLab } from "@/components/labs/smart-garden/smart-garden-lab";
 
 const MODE = MODE_LABEL;
@@ -44,13 +44,19 @@ function TaskMission({ assignmentId }: { assignmentId: string }) {
   const a = d.assignments.find((x) => x.id === assignmentId)!;
   const teacher = d.users.find((u) => u.id === a.ownerId);
   const o = taskOutcome(d, user.id, a);
+  const left = attemptsLeft(o, a);
   return (
     <TutorScope title={a.title} topic="general" level={LEVEL_FROM_HINT[a.hintMode]}>
-      <Button asChild variant="ghost" size="sm" className="mb-2"><Link href="/student/missions"><ArrowLeft /> Nhiệm vụ</Link></Button>
+      <Button asChild variant="ghost" size="sm" className="mb-2"><Link href="/student/missions"><ArrowLeft /> Bài của tôi</Link></Button>
       <PageHeader title={a.title} description={`${teacher?.name ?? "Thầy cô"} giao · hạn ${formatDate(a.dueAt, true)} (${relativeDays(a.dueAt)})`} />
       {a.note && <Notice tone="info">Lời dặn: {a.note}</Notice>}
-      {o.text && <p className="mb-3 text-sm font-semibold text-success-fg">Kết quả tốt nhất của em: {o.text}. Làm lại vẫn được, thầy cô xem kết quả cao nhất.</p>}
-      {a.task!.kind === "lab" ? <div className="mt-3"><LabPreview slug={a.task!.ref} /></div> : (
+      <p className="mb-3 text-sm text-muted">
+        {o.text ? <>Kết quả được tính ({SCORING_LABEL[a.scoring ?? "best"].toLowerCase()}): <b className="text-success-fg">{o.text}</b>. </> : null}
+        {a.maxAttempts ? `Em đã làm ${o.used ?? 0}/${a.maxAttempts} lần.` : o.text ? "Làm lại không giới hạn." : ""}
+      </p>
+      {a.status === "closed" || left === 0 ? (
+        <Notice tone="warning">{a.status === "closed" ? "Thầy cô đã đóng nhận bài." : "Em đã dùng hết số lần làm bài này."} Kết quả của em đã được ghi lại.</Notice>
+      ) : a.task!.kind === "lab" ? <div className="mt-3"><LabPreview slug={a.task!.ref} /></div> : (
         <Button asChild className="mt-3"><Link href={taskHref(a.task!)}><Play /> {o.text ? "Làm lại" : "Làm bài"}</Link></Button>
       )}
     </TutorScope>
@@ -118,7 +124,7 @@ function Mission({ assignmentId }: { assignmentId: string }) {
   return (
     <TutorScope title={assignment.title} topic="logic" level={LEVEL_FROM_HINT[assignment.hintMode]} objectiveId={activity?.objectiveIds?.[0]}>
     <>
-      <Button asChild variant="ghost" size="sm" className="mb-3"><Link href="/student/missions"><ArrowLeft /> Nhiệm vụ</Link></Button>
+      <Button asChild variant="ghost" size="sm" className="mb-3"><Link href="/student/missions"><ArrowLeft /> Bài của tôi</Link></Button>
       <PageHeader
         title={assignment.title}
         description={`${klass?.name} · Hạn ${formatDate(assignment.dueAt, true)} (${relativeDays(assignment.dueAt)})`}

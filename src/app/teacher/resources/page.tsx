@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { EmptyState } from "@/components/ui/feedback";
 import { Field, Input, Select, Textarea } from "@/components/ui/form";
-import { AssessTabs } from "@/components/teacher/assess-tabs";
+import { LibraryHeader } from "@/components/teacher/assess-tabs";
 
 const REVIEW: Record<Resource["reviewStatus"], { label: string; tone: "warning" | "success" | "danger" }> = {
   pending: { label: "Chờ duyệt", tone: "warning" },
@@ -41,7 +41,7 @@ export default function ResourcesPage() {
 
   return (
     <>
-      <AssessTabs subtitle="Thư viện bài tập › Câu hỏi, thẻ ghi nhớ, phiếu học tập; nội dung tạo tự động cần duyệt trước khi dùng." actions={<Button variant="secondary" onClick={() => setOpen(true)}><Sparkles /> Tạo tự động</Button>} />
+      <LibraryHeader subtitle="Học liệu › Câu hỏi, thẻ ghi nhớ, phiếu học tập; nội dung tạo tự động cần duyệt trước khi dùng." actions={<Button variant="secondary" onClick={() => setOpen(true)}><Sparkles /> Tạo tự động</Button>} />
       <div className="mb-4 grid gap-3 sm:grid-cols-[1fr_200px_180px]">
         <Input type="search" aria-label="Tìm học liệu" placeholder="Tìm học liệu…" value={q} onChange={(e) => setQ(e.target.value)} />
         <Select aria-label="Loại" value={kind} onChange={(e) => setKind(e.target.value)}>

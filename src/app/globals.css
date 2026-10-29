@@ -85,7 +85,7 @@
   --color-success-fg: var(--success-fg);
   --color-warning-fg: var(--warning-fg);
   --color-danger-fg: var(--danger-fg);
-  --font-sans: var(--font-app), "Plus Jakarta Sans", "Be Vietnam Pro", system-ui, sans-serif;
+  --font-sans: var(--font-app), "Be Vietnam Pro", system-ui, sans-serif;
   --font-mono: ui-monospace, "SFMono-Regular", "JetBrains Mono", Menlo, monospace;
   --radius-card: 16px;
 }

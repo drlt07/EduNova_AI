@@ -11,7 +11,6 @@ import { getLabBySlug } from "@/lib/data/labs";
 import { getQuestion, KIND_LABEL, setsForLesson, type PracticeQuestion } from "@/lib/data/practice";
 import { LessonCodeTab, LessonLabsTab, LessonQuizTab } from "@/components/courses/lesson-panel";
 import { bookEntry, bookOf, itemKey, lessonChecks, lessonSimSlugs, neighbors, type BookEntry } from "@/lib/sgk/book";
-import { fmtScore, labSummary } from "@/lib/sim/lab-score";
 import { teacherClasses, assignedStudents, studentClassIds } from "@/lib/store/scoped";
 import { useSessionData } from "@/lib/store/use-role";
 import { taskOutcome } from "@/lib/teacher/assign";
@@ -27,33 +26,28 @@ import { Presenter } from "./presenter";
 import { LessonSims } from "@/components/lessons/lesson-sims";
 import { UnlockChips } from "@/components/teacher/unlock-chips";
 import { codeKey, labKey, lessonKey, setKey } from "@/lib/access/unlocks";
+import { lessonAssignables } from "@/lib/teacher/lesson-items";
 import { useAccess } from "@/lib/access/use-access";
 
 type Role = "teacher" | "student";
 type TabId = "noi-dung" | "mo-phong" | "cau-hoi" | "lap-trinh" | "nhiem-vu" | "luyen-tap";
 const TAB_META: Record<TabId, { label: string; icon: React.ComponentType<{ className?: string }>; on: string }> = {
-  "noi-dung": { label: "Nội dung", icon: FileText, on: "bg-blue-600 text-white shadow-blue-600/30" },
-  "mo-phong": { label: "Mô phỏng", icon: FlaskConical, on: "bg-violet-600 text-white shadow-violet-600/30" },
-  "cau-hoi": { label: "Câu hỏi luyện tập", icon: ListChecks, on: "bg-emerald-600 text-white shadow-emerald-600/30" },
-  "lap-trinh": { label: "Bài lập trình", icon: Code2, on: "bg-slate-800 text-white shadow-slate-800/30" },
-  "luyen-tap": { label: "Luyện tập", icon: ListChecks, on: "bg-emerald-600 text-white shadow-emerald-600/30" },
-  "nhiem-vu": { label: "Nhiệm vụ & kết quả", icon: ClipboardList, on: "bg-rose-500 text-white shadow-rose-500/30" },
+  "noi-dung": { label: "Kiến thức", icon: FileText, on: "bg-blue-600 text-white" },
+  "mo-phong": { label: "Mô phỏng", icon: FlaskConical, on: "bg-violet-600 text-white" },
+  "cau-hoi": { label: "Luyện tập", icon: ListChecks, on: "bg-emerald-600 text-white" },
+  "lap-trinh": { label: "Lập trình", icon: Code2, on: "bg-slate-800 text-white" },
+  "luyen-tap": { label: "Luyện tập", icon: ListChecks, on: "bg-emerald-600 text-white" },
+  "nhiem-vu": { label: "Đã giao & kết quả", icon: ClipboardList, on: "bg-slate-800 text-white" },
 };
 const GRADE_BG: Record<number, string> = { 10: "from-[#2563eb] to-[#06b6d4]", 11: "from-[#4f46e5] to-[#7c3aed]", 12: "from-[#7c3aed] to-[#db2777]" };
-const TEACHER_TABS: TabId[] = ["noi-dung", "mo-phong", "cau-hoi", "lap-trinh", "nhiem-vu"];
-const STUDENT_TABS: TabId[] = ["noi-dung", "mo-phong", "luyen-tap", "nhiem-vu"];
+/** Mỗi bài: Kiến thức · Mô phỏng · Luyện tập (gồm câu hỏi và lập trình); giáo viên có thêm tab hoạt động đã giao và kết quả. */
+const TEACHER_TABS: TabId[] = ["noi-dung", "mo-phong", "luyen-tap", "nhiem-vu"];
+const STUDENT_TABS: TabId[] = ["noi-dung", "mo-phong", "luyen-tap"];
+/** Đường dẫn cũ (?tab=cau-hoi, lap-trinh, nhiem-vu của học sinh) vẫn mở đúng tab mới. */
+const TAB_ALIAS: Record<string, TabId> = { "cau-hoi": "luyen-tap", "lap-trinh": "luyen-tap" };
 const base = (role: Role) => (role === "teacher" ? "/teacher/sgk" : "/student/sgk");
 
-/** Những gì giao được từ bài này: mô phỏng, bộ câu hỏi, bài code. */
-export function lessonAssignables(d: DemoData, userId: string, e: BookEntry): AssignPreset[] {
-  const sims = [...new Set([...lessonSimSlugs(e), ...d.lessonLabs.filter((l) => l.ownerId === userId && l.sgkRef === e.ref).map((l) => l.slug)])];
-  return [
-    ...sims.map((ref) => ({ kind: "lab" as const, ref })),
-    ...d.teacherQuizzes.filter((q) => q.ownerId === userId && q.sgkRef === e.ref).map((q) => ({ kind: "quiz" as const, ref: q.id })),
-    ...setsForLesson(e.ref, e.lesson.key).map((s) => ({ kind: "quiz" as const, ref: s.id })),
-    ...(e.lesson.key ? CODING_EXERCISES.filter((x) => x.lessonKey === e.lesson.key).map((x) => ({ kind: "code" as const, ref: x.id })) : []),
-  ];
-}
+export { lessonAssignables };
 
 /** Nhiệm vụ đã giao thuộc bài này (gắn bài khi giao, hoặc giao đúng nội dung của bài). */
 export function lessonAssignments(d: DemoData, assignments: Assignment[], userId: string, e: BookEntry) {
@@ -110,7 +104,9 @@ export function BookReader({ refId, role }: { refId: string; role: Role }) {
   const pathname = usePathname();
   const params = useSearchParams();
   const tabs = role === "teacher" ? TEACHER_TABS : STUDENT_TABS;
-  const tab = (tabs as string[]).includes(params.get("tab") ?? "") ? (params.get("tab") as TabId) : "noi-dung";
+  const rawTab = params.get("tab") ?? "";
+  const wanted = TAB_ALIAS[rawTab] ?? (rawTab === "nhiem-vu" && role === "student" ? "luyen-tap" : rawTab);
+  const tab = (tabs as string[]).includes(wanted) ? (wanted as TabId) : "noi-dung";
   const setTab = (t: TabId) => router.replace(t === "noi-dung" ? pathname : `${pathname}?tab=${t}`, { scroll: false });
   const markRead = d.markBookRead;
   const userId = user.id;
@@ -118,7 +114,7 @@ export function BookReader({ refId, role }: { refId: string; role: Role }) {
   const ids = content?.sections.map((s) => s.id) ?? [];
   useReadTracking(ids, (id) => markRead(userId, refId, id));
 
-  if (!e) return <EmptyState icon={BookOpen} title="Không tìm thấy bài" action={<Button asChild><Link href={base(role)}>Về Khóa học</Link></Button>} />;
+  if (!e) return <EmptyState icon={BookOpen} title="Không tìm thấy bài" action={<Button asChild><Link href={base(role)}>Về Bài học</Link></Button>} />;
   const teacher = role === "teacher";
   const book = bookOf(e.grade);
   if (!teacher && !access.can(lessonKey(refId))) return <LockedLesson e={e} />;
@@ -132,22 +128,21 @@ export function BookReader({ refId, role }: { refId: string; role: Role }) {
   const myAssignments = teacher ? lessonAssignments(d, d.assignments.filter((a) => a.ownerId === user.id), user.id, e) : studentLessonTasks(d, user.id, e);
   const quizCount = teacher ? (content ? lessonChecks(content).length : 0) + d.teacherQuizzes.filter((q) => q.ownerId === user.id && q.sgkRef === refId).length + setsForLesson(e.ref, e.lesson.key).length : 0;
   const codeCount = e.lesson.key ? CODING_EXERCISES.filter((x) => x.lessonKey === e.lesson.key).length : 0;
-  const counts: Partial<Record<TabId, number>> = { "mo-phong": allSims.length, "cau-hoi": quizCount, "lap-trinh": codeCount, "nhiem-vu": myAssignments.length, "luyen-tap": studentPractice(d, user.id, e, access.can).length + studentCode(e, access.can).length };
+  const counts: Partial<Record<TabId, number>> = { "mo-phong": allSims.length, "nhiem-vu": myAssignments.length, "luyen-tap": teacher ? quizCount + codeCount : studentPractice(d, user.id, e, access.can).length + studentCode(e, access.can).length };
   const extraLabs = d.lessonLabs.filter((l) => l.sgkRef === refId && (teacher ? l.ownerId === user.id : true)).map((l) => getLabBySlug(l.slug)).filter((l): l is NonNullable<typeof l> => !!l && !lessonSimSlugs(e).includes(l.slug));
 
   return (
     <TutorScope title={`${book.title} · Bài ${e.lesson.no}. ${e.lesson.title}`} topic="general" level={teacher ? "free" : "guided"}>
       <nav aria-label="Vị trí" className="mb-3 flex flex-wrap items-center gap-1 text-xs text-muted">
-        <Link href={base(role)} className="hover:text-fg">Khóa học</Link><ChevronRight className="size-3" aria-hidden />
+        <Link href={base(role)} className="hover:text-fg">Bài học</Link><ChevronRight className="size-3" aria-hidden />
         <Link href={`${base(role)}?lop=${e.grade}`} className="hover:text-fg">{book.title}</Link><ChevronRight className="size-3" aria-hidden />
         <span>Chủ đề {e.topic.no}. {e.topic.title}</span><ChevronRight className="size-3" aria-hidden />
         <span className="font-medium text-fg">Bài {e.lesson.no}</span>
       </nav>
 
-      <header className="relative overflow-hidden rounded-3xl border border-line bg-gradient-to-br from-brand/10 via-cyan/5 to-violet-500/10 p-5">
-        <div aria-hidden className="pointer-events-none absolute -right-10 -top-16 size-56 rounded-full bg-cyan/15 blur-3xl" />
-        <div className="relative flex flex-wrap items-center gap-4">
-          <span className={cn("grid size-16 shrink-0 place-items-center rounded-2xl bg-gradient-to-br text-white shadow-lg", GRADE_BG[e.grade])}><span className="text-center leading-none"><span className="block text-[10px] font-semibold uppercase opacity-80">Bài</span><span className="text-2xl font-extrabold">{e.lesson.no}</span></span></span>
+      <header className="rounded-2xl border border-line bg-surface p-5">
+        <div className="flex flex-wrap items-center gap-4">
+          <span className={cn("grid size-14 shrink-0 place-items-center rounded-xl bg-gradient-to-br text-white", GRADE_BG[e.grade])}><span className="text-center leading-none"><span className="block text-[10px] font-semibold uppercase opacity-80">Bài</span><span className="text-2xl font-extrabold">{e.lesson.no}</span></span></span>
           <div className="min-w-0 flex-1 basis-72">
             <p className="text-sm font-medium text-muted">{book.title} · Chủ đề {e.topic.no}. {e.topic.title}{content ? ` · ${content.periods} tiết` : ""}</p>
             <h1 className="mt-0.5 text-2xl font-bold tracking-tight text-fg sm:text-3xl">{e.lesson.title}</h1>
@@ -157,7 +152,7 @@ export function BookReader({ refId, role }: { refId: string; role: Role }) {
             {teacher ? (
               <>
                 {content && <Button size="sm" variant="secondary" onClick={() => setPresent(true)}><MonitorPlay /> Trình chiếu</Button>}
-                <Button size="sm" onClick={() => setAssign(null)}><Send /> Giao nhiệm vụ</Button>
+                <Button size="sm" onClick={() => setAssign(null)}><Send /> Giao cho lớp</Button>
               </>
             ) : (
               <Button size="sm" variant="violet" onClick={() => ask("cả bài")}><Bot /> Hỏi AI Gia sư</Button>
@@ -167,15 +162,15 @@ export function BookReader({ refId, role }: { refId: string; role: Role }) {
       </header>
 
       <nav aria-label="Các phần của bài" className="sticky top-16 z-10 -mx-4 mt-4 overflow-x-auto bg-bg/95 px-4 py-2 backdrop-blur sm:mx-0 sm:px-0">
-        <ul className="flex w-max gap-1.5 rounded-2xl border border-line bg-surface p-1.5 shadow-sm">
+        <ul className="flex w-max gap-1.5 rounded-2xl border border-line bg-surface p-1.5">
           {tabs.map((t) => {
             const M = TAB_META[t];
             const n = counts[t];
             const on = tab === t;
             return (
               <li key={t}>
-                <button type="button" ref={on ? (el) => el?.scrollIntoView({ block: "nearest", inline: "nearest" }) : undefined} aria-current={on ? "page" : undefined} onClick={() => setTab(t)} className={cn("flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-sm font-semibold transition-all", on ? cn("shadow-md", M.on) : "text-muted hover:bg-surface-2 hover:text-fg")}>
-                  <M.icon className="size-4" aria-hidden /> {M.label}
+                <button type="button" ref={on ? (el) => el?.scrollIntoView({ block: "nearest", inline: "nearest" }) : undefined} aria-current={on ? "page" : undefined} onClick={() => setTab(t)} className={cn("flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-sm font-semibold transition-colors", on ? M.on : "text-muted hover:bg-surface-2 hover:text-fg")}>
+                  <M.icon className="size-4" aria-hidden /> {t === "noi-dung" && !teacher ? "Học" : M.label}
                   {n !== undefined && <span className={cn("rounded-full px-1.5 text-xs tabular-nums", on ? "bg-white/25" : n ? "bg-surface-2 text-fg" : "text-muted")}>{n}</span>}
                 </button>
               </li>
@@ -271,9 +266,9 @@ export function BookReader({ refId, role }: { refId: string; role: Role }) {
             </>
           ) : (
             <div className="space-y-3 rounded-2xl border border-dashed border-line p-5 text-sm text-muted">
-              <p>Bài này chưa có nội dung. {teacher ? "Thầy cô vẫn gắn được mô phỏng, soạn câu hỏi và giao nhiệm vụ cho bài ở các tab phía trên; học sinh sẽ thấy ngay trong bài." : "Em theo dõi bài trên lớp; mô phỏng và nhiệm vụ của bài nằm ở các tab phía trên."}</p>
+              <p>Bài này chưa có nội dung. {teacher ? "Thầy cô vẫn gắn được mô phỏng, soạn câu hỏi và giao cho lớp ở các tab phía trên; học sinh sẽ thấy ngay trong bài." : "Em theo dõi bài trên lớp; mô phỏng và luyện tập của bài nằm ở các tab phía trên."}</p>
               <span className="flex flex-wrap gap-2">
-                {(teacher ? ["mo-phong", "cau-hoi", "nhiem-vu"] as TabId[] : ["mo-phong", "nhiem-vu"] as TabId[]).map((t) => <Button key={t} size="sm" variant="secondary" onClick={() => setTab(t)}>{TAB_META[t].label}{counts[t] ? ` (${counts[t]})` : ""}</Button>)}
+                {(teacher ? ["mo-phong", "luyen-tap", "nhiem-vu"] as TabId[] : ["mo-phong", "luyen-tap"] as TabId[]).map((t) => <Button key={t} size="sm" variant="secondary" onClick={() => setTab(t)}>{TAB_META[t].label}{counts[t] ? ` (${counts[t]})` : ""}</Button>)}
               </span>
             </div>
           )}
@@ -288,12 +283,16 @@ export function BookReader({ refId, role }: { refId: string; role: Role }) {
 
       {tab !== "noi-dung" && (
         <div className="mt-6 max-w-4xl">
-          {tab === "mo-phong" && !teacher && <SimMissions e={e} />}
+          {tab === "mo-phong" && !teacher && <SimMissions e={e} kinds={["lab"]} />}
           {tab === "mo-phong" && (teacher ? <LessonLabsTab refId={refId} inline={lessonSimSlugs(e)} /> : allSims.length ? <LessonSims labs={allSims.map((s) => getLabBySlug(s)).filter((l): l is NonNullable<typeof l> => !!l)} studentId={user.id} /> : <EmptyState icon={FlaskConical} title="Chưa có mô phỏng được giao" description="Khi thầy cô giao mô phỏng của bài này cho lớp, em sẽ làm ngay tại đây." />)}
-          {tab === "cau-hoi" && <><ContentChecks e={e} onOpen={() => setTab("noi-dung")} /><LessonQuizTab refId={refId} /></>}
-          {tab === "lap-trinh" && <LessonCodeTab refId={refId} />}
-          {tab === "luyen-tap" && <StudentPracticeTab e={e} />}
-          {tab === "nhiem-vu" && (teacher ? <TeacherTasks e={e} onAssign={() => setAssign(null)} /> : <StudentTasks e={e} />)}
+          {tab === "luyen-tap" && teacher && (
+            <div className="space-y-8">
+              <div><ContentChecks e={e} onOpen={() => setTab("noi-dung")} /><LessonQuizTab refId={refId} /></div>
+              <section><h3 className="mb-2 font-semibold text-fg">Bài lập trình</h3><LessonCodeTab refId={refId} /></section>
+            </div>
+          )}
+          {tab === "luyen-tap" && !teacher && <><SimMissions e={e} kinds={["quiz", "code"]} /><StudentPracticeTab e={e} /></>}
+          {tab === "nhiem-vu" && teacher && <TeacherTasks e={e} onAssign={() => setAssign(null)} />}
         </div>
       )}
 
@@ -307,7 +306,10 @@ export function BookReader({ refId, role }: { refId: string; role: Role }) {
 function studentLessonTasks(d: DemoData, userId: string, e: BookEntry) {
   const classIds = new Set(studentClassIds(d, userId));
   const sims = lessonSimSlugs(e);
-  return d.assignments.filter((a) => classIds.has(a.classId) && a.status !== "draft" && (!a.studentIds || a.studentIds.includes(userId))).filter((a) => a.sgkRef === e.ref || (a.task?.kind === "lab" && sims.includes(a.task.ref)));
+  const sets = new Set(setsForLesson(e.ref, e.lesson.key).map((x) => x.id));
+  const code = new Set(e.lesson.key ? CODING_EXERCISES.filter((x) => x.lessonKey === e.lesson.key).map((x) => x.id) : []);
+  return d.assignments.filter((a) => classIds.has(a.classId) && a.status !== "draft" && (!a.studentIds || a.studentIds.includes(userId)))
+    .filter((a) => a.sgkRef === e.ref || (a.task?.kind === "lab" && sims.includes(a.task.ref)) || (a.task?.kind === "quiz" && sets.has(a.task.ref)) || (a.task?.kind === "code" && code.has(a.task.ref)));
 }
 
 /** Bộ câu hỏi học sinh làm được ở bài này: bộ có sẵn của bài và bộ thầy cô đã giao lớp em. */
@@ -320,9 +322,9 @@ function studentPractice(d: DemoData, userId: string, e: BookEntry, can: (key: s
 }
 
 /** Mô phỏng thầy cô giao thành nhiệm vụ ở bài này: hạn, trạng thái, nút làm. */
-function SimMissions({ e }: { e: BookEntry }) {
+function SimMissions({ e, kinds }: { e: BookEntry; kinds: ("lab" | "quiz" | "code")[] }) {
   const { d, user } = useSessionData();
-  const tasks = studentLessonTasks(d, user.id, e).filter((a) => a.task?.kind === "lab");
+  const tasks = studentLessonTasks(d, user.id, e).filter((a) => a.task && kinds.includes(a.task.kind));
   if (!tasks.length) return null;
   return (
     <ul className="mb-5 space-y-2">
@@ -333,11 +335,11 @@ function SimMissions({ e }: { e: BookEntry }) {
           <li key={a.id} className={cn("flex flex-wrap items-center gap-3 rounded-2xl border p-4", o.done ? "border-success/40 bg-success/5" : late ? "border-danger/40 bg-danger/5" : "border-brand/40 bg-brand/5")}>
             <ClipboardList className={cn("size-5 shrink-0", o.done ? "text-success-fg" : late ? "text-danger-fg" : "text-blue-fg")} aria-hidden />
             <span className="min-w-0 flex-1">
-              <span className="block text-xs font-semibold uppercase tracking-wide text-muted">Nhiệm vụ thầy cô giao</span>
+              <span className="block text-xs font-semibold uppercase tracking-wide text-muted">Thầy cô giao</span>
               <span className="block font-semibold text-fg">{a.title}</span>
               <span className="block text-sm text-muted">{o.done ? `Đã hoàn thành · ${o.text}` : `${late ? "Quá hạn" : "Hạn"} ${formatDate(a.dueAt, true)}`}{a.note ? ` · ${a.note}` : ""}</span>
             </span>
-            <Button asChild size="sm" variant={o.done ? "secondary" : "primary"}><Link href={`/student/missions/${a.id}`}>{o.done ? "Làm lại" : "Làm nhiệm vụ"}</Link></Button>
+            <Button asChild size="sm" variant={o.done ? "secondary" : "primary"}><Link href={`/student/missions/${a.id}`}>{o.done ? "Xem / làm lại" : "Làm bài"}</Link></Button>
           </li>
         );
       })}
@@ -440,10 +442,10 @@ function TeacherTasks({ e, onAssign }: { e: BookEntry; onAssign: () => void }) {
   return (
     <section>
       <div className="mb-3 flex items-center justify-between gap-2">
-        <h3 className="font-semibold text-fg">Nhiệm vụ đã giao từ bài này</h3>
-        <Button size="sm" onClick={onAssign}><Send /> Giao nhiệm vụ</Button>
+        <h3 className="font-semibold text-fg">Đã giao từ bài này</h3>
+        <Button size="sm" onClick={onAssign}><Send /> Giao cho lớp</Button>
       </div>
-      {assigned.length === 0 ? <p className="text-sm text-muted">Chưa giao nhiệm vụ nào từ bài này.</p> : (
+      {assigned.length === 0 ? <p className="text-sm text-muted">Chưa giao hoạt động nào từ bài này. Chọn mô phỏng hoặc luyện tập ở các tab trên rồi bấm “Giao”.</p> : (
         <ul className="space-y-2">
           {assigned.map((a) => {
             const students = assignedStudents(d, a);
@@ -456,37 +458,13 @@ function TeacherTasks({ e, onAssign }: { e: BookEntry; onAssign: () => void }) {
                   <span className="block text-xs text-muted">{d.classes.find((c) => c.id === a.classId)?.name} · {a.status === "draft" ? "bản nháp" : `hạn ${formatDate(a.dueAt, true)}`}</span>
                 </span>
                 <span className="flex w-40 items-center gap-2 text-xs text-muted"><span className="h-1.5 flex-1 rounded-full bg-surface-2"><span className="block h-full rounded-full bg-success" style={{ width: `${pct}%` }} /></span>{done}/{students.length}</span>
-                <Button asChild size="sm" variant="ghost"><Link href={`/teacher/classes/${a.classId}?tab=ket-qua`}>Kết quả lớp</Link></Button>
+                <Button asChild size="sm" variant="ghost"><Link href={`/teacher/assignments/${a.id}`}>Xem kết quả</Link></Button>
               </li>
             );
           })}
         </ul>
       )}
     </section>
-  );
-}
-
-function StudentTasks({ e }: { e: BookEntry }) {
-  const { d, user } = useSessionData();
-  const tasks = studentLessonTasks(d, user.id, e);
-  const sims = lessonSimSlugs(e).map((slug) => ({ slug, r: labSummary(d.labResults, [user.id], slug).rows[0] })).filter((x) => x.r);
-  return (
-    <div className="space-y-6">
-      <section>
-        <h3 className="mb-2 font-semibold text-fg">Nhiệm vụ thầy cô giao</h3>
-        {tasks.length === 0 ? <p className="text-sm text-muted">Thầy cô chưa giao nhiệm vụ cho bài này.</p> : (
-          <ul className="space-y-2">
-            {tasks.map((a) => { const o = taskOutcome(d, user.id, a); return <li key={a.id}><Link href={`/student/missions/${a.id}`} className="flex flex-wrap items-center gap-2 rounded-xl border border-line bg-surface p-3 hover:border-cyan/40"><span className="min-w-0 flex-1 font-semibold text-fg">{a.title}</span><span className={cn("text-xs", o.done ? "font-semibold text-success-fg" : "text-muted")}>{o.text ?? `hạn ${formatDate(a.dueAt, true)}`}</span></Link></li>; })}
-          </ul>
-        )}
-      </section>
-      {sims.length > 0 && (
-        <section>
-          <h3 className="mb-2 font-semibold text-fg">Điểm mô phỏng của em</h3>
-          <ul className="divide-y divide-line rounded-xl border border-line bg-surface text-sm">{sims.map((x) => <li key={x.slug} className="flex justify-between gap-2 px-3 py-2"><span className="truncate text-fg">{getLabBySlug(x.slug)?.title}</span><b className="text-success-fg">{fmtScore(x.r!.best.score)}</b></li>)}</ul>
-        </section>
-      )}
-    </div>
   );
 }
 

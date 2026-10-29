@@ -14,7 +14,7 @@ import { assignmentCourse, assignmentStats } from "@/lib/teacher/assign";
 import { cn, formatDate, matchesQuery } from "@/lib/utils";
 import { EmptyState } from "@/components/ui/feedback";
 import { Input, Select } from "@/components/ui/form";
-import { AssessTabs, MenuItem, RowMenu } from "@/components/teacher/assess-tabs";
+import { ClassesHeader, MenuItem, RowMenu } from "@/components/teacher/assess-tabs";
 
 type Bucket = "" | "ongoing" | "overdue" | "closed" | "draft";
 const BUCKETS: { id: Bucket; label: string }[] = [
@@ -43,7 +43,7 @@ export default function AssignmentsPage() {
 
   return (
     <>
-      <AssessTabs />
+      <ClassesHeader subtitle="Bài đã giao ở mọi lớp: theo dõi hạn nộp, mở chi tiết để xem kết quả từng em" />
       <div className="mb-4 flex flex-col gap-2 md:flex-row md:items-center">
         <label className="relative min-w-0 flex-1">
           <span className="sr-only">Tìm bài</span>
@@ -59,7 +59,7 @@ export default function AssignmentsPage() {
         </Select>
       </div>
 
-      {shown.length === 0 ? <EmptyState icon={ListChecks} title="Không có bài nào" description="Bấm “Giao bài mới” để giao từ khóa học hoặc từ thư viện bài tập." /> : (
+      {shown.length === 0 ? <EmptyState icon={ListChecks} title="Không có bài nào" description="Mở một bài học, chọn mô phỏng hoặc luyện tập rồi bấm “Giao cho lớp”." /> : (
         <div className="overflow-x-auto rounded-2xl border border-line bg-surface">
           <table className="w-full min-w-[640px] text-sm">
             <thead>

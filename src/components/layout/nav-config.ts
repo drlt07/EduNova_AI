@@ -7,8 +7,6 @@ import {
   Dumbbell,
   FlaskConical,
   Library,
-  Trophy,
-  Gamepad2,
   GraduationCap,
   Home,
   NotebookPen,
@@ -30,28 +28,22 @@ export interface NavItem {
 }
 
 export const NAV: Record<Role, NavItem[]> = {
-  // Các chức năng chính của giáo viên (gồm thư viện tình huống mô phỏng), rồi kho dùng chung (học liệu, thiết lập mô phỏng, chuyên đề HSG).
+  // Giáo viên: 5 mục. Bài học là trung tâm (giao hoạt động ngay trong bài); các trang cũ được gom vào mục hợp lý qua `match`.
   teacher: [
     { href: "/teacher/dashboard", label: "Hôm nay", icon: Home },
-    { href: "/teacher/classes", label: "Lớp học của tôi", icon: Users, badge: "classes" },
-    { href: "/teacher/courses", label: "Khóa học", icon: BookMarked, match: ["/teacher/sgk", "/curriculum", "/explore", "/bai-hoc"] },
-    { href: "/teacher/assignments", label: "Bài tập & Đánh giá", icon: ClipboardCheck, badge: "todos", match: ["/teacher/assessment", "/teacher/activity-builder", "/teacher/bank", "/teacher/results", "/teacher/resources"] },
-    { href: "/teacher/analytics", label: "Kết quả học tập", icon: BarChart3 },
+    { href: "/teacher/sgk", label: "Bài học", icon: BookMarked, match: ["/teacher/courses", "/curriculum", "/explore", "/bai-hoc"] },
+    { href: "/teacher/classes", label: "Lớp của tôi", icon: Users, badge: "todos", match: ["/teacher/assignments", "/teacher/assessment", "/teacher/results", "/teacher/analytics"] },
     { href: "/teacher/lesson-planner", label: "Trợ lý KHBD AI", icon: NotebookPen },
-    { href: "/teacher/sims", label: "Tình huống mô phỏng", icon: Gamepad2 },
-    { href: "/teacher/library", label: "Thư viện học liệu", icon: Library, group: "Kho dùng chung", match: ["/teacher/resources"] },
-    { href: "/teacher/labs", label: "Thiết lập mô phỏng", icon: FlaskConical, group: "Kho dùng chung" },
-    { href: "/teacher/kho", label: "Kho mô phỏng công khai", icon: GraduationCap, group: "Kho dùng chung" },
-    { href: "/thuat-toan", label: "Chuyên đề HSG", icon: Trophy, group: "Kho dùng chung" },
+    { href: "/teacher/sims", label: "Thư viện", icon: Library, match: ["/teacher/kho", "/teacher/bank", "/teacher/library", "/teacher/resources", "/teacher/labs", "/teacher/activity-builder", "/labs", "/thuat-toan"] },
   ],
-  // 5 chức năng của học sinh (Trang chủ = trang giới thiệu chung); trang con (match) vẫn đánh dấu đúng mục cha. Kết quả học tập nằm ở Trang cá nhân.
+  // Học sinh: bài được giao trước, rồi bài học, luyện tập, mô phỏng, tiến độ và AI Gia sư.
   student: [
-    { href: "/", label: "Trang chủ", icon: Home },
-    { href: "/student/courses", label: "Khóa học của tôi", icon: BookMarked, match: ["/student/sgk", "/student/missions", "/student/learning", "/student/dashboard", "/curriculum", "/explore", "/bai-hoc"] },
-    { href: "/student/games", label: "Tình huống mô phỏng", icon: Gamepad2, match: ["/labs", "/thuat-toan"] },
+    { href: "/student/missions", label: "Bài của tôi", icon: ClipboardCheck, match: ["/student/dashboard"] },
+    { href: "/student/sgk", label: "Bài học", icon: BookMarked, match: ["/student/courses", "/student/learning", "/curriculum", "/explore", "/bai-hoc"] },
     { href: "/student/practice", label: "Luyện tập", icon: Dumbbell, match: ["/student/code", "/student/projects"] },
+    { href: "/student/games", label: "Mô phỏng", icon: FlaskConical, match: ["/student/kho", "/labs", "/thuat-toan"] },
+    { href: "/student/progress", label: "Tiến độ", icon: BarChart3, match: ["/student/profile", "/student/portfolio"] },
     { href: "/student/tutor", label: "AI Gia sư", icon: Bot },
-    { href: "/student/kho", label: "Kho mô phỏng", icon: GraduationCap, group: "Khám phá thêm" },
   ],
   admin: [
     { href: "/", label: "Trang chủ", icon: Home },
