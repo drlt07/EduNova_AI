@@ -5,7 +5,8 @@
  * gắn vào khóa học.
  */
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { Suspense, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { Code2, FlaskConical, ListChecks, Pencil, Plus, Search, Send, Trash2, Wand2 } from "lucide-react";
 import { toast } from "sonner";
 import type { Grade } from "@/lib/domain/types";
@@ -23,7 +24,7 @@ import { cn, matchesQuery } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { EmptyState } from "@/components/ui/feedback";
+import { EmptyState, PageSkeleton } from "@/components/ui/feedback";
 import { Field, Input, Select } from "@/components/ui/form";
 import { LabArt } from "@/components/labs/lab-art";
 import { AssessTabs } from "@/components/teacher/assess-tabs";
@@ -49,6 +50,10 @@ const lessonName = (ref?: string) => { const f = ref ? findSgk(ref) : undefined;
 const PAGE = 24;
 
 export default function BankPage() {
+  return <Suspense fallback={<PageSkeleton />}><Bank /></Suspense>;
+}
+
+function Bank() {
   const { d, user } = useSessionData();
   const [kind, setKind] = useState<Kind | "">("");
   const [grade, setGrade] = useState<"" | Grade>("");
@@ -56,7 +61,8 @@ export default function BankPage() {
   const [limit, setLimit] = useState(PAGE);
   const [assign, setAssign] = useState<{ preset: AssignPreset; sgkRef?: string } | null>(null);
   const [edit, setEdit] = useState<{ ref: string; draft: QuizDraft } | null>(null);
-  const [picking, setPicking] = useState(false);
+  const params = useSearchParams();
+  const [picking, setPicking] = useState(() => params.get("tao") === "1");
 
   const used = useMemo(() => {
     const m = new Map<string, number>();
@@ -84,26 +90,7 @@ export default function BankPage() {
 
   return (
     <>
-      <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-fg">Bài tập & Đánh giá</h1>
-          <p className="mt-1 text-muted">Ngân hàng bài tập: tạo, chỉnh sửa và giao bài. Dùng được cho khóa học lẫn bài giao độc lập.</p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Button variant="secondary" asChild><Link href="/teacher/activity-builder"><Wand2 /> Thiết kế hoạt động chấm tay</Link></Button>
-          <Button onClick={() => setPicking(true)}><Plus /> Tạo bộ câu hỏi</Button>
-        </div>
-      </div>
-      <AssessTabs />
-
-      <div className="mb-4 grid grid-cols-2 gap-2 md:grid-cols-5">
-        {KINDS.map((k) => (
-          <button key={k.id} type="button" aria-pressed={kind === k.id} onClick={() => { setKind(kind === k.id ? "" : k.id); setLimit(PAGE); }} className={cn("flex items-center gap-2 rounded-2xl border p-3 text-left transition-colors", kind === k.id ? "border-fg bg-surface-2" : "border-line bg-surface hover:border-fg/40")}>
-            <span className={cn("grid size-9 shrink-0 place-items-center rounded-xl", k.tone)}><k.icon className="size-4" aria-hidden /></span>
-            <span className="min-w-0"><span className="block truncate text-sm font-semibold text-fg">{k.label}</span><span className="block text-xs tabular-nums text-muted">{count(k.id)} mục</span></span>
-          </button>
-        ))}
-      </div>
+      <AssessTabs subtitle="Thư viện bài tập: tài nguyên dùng lại cho mọi khóa học và lớp." actions={<><Button variant="secondary" asChild><Link href="/teacher/activity-builder"><Wand2 /> Hoạt động chấm tay</Link></Button><Button variant="secondary" onClick={() => setPicking(true)}><Plus /> Tạo bộ câu hỏi</Button></>} />
 
       <div className="mb-4 flex flex-col gap-2 sm:flex-row">
         <label className="relative min-w-0 flex-1">
@@ -111,6 +98,10 @@ export default function BankPage() {
           <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted" aria-hidden />
           <Input className="pl-9" placeholder="Tìm theo tên, bài SGK…" value={q} onChange={(e) => { setQ(e.target.value); setLimit(PAGE); }} />
         </label>
+        <Select aria-label="Loại bài" className="sm:w-56" value={kind} onChange={(e) => { setKind(e.target.value as Kind | ""); setLimit(PAGE); }}>
+          <option value="">Mọi loại ({items.filter((i) => !grade || i.grade === grade).length})</option>
+          {KINDS.map((k) => <option key={k.id} value={k.id}>{k.label} ({count(k.id)})</option>)}
+        </Select>
         <div className="flex gap-1 rounded-xl border border-line bg-surface p-1" role="radiogroup" aria-label="Khối lớp">
           {(["", 10, 11, 12] as const).map((g) => <button key={g} type="button" role="radio" aria-checked={grade === g} onClick={() => { setGrade(g); setLimit(PAGE); }} className={cn("rounded-lg px-3 py-1.5 text-sm font-medium", grade === g ? "bg-fg text-bg" : "text-muted hover:text-fg")}>{g ? `Tin ${g}` : "Mọi khối"}</button>)}
         </div>

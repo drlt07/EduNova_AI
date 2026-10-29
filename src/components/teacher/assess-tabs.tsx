@@ -1,46 +1,75 @@
 "use client";
 import Link from "next/link";
+import { useState } from "react";
 import { usePathname } from "next/navigation";
-import { BarChart3, ClipboardCheck, Library, Send } from "lucide-react";
-import { teacherAssignments, teacherSubmissions } from "@/lib/store/scoped";
-import { labReviewQueue } from "@/components/teacher/lab-review";
+import { Plus } from "lucide-react";
+import { teacherSubmissions } from "@/lib/store/scoped";
 import { useSessionData } from "@/lib/store/use-role";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { labReviewQueue } from "@/components/teacher/lab-review";
+import { AssignDialog } from "@/components/teacher/assign-dialog";
+
+const TABS = [
+  { href: "/teacher/assignments", label: "Đã giao" },
+  { href: "/teacher/bank", label: "Thư viện bài tập", match: ["/teacher/bank", "/teacher/activity-builder", "/teacher/resources"] },
+  { href: "/teacher/assessment", label: "Chờ chấm", count: true },
+  { href: "/teacher/results", label: "Sổ điểm" },
+];
 
 /**
- * Bốn phần của "Bài tập & Đánh giá": ngân hàng bài tập (tạo / sửa) → đã giao (theo dõi hạn nộp) → chờ chấm (chấm thủ công)
- * → kết quả đánh giá (sổ điểm). Áp dụng cho cả bài thuộc khóa học và bài giao độc lập.
+ * Đầu trang chung của "Bài tập & Đánh giá": một tiêu đề, một nút "Giao bài mới" (chọn nguồn trong hộp thoại) và một
+ * thanh tab ngang. Các tab là khu vực chức năng, không phải các bước phải làm lần lượt.
  */
-export function AssessTabs() {
+export function AssessTabs({ subtitle = "Quản lý bài tập và kết quả của các lớp", actions }: { subtitle?: string; actions?: React.ReactNode }) {
   const pathname = usePathname();
   const { d, user } = useSessionData();
+  const [open, setOpen] = useState(false);
   const pending = teacherSubmissions(d, user.id).filter((s) => s.status === "submitted").length + labReviewQueue(d, user.id).length;
-  const open = teacherAssignments(d, user.id).filter((a) => a.status === "open").length;
-  const tabs = [
-    { href: "/teacher/bank", label: "Ngân hàng bài tập", sub: "Tạo / chỉnh sửa", icon: Library, match: ["/teacher/bank", "/teacher/activity-builder", "/teacher/resources"] },
-    { href: "/teacher/assignments", label: "Đã giao", sub: "Theo dõi hạn nộp", icon: Send, count: open, tone: "bg-blue/15 text-blue-fg" },
-    { href: "/teacher/assessment", label: "Chờ chấm", sub: "Chấm thủ công", icon: ClipboardCheck, count: pending, tone: "bg-warning/20 text-warning-fg" },
-    { href: "/teacher/results", label: "Kết quả đánh giá", sub: "Sổ điểm theo lớp", icon: BarChart3 },
-  ];
   return (
-    <nav aria-label="Bài tập & Đánh giá" className="mb-6">
-      <ol className="grid grid-cols-2 gap-2 lg:grid-cols-4">
-        {tabs.map((t, i) => {
-          const on = (t.match ?? [t.href]).some((m) => pathname.startsWith(m));
-          return (
-            <li key={t.href}>
-              <Link href={t.href} aria-current={on ? "page" : undefined} className={cn("flex h-full items-center gap-3 rounded-2xl border p-3 transition-colors", on ? "border-fg bg-fg text-bg" : "border-line bg-surface text-fg hover:border-fg/40")}>
-                <span className={cn("grid size-9 shrink-0 place-items-center rounded-xl text-sm font-bold", on ? "bg-bg/15" : "bg-surface-2")}><t.icon className="size-4" aria-hidden /></span>
-                <span className="min-w-0 flex-1">
-                  <span className="block truncate text-sm font-semibold"><span className={cn("mr-1 text-xs", on ? "opacity-70" : "text-muted")}>{i + 1}.</span>{t.label}</span>
-                  <span className={cn("block truncate text-xs", on ? "opacity-70" : "text-muted")}>{t.sub}</span>
-                </span>
-                {!!t.count && <span className={cn("rounded-full px-2 py-0.5 text-xs font-bold", on ? "bg-bg/20" : t.tone)}>{t.count}</span>}
-              </Link>
-            </li>
-          );
-        })}
-      </ol>
-    </nav>
+    <>
+      <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight text-fg">Bài tập & Đánh giá</h1>
+          <p className="mt-1 text-muted">{subtitle}</p>
+        </div>
+        <div className="flex flex-wrap gap-2">{actions}<Button onClick={() => setOpen(true)}><Plus /> Giao bài mới</Button></div>
+      </div>
+      <nav aria-label="Bài tập & Đánh giá" className="mb-5 overflow-x-auto border-b border-line">
+        <ul className="flex w-max gap-1">
+          {TABS.map((t) => {
+            const on = (t.match ?? [t.href]).some((m) => pathname.startsWith(m));
+            return (
+              <li key={t.href}>
+                <Link href={t.href} aria-current={on ? "page" : undefined} className={cn("-mb-px flex items-center gap-2 border-b-2 px-3 py-2.5 text-sm font-semibold transition-colors", on ? "border-fg text-fg" : "border-transparent text-muted hover:text-fg")}>
+                  {t.label}
+                  {t.count && pending > 0 && <span className="rounded-full bg-warning/20 px-1.5 text-xs font-bold text-warning-fg">{pending}</span>}
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      </nav>
+      <AssignDialog open={open} onOpenChange={setOpen} title="Giao bài mới" />
+    </>
   );
+}
+
+/** Menu ba chấm cho một dòng: gom các thao tác phụ để dòng gọn. */
+export function RowMenu({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <details className="relative">
+      <summary aria-label={label} className="grid size-8 cursor-pointer list-none place-items-center rounded-lg text-muted hover:bg-surface-2 hover:text-fg [&::-webkit-details-marker]:hidden">
+        <span aria-hidden className="text-lg leading-none">⋯</span>
+      </summary>
+      <div className="absolute right-0 z-30 mt-1 w-56 overflow-hidden rounded-xl border border-line bg-surface py-1 shadow-xl" onClick={(e) => e.currentTarget.parentElement?.removeAttribute("open")}>
+        {children}
+      </div>
+    </details>
+  );
+}
+
+export function MenuItem({ onClick, href, children, danger }: { onClick?: () => void; href?: string; children: React.ReactNode; danger?: boolean }) {
+  const cls = cn("flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-surface-2 [&_svg]:size-4", danger ? "text-danger-fg" : "text-fg");
+  return href ? <Link href={href} className={cls}>{children}</Link> : <button type="button" onClick={onClick} className={cls}>{children}</button>;
 }

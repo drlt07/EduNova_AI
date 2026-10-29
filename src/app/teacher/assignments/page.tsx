@@ -1,264 +1,110 @@
 "use client";
+/**
+ * Đã giao: bảng mọi bài đã giao của các lớp (bài thuộc khóa học và bài độc lập). Mỗi dòng chỉ có tên, nguồn, lớp,
+ * tiến độ nộp và hạn; mở dòng để xem chi tiết (danh sách học sinh, điểm, thao tác).
+ */
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { AlarmClock, BookMarked, BookOpen, CalendarClock, ClipboardCheck, Eye, ListChecks, Lock, LockOpen, Pencil, Plus, RotateCcw, Search, Send, Unlink } from "lucide-react";
+import { ListChecks, Lock, LockOpen, Search, Send } from "lucide-react";
 import { toast } from "sonner";
-import type { Assignment, HintMode } from "@/lib/domain/types";
-import { CODING_EXERCISES } from "@/lib/data/coding-exercises";
-import { LAB_TEMPLATES } from "@/lib/data/labs";
-import { getQuestion, getSet, KIND_LABEL, LEVEL_LABEL, levelOf, type PracticeQuestion } from "@/lib/data/practice";
-import { HINT_LABEL, MODE_LABEL } from "@/lib/labels";
-import { bookEntry } from "@/lib/sgk/book";
-import { assignedStudents, teacherAssignments, teacherClasses } from "@/lib/store/scoped";
+import type { Assignment } from "@/lib/domain/types";
+import { teacherAssignments, teacherClasses } from "@/lib/store/scoped";
 import { useSessionData } from "@/lib/store/use-role";
-import { assignmentCourse, taskOutcome } from "@/lib/teacher/assign";
-import { cn, formatDate, matchesQuery, relativeDays } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { assignmentCourse, assignmentStats } from "@/lib/teacher/assign";
+import { cn, formatDate, matchesQuery } from "@/lib/utils";
 import { EmptyState } from "@/components/ui/feedback";
-import { Field, Input, Select } from "@/components/ui/form";
-import { LabArt } from "@/components/labs/lab-art";
-import { LabPreview } from "@/components/labs/lab-preview";
-import { AssessTabs } from "@/components/teacher/assess-tabs";
-import { AssignDialog } from "@/components/teacher/assign-dialog";
-import { lessonAssignables } from "@/components/sgk/reader";
+import { Input, Select } from "@/components/ui/form";
+import { AssessTabs, MenuItem, RowMenu } from "@/components/teacher/assess-tabs";
 
-const TASK_LABEL = { lab: "Mô phỏng", quiz: "Bộ câu hỏi", code: "Bài code" } as const;
-type Bucket = "ongoing" | "overdue" | "closed" | "draft";
-const BUCKETS: { id: Bucket; label: string; empty: string }[] = [
-  { id: "ongoing", label: "Còn hạn", empty: "Không có bài nào đang còn hạn nộp." },
-  { id: "overdue", label: "Quá hạn", empty: "Không có bài nào quá hạn mà vẫn mở." },
-  { id: "closed", label: "Đã đóng", empty: "Chưa đóng bài nào." },
-  { id: "draft", label: "Chưa giao", empty: "Không có bản nháp. Trong hộp thoại giao bài, chọn “Lưu nháp, giao sau”." },
+type Bucket = "" | "ongoing" | "overdue" | "closed" | "draft";
+const BUCKETS: { id: Bucket; label: string }[] = [
+  { id: "", label: "Tất cả" },
+  { id: "ongoing", label: "Còn hạn" },
+  { id: "overdue", label: "Quá hạn" },
+  { id: "closed", label: "Đã đóng" },
+  { id: "draft", label: "Chưa giao" },
 ];
-type Source = "" | "course" | "free";
-const DAY = 86_400_000;
-const toLocal = (iso: string) => { const d = new Date(iso); return new Date(d.getTime() - d.getTimezoneOffset() * 60_000).toISOString().slice(0, 16); };
-
-interface Stat { target: number; done: number; working: number; pending: number; graded: number; weak: string[] }
-
-/** Kết quả từng em của nhiệm vụ máy chấm. */
-function TaskResults({ a }: { a: Assignment }) {
-  const { d } = useSessionData();
-  const rows = assignedStudents(d, a).map((u) => ({ u, o: taskOutcome(d, u.id, a) })).sort((x, y) => Number(y.o.done) - Number(x.o.done) || (y.o.ratio ?? 0) - (x.o.ratio ?? 0));
-  return (
-    <DialogContent title={a.title} description={`${d.classes.find((c) => c.id === a.classId)?.name} · ${rows.filter((r) => r.o.done).length}/${rows.length} em đã làm xong · hạn ${formatDate(a.dueAt, true)}`}>
-      <ul className="max-h-[60vh] divide-y divide-line overflow-y-auto text-sm">
-        {rows.map(({ u, o }) => (
-          <li key={u.id} className="flex items-center gap-3 py-2">
-            <span className="min-w-0 flex-1 truncate text-fg">{u.name}</span>
-            {o.text ? <span className={cn("rounded-md px-2 py-0.5 text-xs font-semibold", (o.ratio ?? 0) >= 0.8 ? "bg-success/15 text-success-fg" : (o.ratio ?? 0) >= 0.5 ? "bg-warning/15 text-warning-fg" : "bg-danger/15 text-danger-fg")}>{o.text}</span> : <span className="text-xs text-muted">chưa làm</span>}
-            {o.at && <span className="w-24 shrink-0 text-right text-xs text-muted">{formatDate(o.at, true)}</span>}
-          </li>
-        ))}
-      </ul>
-    </DialogContent>
-  );
-}
-
-/** Xem nhiệm vụ như học sinh sẽ thấy (giáo viên làm thử không bị ghi điểm). */
-function Preview({ a }: { a: Assignment }) {
-  const { d } = useSessionData();
-  const t = a.task;
-  const quiz = t?.kind === "quiz" ? (d.teacherQuizzes.find((q) => q.id === t.ref)?.questions ?? getSet(t.ref)?.questionIds.map(getQuestion).filter((q): q is PracticeQuestion => !!q) ?? []) : [];
-  const ex = t?.kind === "code" ? CODING_EXERCISES.find((e) => e.id === t.ref) : undefined;
-  return (
-    <DialogContent title={`Học sinh sẽ thấy: ${a.title}`} description={[a.note && `Lời dặn: “${a.note}”`, `Hạn ${formatDate(a.dueAt, true)}`, a.hintMode === "off" ? "không dùng AI Gia sư" : "được hỏi AI Gia sư"].filter(Boolean).join(" · ")} className="max-w-4xl">
-      {t?.kind === "lab" && <LabPreview slug={t.ref} />}
-      {t?.kind === "quiz" && (
-        <ol className="max-h-[65vh] space-y-3 overflow-y-auto pr-1">
-          {quiz.map((q, i) => (
-            <li key={q.id} className="rounded-xl border border-line p-3 text-sm">
-              <p className="text-xs text-muted">Câu {i + 1} · {KIND_LABEL[q.kind]} · {LEVEL_LABEL[levelOf(q)]}</p>
-              <p className="mt-1 font-medium text-fg">{q.prompt}</p>
-              {"options" in q && q.options && <ul className="mt-2 grid gap-1 sm:grid-cols-2">{q.options.map((o, k) => <li key={k} className="rounded-lg border border-line px-2 py-1 font-mono text-xs text-fg">{"ABCD"[k]}. {o}</li>)}</ul>}
-            </li>
-          ))}
-        </ol>
-      )}
-      {ex && (
-        <div className="space-y-2 text-sm">
-          <p className="text-fg">{ex.task}</p>
-          <p className="text-muted">{ex.tests.length} bộ test chấm tự động. Học sinh thấy dữ liệu thử của 2 test đầu.</p>
-          <pre className="rounded-lg bg-[#0b1220] p-3 font-mono text-xs text-slate-200">{ex.starter}</pre>
-        </div>
-      )}
-      {!t && <p className="text-sm text-muted">Hoạt động tự thiết kế: học sinh làm trong phòng thí nghiệm, nộp bài kèm giải thích; thầy cô chấm theo tiêu chí.</p>}
-    </DialogContent>
-  );
-}
 
 export default function AssignmentsPage() {
   const { d, user } = useSessionData();
   const classes = teacherClasses(d, user.id);
   const [classId, setClassId] = useState("");
   const [q, setQ] = useState("");
-  const [tab, setTab] = useState<Bucket | null>(null);
-  const [source, setSource] = useState<Source>("");
-  const [editing, setEditing] = useState<{ id: string; dueAt: string; hintMode: HintMode } | null>(null);
-  const [creating, setCreating] = useState(false);
-  const [dialog, setDialog] = useState<{ kind: "results" | "preview"; a: Assignment } | null>(null);
-  const [remedial, setRemedial] = useState<{ a: Assignment; studentIds: string[] } | null>(null);
+  const [bucket, setBucket] = useState<Bucket>("");
   const [now] = useState(() => Date.now());
 
-  const all = useMemo(() => teacherAssignments(d, user.id).filter((a) => (!classId || a.classId === classId) && (!source || (source === "course") === !!assignmentCourse(d, a))), [d, user.id, classId, source]);
-  const stats = useMemo(() => {
-    const m = new Map<string, Stat>();
-    for (const a of all) {
-      const students = assignedStudents(d, a);
-      if (a.task) {
-        const outs = students.map((u) => ({ u, o: taskOutcome(d, u.id, a) }));
-        m.set(a.id, { target: students.length, done: outs.filter((x) => x.o.done).length, working: outs.filter((x) => !x.o.done && x.o.text).length, pending: 0, graded: 0, weak: outs.filter((x) => !x.o.done || (x.o.ratio ?? 1) < 0.65).map((x) => x.u.id) });
-      } else {
-        const subs = d.submissions.filter((s) => s.assignmentId === a.id);
-        const graded = subs.filter((s) => s.status === "graded");
-        m.set(a.id, { target: students.length, done: subs.length, working: d.attempts.filter((x) => x.assignmentId === a.id && x.status !== "submitted").length, pending: subs.length - graded.length, graded: graded.length, weak: students.filter((u) => !subs.some((s) => s.studentId === u.id) || subs.some((s) => s.studentId === u.id && s.testResults.some((r) => !r.pass))).map((u) => u.id) });
-      }
-    }
-    return m;
-  }, [d, all]);
+  const rows = useMemo(() => teacherAssignments(d, user.id)
+    .filter((a) => !classId || a.classId === classId)
+    .map((a) => ({ a, s: assignmentStats(d, a), src: assignmentCourse(d, a) })), [d, user.id, classId]);
   const bucketOf = (a: Assignment): Bucket => (a.status === "draft" ? "draft" : a.status === "closed" ? "closed" : new Date(a.dueAt).getTime() > now ? "ongoing" : "overdue");
-  const counts = Object.fromEntries(BUCKETS.map((b) => [b.id, all.filter((a) => bucketOf(a) === b.id).length])) as Record<Bucket, number>;
-  const active: Bucket = tab ?? "ongoing";
-  const soon = all.filter((a) => bucketOf(a) === "ongoing" && new Date(a.dueAt).getTime() - now < 2 * DAY).sort((x, y) => x.dueAt.localeCompare(y.dueAt));
-  const missing = all.filter((a) => a.status === "open").reduce((n, a) => n + stats.get(a.id)!.target - stats.get(a.id)!.done, 0);
-  const toGrade = all.reduce((n, a) => n + stats.get(a.id)!.pending, 0);
-  const shown = all.filter((a) => bucketOf(a) === active && matchesQuery(q, a.title)).sort((x, y) => x.dueAt.localeCompare(y.dueAt));
+  const shown = rows
+    .filter(({ a }) => (!bucket || bucketOf(a) === bucket) && matchesQuery(q, a.title))
+    .sort((x, y) => Number(bucketOf(x.a) === "draft") - Number(bucketOf(y.a) === "draft") || y.a.dueAt.localeCompare(x.a.dueAt));
 
   return (
     <>
-      <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-fg">Bài tập & Đánh giá</h1>
-          <p className="mt-1 text-muted">Đã giao: theo dõi hạn nộp của bài thuộc khóa học và bài giao độc lập.</p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Button variant="secondary" asChild><Link href="/teacher/courses"><BookMarked /> Giao từ khóa học</Link></Button>
-          <Button onClick={() => setCreating(true)}><Plus /> Giao bài độc lập</Button>
-        </div>
-      </div>
       <AssessTabs />
-
-      <div className="mb-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-        {[
-          { icon: Send, label: "Đang mở", value: counts.ongoing + counts.overdue, sub: `${counts.draft} bản nháp chưa giao`, tone: "text-blue-fg" },
-          { icon: AlarmClock, label: "Sắp đến hạn (48 giờ)", value: soon.length, sub: soon[0] ? `Gần nhất: ${soon[0].title}` : "Không có bài nào sắp hết hạn", tone: "text-warning-fg" },
-          { icon: CalendarClock, label: "Lượt chưa nộp", value: missing, sub: `${counts.overdue} bài đã quá hạn vẫn mở`, tone: "text-danger-fg" },
-          { icon: ClipboardCheck, label: "Chờ chấm thủ công", value: toGrade, sub: toGrade ? "Mở tab Chờ chấm để chấm" : "Không có bài chờ chấm", tone: "text-violet-fg", href: "/teacher/assessment" },
-        ].map((k) => {
-          const body = <><p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted"><k.icon className={cn("size-3.5", k.tone)} aria-hidden /> {k.label}</p><p className="mt-1 text-2xl font-bold tabular-nums text-fg">{k.value}</p><p className="truncate text-xs text-muted">{k.sub}</p></>;
-          return k.href ? <Link key={k.label} href={k.href} className="rounded-2xl border border-line bg-surface p-3 hover:border-fg/40">{body}</Link> : <div key={k.label} className="rounded-2xl border border-line bg-surface p-3">{body}</div>;
-        })}
-      </div>
-
-      <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center">
-        <div className="flex gap-1 overflow-x-auto rounded-xl border border-line bg-surface p-1" role="tablist" aria-label="Trạng thái nhiệm vụ">
-          {BUCKETS.map((b) => (
-            <button key={b.id} type="button" role="tab" aria-selected={active === b.id} onClick={() => setTab(b.id)} className={cn("shrink-0 rounded-lg px-3 py-1.5 text-sm font-medium", active === b.id ? "bg-fg text-bg" : "text-muted hover:text-fg")}>
-              {b.label} <span className={cn("ml-1 rounded-full px-1.5 text-xs", active === b.id ? "bg-bg/20" : b.id === "overdue" && counts.overdue ? "bg-danger/15 text-danger-fg" : "bg-surface-2")}>{counts[b.id]}</span>
-            </button>
-          ))}
-        </div>
+      <div className="mb-4 flex flex-col gap-2 md:flex-row md:items-center">
         <label className="relative min-w-0 flex-1">
-          <span className="sr-only">Tìm nhiệm vụ</span>
+          <span className="sr-only">Tìm bài</span>
           <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted" aria-hidden />
-          <Input className="pl-9" placeholder="Tìm nhiệm vụ…" value={q} onChange={(e) => setQ(e.target.value)} />
+          <Input className="pl-9" placeholder="Tìm bài tập…" value={q} onChange={(e) => setQ(e.target.value)} />
         </label>
-        <Select aria-label="Nguồn bài" className="w-44" value={source} onChange={(e) => setSource(e.target.value as Source)}>
-          <option value="">Mọi nguồn</option>
-          <option value="course">Thuộc khóa học</option>
-          <option value="free">Giao độc lập</option>
+        <Select aria-label="Trạng thái" className="md:w-44" value={bucket} onChange={(e) => setBucket(e.target.value as Bucket)}>
+          {BUCKETS.map((b) => <option key={b.id} value={b.id}>{b.label} ({b.id ? rows.filter((r) => bucketOf(r.a) === b.id).length : rows.length})</option>)}
         </Select>
-        <Select aria-label="Lọc lớp" className="w-36" value={classId} onChange={(e) => setClassId(e.target.value)}>
+        <Select aria-label="Lớp" className="md:w-36" value={classId} onChange={(e) => setClassId(e.target.value)}>
           <option value="">Mọi lớp</option>
           {classes.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
         </Select>
       </div>
 
-      {shown.length === 0 ? <EmptyState icon={ListChecks} title={BUCKETS.find((b) => b.id === active)!.empty} description="Bài thuộc khóa học được giao từ trình soạn khóa học (bài kiểm tra cuối bài, mô phỏng); bài độc lập giao từ ngân hàng bài tập." action={<Button size="sm" onClick={() => setCreating(true)}><Plus /> Giao bài độc lập</Button>} /> : (
-        <ul className="divide-y divide-line rounded-2xl border border-line bg-surface">
-          {shown.map((a) => {
-            const s = stats.get(a.id)!;
-            const act = d.activities.find((x) => x.id === a.activityId);
-            const cfg = act?.labConfigId ? d.labConfigs.find((x) => x.id === act.labConfigId) : undefined;
-            const labSlug = a.task?.kind === "lab" ? a.task.ref : cfg ? LAB_TEMPLATES.find((l) => l.id === cfg.labTemplateId)?.slug : undefined;
-            const e = a.sgkRef ? bookEntry(a.sgkRef) : undefined;
-            const klass = d.classes.find((x) => x.id === a.classId);
-            const open = a.status === "open";
-            const late = open && new Date(a.dueAt).getTime() < now;
-            const src = assignmentCourse(d, a);
-            const left = new Date(a.dueAt).getTime() - now;
-            return (
-              <li key={a.id} className="flex flex-wrap items-center gap-4 p-4">
-                {labSlug ? <LabArt slug={labSlug} className="hidden h-14 w-24 shrink-0 rounded-lg sm:block" /> : <span className="hidden h-14 w-24 shrink-0 place-items-center rounded-lg bg-surface-2 text-muted sm:grid">{a.task?.kind === "code" ? "</>" : <ListChecks className="size-5" aria-hidden />}</span>}
-                <div className="min-w-0 flex-1 basis-64">
-                  <p className="flex flex-wrap items-center gap-1.5 text-xs text-muted">
-                    <span className="rounded bg-fg px-1.5 py-0.5 font-bold text-bg">{klass?.name}</span>
-                    {src ? <Link href={`/teacher/courses/${src.course.id}`} className="inline-flex items-center gap-1 rounded bg-cyan/15 px-1.5 py-0.5 font-medium text-cyan-fg hover:underline"><BookMarked className="size-3" aria-hidden /> {src.course.title}{src.lesson ? ` · ${src.lesson.title.split(".")[0]}` : ""}</Link> : <span className="inline-flex items-center gap-1 rounded bg-surface-2 px-1.5 py-0.5 font-medium"><Unlink className="size-3" aria-hidden /> Giao độc lập</span>}
-                    {a.studentIds ? <span>giao riêng {a.studentIds.length} em</span> : null}
-                    {e && !src?.lesson ? <span className="inline-flex items-center gap-1"><BookOpen className="size-3" aria-hidden /> Bài {e.lesson.no}. {e.lesson.title}</span> : null}
-                  </p>
-                  <p className="mt-0.5 font-semibold text-fg">{a.title}</p>
-                  <p className="text-xs text-muted">
-                    <span className={cn("mr-1 rounded px-1.5 py-0.5 font-medium", a.task ? "bg-cyan/15 text-cyan-fg" : "bg-violet/15 text-violet-fg")}>{a.task ? "Máy chấm" : "Thầy cô chấm"}</span>
-                    {a.task ? TASK_LABEL[a.task.kind] : [cfg && MODE_LABEL[cfg.mode], HINT_LABEL[a.hintMode]].filter(Boolean).join(" · ")}
-                    {a.note && <span className="italic"> · “{a.note}”</span>}
-                  </p>
-                  <p className={cn("mt-1 inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-xs", late ? "bg-danger/10 font-semibold text-danger-fg" : open && left < 2 * DAY ? "bg-warning/15 font-semibold text-warning-fg" : "text-muted")}><CalendarClock className="size-3.5" aria-hidden /> Hạn {formatDate(a.dueAt, true)} · {relativeDays(a.dueAt)}{a.status === "closed" ? " · đã đóng" : ""}{open && s.target - s.done > 0 ? ` · ${s.target - s.done} em chưa ${a.task ? "làm" : "nộp"}` : ""}</p>
-                </div>
-                {a.status !== "draft" && (
-                  <div className="w-52 space-y-1.5 text-xs">
-                    <div><div className="mb-0.5 flex justify-between"><span className="text-fg"><b>{s.done}</b>/{s.target} {a.task ? "làm xong" : "đã nộp"}</span>{s.working > 0 && <span className="text-muted">{s.working} đang làm</span>}</div><div className="h-1.5 rounded-full bg-surface-2"><div className="h-full rounded-full bg-success" style={{ width: `${(s.done / Math.max(1, s.target)) * 100}%` }} /></div></div>
-                    {!a.task && s.done > 0 && <div><div className="mb-0.5 flex justify-between"><span className="text-fg"><b>{s.graded}</b>/{s.done} đã chấm</span>{s.pending > 0 && <span className="font-semibold text-violet-fg">{s.pending} chờ chấm</span>}</div><div className="h-1.5 rounded-full bg-surface-2"><div className="h-full rounded-full bg-violet" style={{ width: `${(s.graded / Math.max(1, s.done)) * 100}%` }} /></div></div>}
-                  </div>
-                )}
-                <div className="flex flex-wrap items-center gap-1">
-                  {a.status === "draft" ? (
-                    <Button size="sm" onClick={() => { d.updateAssignment(a.id, { status: "open", publishedAt: new Date().toISOString() }); toast.success(`Đã giao “${a.title}” cho ${klass?.name}`); }}><Send /> Giao ngay</Button>
-                  ) : a.task ? (
-                    <Button size="sm" variant="secondary" onClick={() => setDialog({ kind: "results", a })}>Kết quả</Button>
-                  ) : (
-                    <Button size="sm" variant={s.pending ? "primary" : "secondary"} asChild><Link href={`/teacher/assessment?assignment=${a.id}`}>{s.pending ? `Chấm ${s.pending} bài` : "Xem bài đã chấm"}</Link></Button>
-                  )}
-                  {a.status !== "draft" && s.weak.length > 0 && (active !== "ongoing" || s.done > 0) && <Button size="sm" variant="ghost" title="Giao lại cho các em chưa làm hoặc làm chưa đạt" onClick={() => setRemedial({ a, studentIds: s.weak })}><RotateCcw /> Củng cố {s.weak.length} em</Button>}
-                  <Button size="icon" variant="ghost" aria-label={`Xem như học sinh: ${a.title}`} title="Xem như học sinh" onClick={() => setDialog({ kind: "preview", a })}><Eye /></Button>
-                  <Button size="icon" variant="ghost" aria-label={`Sửa ${a.title}`} title="Sửa hạn nộp, gợi ý" onClick={() => setEditing({ id: a.id, dueAt: toLocal(a.dueAt), hintMode: a.hintMode })}><Pencil /></Button>
-                  {a.status !== "draft" && <Button size="icon" variant="ghost" aria-label={open ? `Đóng nhận bài ${a.title}` : `Mở lại ${a.title}`} title={open ? "Đóng nhận bài" : "Mở lại"} onClick={() => { d.updateAssignment(a.id, { status: open ? "closed" : "open" }); toast.success(open ? "Đã đóng nhận bài" : "Đã mở lại"); }}>{open ? <Lock /> : <LockOpen />}</Button>}
-                </div>
-              </li>
-            );
-          })}
-        </ul>
+      {shown.length === 0 ? <EmptyState icon={ListChecks} title="Không có bài nào" description="Bấm “Giao bài mới” để giao từ khóa học hoặc từ thư viện bài tập." /> : (
+        <div className="overflow-x-auto rounded-2xl border border-line bg-surface">
+          <table className="w-full min-w-[640px] text-sm">
+            <thead>
+              <tr className="border-b border-line text-left text-xs font-semibold uppercase tracking-wide text-muted">
+                <th scope="col" className="px-4 py-3">Bài tập</th>
+                <th scope="col" className="px-3 py-3">Lớp</th>
+                <th scope="col" className="px-3 py-3">Đã nộp</th>
+                <th scope="col" className="px-3 py-3">Hạn</th>
+                <th scope="col" className="w-10 px-2 py-3"><span className="sr-only">Thao tác</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              {shown.map(({ a, s, src }) => {
+                const b = bucketOf(a);
+                const klass = d.classes.find((c) => c.id === a.classId);
+                const state = b === "draft" ? "Chưa giao" : a.task ? "Máy chấm" : s.pending ? `${s.pending} cần chấm` : s.done ? "Đã chấm" : "Thầy cô chấm";
+                return (
+                  <tr key={a.id} className="border-b border-line/60 last:border-0 hover:bg-surface-2/50">
+                    <td className="px-4 py-3">
+                      <Link href={`/teacher/assignments/${a.id}`} className="font-semibold text-fg hover:underline">{a.title}</Link>
+                      <p className="text-xs text-muted">{src ? src.course.title : "Độc lập"} · <span className={cn(s.pending > 0 && "font-semibold text-violet-fg", b === "draft" && "font-semibold text-warning-fg")}>{state}</span></p>
+                    </td>
+                    <td className="px-3 py-3 font-medium text-fg">{klass?.name}{a.studentIds && <span className="block text-xs font-normal text-muted">{a.studentIds.length} em</span>}</td>
+                    <td className="px-3 py-3">
+                      {b === "draft" ? <span className="text-muted">–</span> : (
+                        <div className="flex items-center gap-2"><span className="w-10 tabular-nums text-fg">{s.done}/{s.target}</span><span className="h-1.5 w-16 rounded-full bg-surface-2"><span className="block h-full rounded-full bg-success" style={{ width: `${(s.done / Math.max(1, s.target)) * 100}%` }} /></span></div>
+                      )}
+                    </td>
+                    <td className={cn("px-3 py-3 tabular-nums", b === "overdue" ? "font-semibold text-danger-fg" : "text-fg")}>{formatDate(a.dueAt)}{b === "closed" && <span className="block text-xs font-normal text-muted">đã đóng</span>}</td>
+                    <td className="px-2 py-3">
+                      <RowMenu label={`Thao tác: ${a.title}`}>
+                        <MenuItem href={`/teacher/assignments/${a.id}`}>Mở chi tiết</MenuItem>
+                        {s.pending > 0 && <MenuItem href={`/teacher/assessment?assignment=${a.id}`}>Chấm {s.pending} bài</MenuItem>}
+                        {b === "draft"
+                          ? <MenuItem onClick={() => { d.updateAssignment(a.id, { status: "open", publishedAt: new Date().toISOString() }); toast.success(`Đã giao cho ${klass?.name}`); }}><Send /> Giao ngay</MenuItem>
+                          : <MenuItem onClick={() => { d.updateAssignment(a.id, { status: a.status === "open" ? "closed" : "open" }); toast.success(a.status === "open" ? "Đã đóng nhận bài" : "Đã mở lại"); }}>{a.status === "open" ? <><Lock /> Đóng nhận bài</> : <><LockOpen /> Mở lại</>}</MenuItem>}
+                      </RowMenu>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       )}
-      <p className="mt-3 flex items-center gap-1.5 text-xs text-muted"><ClipboardCheck className="size-3.5" aria-hidden /> Máy chấm: mô phỏng (10 điểm, trừ 0,5 mỗi lần chọn sai), bộ câu hỏi (số câu đúng), code (số test đạt). Thầy cô chấm: hoạt động tự thiết kế theo tiêu chí.</p>
-
-      <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
-        {editing && (
-          <DialogContent title="Sửa nhiệm vụ">
-            <div className="space-y-3">
-              <Field label="Hạn nộp" htmlFor="ed-due"><Input id="ed-due" type="datetime-local" value={editing.dueAt} onChange={(e) => setEditing({ ...editing, dueAt: e.target.value })} /></Field>
-              <Field label="Chế độ gợi ý" htmlFor="ed-hint"><Select id="ed-hint" value={editing.hintMode} onChange={(e) => setEditing({ ...editing, hintMode: e.target.value as HintMode })}>{Object.entries(HINT_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</Select></Field>
-              <Button className="w-full" onClick={() => { const t = new Date(editing.dueAt).getTime(); if (Number.isNaN(t)) return toast.error("Ngày không hợp lệ"); d.updateAssignment(editing.id, { dueAt: new Date(t).toISOString(), hintMode: editing.hintMode }); setEditing(null); toast.success("Đã lưu"); }}>Lưu</Button>
-            </div>
-          </DialogContent>
-        )}
-      </Dialog>
-      <AssignDialog open={creating} onOpenChange={setCreating} />
-      <AssignDialog
-        open={!!remedial}
-        onOpenChange={(o) => !o && setRemedial(null)}
-        title="Giao lại bài củng cố"
-        classId={remedial?.a.classId}
-        studentIds={remedial?.studentIds}
-        sgkRef={remedial?.a.sgkRef}
-        preset={remedial?.a.task ? { kind: remedial.a.task.kind, ref: remedial.a.task.ref } : undefined}
-        courseId={remedial?.a.courseId}
-        suggest={remedial?.a.sgkRef && bookEntry(remedial.a.sgkRef) ? lessonAssignables(d, user.id, bookEntry(remedial.a.sgkRef)!) : undefined}
-      />
-      <Dialog open={!!dialog} onOpenChange={(o) => !o && setDialog(null)}>
-        {dialog?.kind === "results" && <TaskResults a={dialog.a} />}
-        {dialog?.kind === "preview" && <Preview a={dialog.a} />}
-      </Dialog>
     </>
   );
 }

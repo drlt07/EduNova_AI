@@ -534,16 +534,17 @@ export const useApp = create<AppState>()(
     },
     {
       name: "edunova-v3",
-      version: 3,
+      version: 4,
       // v2: thêm lịch sử luyện tập/mô phỏng mẫu 6 tuần; v3: khóa học mẫu theo chương → bài → hoạt động + bài kiểm tra cuối bài,
       // bài giao mẫu cho lớp 10A2. Giữ dữ liệu cũ của người dùng, chỉ bổ sung (hoặc làm mới khóa học mẫu) bản ghi mẫu.
       migrate: (persisted, version) => {
         const p = (persisted ?? {}) as Partial<AppState>;
-        if (version >= 3) return p as AppState;
+        if (version >= 4) return p as AppState;
         const seed = buildSeed();
         const add = <T extends { id: string }>(cur: T[] | undefined, extra: T[]) => { const have = new Set((cur ?? []).map((x) => x.id)); return [...(cur ?? []), ...extra.filter((x) => !have.has(x.id))]; };
         const out: Partial<AppState> = { ...p };
         if (version < 2) Object.assign(out, { practiceAttempts: add(p.practiceAttempts, seed.practiceAttempts), labResults: add(p.labResults, seed.labResults) });
+        // v4: khóa học mẫu tổ chức theo module
         const seedIds = new Set(seed.courses.map((c) => c.id));
         out.courses = [...seed.courses, ...(p.courses ?? []).filter((c) => !seedIds.has(c.id))];
         out.assignments = add(p.assignments, seed.assignments).map((a) => a.courseId || !seed.assignments.find((x) => x.id === a.id)?.courseId ? a : { ...a, courseId: seed.assignments.find((x) => x.id === a.id)!.courseId });

@@ -15,7 +15,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { EmptyState, Notice, PageSkeleton } from "@/components/ui/feedback";
 import { Field, Select, Textarea } from "@/components/ui/form";
 import { Avatar } from "@/components/ui/misc";
-import { SectionHead } from "@/components/layout/section-head";
 import { AssessTabs } from "@/components/teacher/assess-tabs";
 import { LabReviewQueue } from "@/components/teacher/lab-review";
 import { EventTimeline } from "@/components/labs/event-timeline";
@@ -47,7 +46,6 @@ function AssessmentInner() {
 
   return (
     <>
-      <SectionHead icon={ClipboardCheck} title="Bài tập & Đánh giá" subtitle="Chờ chấm: bài nộp cần thầy cô chấm thủ công theo tiêu chí, và bài mô phỏng AI đã chấm cần duyệt lại." />
       <AssessTabs />
       <LabReviewQueue />
       <h2 className="mb-3 text-lg font-bold text-fg">Bài nộp chấm theo tiêu chí</h2>

@@ -10,6 +10,7 @@ import { bookEntry, bookOf } from "@/lib/sgk/book";
 import { teacherAssignments, teacherClasses } from "@/lib/store/scoped";
 import { useSessionData } from "@/lib/store/use-role";
 import { fmtScore } from "@/lib/sim/lab-score";
+import { assignmentStats } from "@/lib/teacher/assign";
 import { classHealth, sameDay, todos, upcomingSlots, type Slot, type TodoKind } from "@/lib/teacher/today";
 import { cn, formatDate } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -100,10 +101,11 @@ export default function TeacherToday() {
         <p className="relative mt-1 max-w-2xl text-sm text-blue-50 sm:text-base">Hôm nay có {summary}.</p>
         <div className="relative mt-5 flex flex-wrap gap-2">
           {heroLesson && <Link href={`/teacher/sgk/${heroLesson.lesson!.ref}`} className="inline-flex h-10 items-center gap-2 rounded-xl bg-white px-4 text-sm font-semibold text-blue-700 shadow-sm hover:bg-blue-50"><MonitorPlay className="size-4" aria-hidden /> Bài {heroLesson.lesson!.lesson.no} · {heroLesson.cls.name}</Link>}
-          {pending > 0 && <Link href="/teacher/assignments" className="inline-flex h-10 items-center gap-2 rounded-xl bg-cyan-300 px-4 text-sm font-semibold text-slate-900 hover:bg-cyan-200"><ClipboardCheck className="size-4" aria-hidden /> Chấm {pending} bài</Link>}
+          {pending > 0 && <Link href="/teacher/assessment" className="inline-flex h-10 items-center gap-2 rounded-xl bg-cyan-300 px-4 text-sm font-semibold text-slate-900 hover:bg-cyan-200"><ClipboardCheck className="size-4" aria-hidden /> Chấm {pending} bài</Link>}
           <Link href="/teacher/lesson-planner" className="inline-flex h-10 items-center gap-2 rounded-xl border border-white/30 bg-white/10 px-4 text-sm font-semibold text-white hover:bg-white/20"><NotebookPen className="size-4" aria-hidden /> Soạn KHBD</Link>
         </div>
       </header>
+      <AssignKpis />
 
       <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
         <section aria-labelledby="lich-h" className="min-w-0 rounded-2xl border border-line bg-surface p-5">
@@ -212,5 +214,29 @@ export default function TeacherToday() {
 
       <AssignDialog open={!!remedy} onOpenChange={(o) => !o && setRemedy(null)} sgkRef={remedy?.ref} suggest={remedy?.items} />
     </>
+  );
+}
+
+/** Bài tập của các lớp nhìn nhanh: đang mở, sắp đến hạn, lượt chưa nộp, chờ chấm (mở chi tiết ở Bài tập & Đánh giá). */
+function AssignKpis() {
+  const { d, user } = useSessionData();
+  const [now] = useState(() => Date.now());
+  const open = teacherAssignments(d, user.id).filter((a) => a.status === "open");
+  const stats = open.map((a) => ({ a, s: assignmentStats(d, a) }));
+  const soon = open.filter((a) => { const t = new Date(a.dueAt).getTime() - now; return t > 0 && t < 2 * 86_400_000; }).length;
+  const missing = stats.reduce((n, x) => n + x.s.target - x.s.done, 0);
+  const grade = stats.reduce((n, x) => n + x.s.pending, 0);
+  const tiles = [
+    { label: "Bài đang mở", value: open.length, href: "/teacher/assignments", tone: "text-blue-fg" },
+    { label: "Sắp đến hạn (48 giờ)", value: soon, href: "/teacher/assignments", tone: "text-warning-fg" },
+    { label: "Lượt chưa nộp", value: missing, href: "/teacher/assignments", tone: "text-danger-fg" },
+    { label: "Chờ chấm", value: grade, href: "/teacher/assessment", tone: "text-violet-fg" },
+  ];
+  return (
+    <ul className="mb-6 grid grid-cols-2 gap-2 lg:grid-cols-4" aria-label="Bài tập các lớp">
+      {tiles.map((t) => (
+        <li key={t.label}><Link href={t.href} className="block rounded-2xl border border-line bg-surface p-3 hover:border-fg/30"><p className="text-xs font-semibold uppercase tracking-wide text-muted">{t.label}</p><p className={cn("mt-1 text-2xl font-bold tabular-nums", t.value ? t.tone : "text-fg")}>{t.value}</p></Link></li>
+      ))}
+    </ul>
   );
 }

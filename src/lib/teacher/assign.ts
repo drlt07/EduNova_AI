@@ -5,6 +5,7 @@
 import type { Assignment, ClassRoom } from "@/lib/domain/types";
 import type { DemoData } from "@/lib/data/seed";
 import { fmtScore } from "@/lib/sim/lab-score";
+import { assignedStudents } from "@/lib/store/scoped";
 
 export type TaskKind = "lab" | "quiz" | "code";
 
@@ -128,4 +129,18 @@ export function gradeCell(d: D & Pick<DemoData, "submissions" | "assessments" | 
   const max = rubric?.criteria.reduce((n, c) => n + c.maxScore, 0) || 1;
   const got = as.scores.reduce((n, s) => n + s.score, 0);
   return { status: "graded", ratio: got / max, text: `${fmtScore(Math.round((got / max) * 20) / 2)} điểm`, at: sub.submittedAt };
+}
+
+export interface AssignmentStats { target: number; done: number; working: number; pending: number; graded: number; weak: string[] }
+
+/** Tình hình một bài giao: số em được giao, đã làm/nộp, chờ chấm, đã chấm, em cần củng cố. */
+export function assignmentStats(d: DemoData, a: Assignment): AssignmentStats {
+  const students = assignedStudents(d, a);
+  if (a.task) {
+    const outs = students.map((u) => ({ u, o: taskOutcome(d, u.id, a) }));
+    return { target: students.length, done: outs.filter((x) => x.o.done).length, working: outs.filter((x) => !x.o.done && x.o.text).length, pending: 0, graded: 0, weak: outs.filter((x) => !x.o.done || (x.o.ratio ?? 1) < 0.65).map((x) => x.u.id) };
+  }
+  const subs = d.submissions.filter((s) => s.assignmentId === a.id);
+  const graded = subs.filter((s) => s.status === "graded");
+  return { target: students.length, done: subs.length, working: d.attempts.filter((x) => x.assignmentId === a.id && x.status !== "submitted").length, pending: subs.length - graded.length, graded: graded.length, weak: students.filter((u) => !subs.some((s) => s.studentId === u.id) || subs.some((s) => s.studentId === u.id && s.testResults.some((r) => !r.pass))).map((u) => u.id) };
 }

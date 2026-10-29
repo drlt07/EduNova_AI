@@ -70,10 +70,16 @@ export interface BlockEditorProps {
   onDragStart: () => void;
   onDragEnd: () => void;
   onDropHere: () => void;
+  /** Tên hiển thị (mặc định: tiêu đề khối) */
+  label?: string;
+  /** Nhãn loại nội dung (mặc định: loại khối) */
+  chip?: string;
+  /** Thao tác thêm trên dòng (vd Giao bài) */
+  actions?: React.ReactNode;
 }
 
 /** Thẻ chỉnh một khối nội dung: kéo thả hoặc nút lên/xuống để sắp xếp, mở ra để sửa chi tiết. */
-export function BlockEditor({ block, grade, index, count, open, dragging, onToggle, onChange, onMove, onDelete, onDragStart, onDragEnd, onDropHere }: BlockEditorProps) {
+export function BlockEditor({ block, grade, index, count, open, dragging, onToggle, onChange, onMove, onDelete, onDragStart, onDragEnd, onDropHere, label, chip, actions }: BlockEditorProps) {
   const id = useId();
   const Icon = BLOCK_ICON[block.kind];
   const labs = [...LAB_TEMPLATES].sort((a, b) => Number(!a.grades.includes(grade)) - Number(!b.grades.includes(grade)));
@@ -93,9 +99,10 @@ export function BlockEditor({ block, grade, index, count, open, dragging, onTogg
         <GripVertical className="size-4 shrink-0 cursor-grab text-muted" aria-hidden />
         <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-cyan/10 text-cyan-fg"><Icon className="size-4" aria-hidden /></span>
         <button type="button" onClick={onToggle} aria-expanded={open} aria-controls={`${id}-body`} className="min-w-0 flex-1 text-left">
-          <span className="block truncate text-sm font-medium text-fg">{block.title || BLOCK_LABEL[block.kind]}</span>
-          <span className="block text-xs text-muted">{block.final ? "Bài kiểm tra cuối bài" : BLOCK_LABEL[block.kind]} · {block.required ? "bắt buộc" : "không bắt buộc"}</span>
+          <span className="block truncate text-sm font-medium text-fg">{label ?? (block.title || BLOCK_LABEL[block.kind])}</span>
+          <span className="block text-xs text-muted">{chip ?? (block.final ? "Bài kiểm tra cuối bài" : BLOCK_LABEL[block.kind])} · {block.required ? "bắt buộc" : "không bắt buộc"}</span>
         </button>
+        {actions}
         <Button size="icon" variant="ghost" disabled={index === 0} onClick={() => onMove(index - 1)} aria-label={`Đưa "${block.title}" lên`}><ChevronUp /></Button>
         <Button size="icon" variant="ghost" disabled={index === count - 1} onClick={() => onMove(index + 1)} aria-label={`Đưa "${block.title}" xuống`}><ChevronDown /></Button>
         <Button size="icon" variant="ghost" onClick={onDelete} aria-label={`Xóa "${block.title}"`}><Trash2 /></Button>

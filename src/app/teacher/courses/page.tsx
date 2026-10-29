@@ -1,107 +1,76 @@
 "use client";
 /**
- * Khóa học — quản lý quá trình học: thầy cô xây chương trình (khóa học → chương → bài → hoạt động + bài kiểm tra cuối bài),
- * phát hành cho lớp và theo dõi tiến độ. SGK số là tài liệu tham khảo để dựng khung.
+ * Khóa học: chỉ tìm, tạo và chọn khóa học. Số liệu chi tiết (tiến độ, kết quả) nằm trong từng khóa học.
  */
-import { LabCollage } from "@/components/landing/hero-visuals";
-import { PageHero } from "@/components/layout/page-hero";
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowRight, BookMarked, BookOpen, ClipboardCheck, FlaskConical, Layers, Plus, Trash2, Users } from "lucide-react";
+import { BookMarked, ChevronRight, Plus, Search } from "lucide-react";
 import { toast } from "sonner";
-import type { Course, Grade, TextbookId } from "@/lib/domain/types";
+import type { Grade, TextbookId } from "@/lib/domain/types";
 import { TEXTBOOKS } from "@/lib/data/curriculum";
-import { allLessons, courseCompletion, finalTest } from "@/lib/courses/course";
-import { classStudents, teacherClasses } from "@/lib/store/scoped";
+import { allLessons } from "@/lib/courses/course";
+import { teacherClasses } from "@/lib/store/scoped";
 import { useSessionData } from "@/lib/store/use-role";
-import { cn, formatDate } from "@/lib/utils";
+import { cn, matchesQuery } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { EmptyState } from "@/components/ui/feedback";
 import { Checkbox, Field, Input, Select, Textarea } from "@/components/ui/form";
 
-const GRADE_BG: Record<Grade, string> = { 10: "from-cyan/25", 11: "from-blue/25", 12: "from-violet/25" };
-
-function useCourseStats(c: Course) {
-  const { d } = useSessionData();
-  const lessons = allLessons(c);
-  const students = d.classes.filter((x) => c.classIds.includes(x.id)).flatMap((x) => classStudents(d, x.id));
-  const pct = students.map((s) => courseCompletion(c, { progress: d.courseProgress.find((p) => p.studentId === s.id && p.courseId === c.id), practiceAttempts: d.practiceAttempts, studentId: s.id }).percent);
-  return {
-    chapters: c.topics.length,
-    lessons: lessons.length,
-    sims: lessons.reduce((n, l) => n + l.blocks.filter((b) => b.kind === "simulation").length, 0),
-    tests: lessons.filter((l) => finalTest(l)).length,
-    students: students.length,
-    avg: pct.length ? Math.round(pct.reduce((a, b) => a + b, 0) / pct.length) : 0,
-  };
-}
-
-function CourseCard({ c }: { c: Course }) {
-  const { d, user } = useSessionData();
-  const s = useCourseStats(c);
-  const classes = d.classes.filter((x) => c.classIds.includes(x.id));
-  return (
-    <li className={cn("flex flex-col rounded-3xl border border-line bg-surface bg-gradient-to-br via-surface to-surface p-5 transition-all hover:-translate-y-0.5 hover:shadow-lg", GRADE_BG[c.grade])}>
-      <div className="flex items-start gap-3">
-        <span className="grid size-12 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-[#22d3ee] to-[#4f7fff] text-lg font-extrabold text-[#04111f]">{c.grade}</span>
-        <div className="min-w-0 flex-1">
-          <p className="text-lg font-bold leading-snug text-fg">{c.title}</p>
-          <p className="mt-0.5 flex flex-wrap items-center gap-1 text-sm text-muted">
-            Tin học {c.grade} <ArrowRight className="size-3.5" aria-hidden />
-            {classes.length ? classes.map((x) => <span key={x.id} className="rounded-md bg-fg px-1.5 py-0.5 text-xs font-bold text-bg">{x.name}</span>) : <span className="italic">chưa chọn lớp</span>}
-          </p>
-        </div>
-        {c.status === "published" ? <Badge tone="success">Đang dạy</Badge> : <Badge>Bản nháp</Badge>}
-      </div>
-      <ul className="mt-4 grid grid-cols-4 gap-2 text-center">
-        {[{ icon: Layers, n: s.chapters, l: "chương" }, { icon: BookOpen, n: s.lessons, l: "bài" }, { icon: FlaskConical, n: s.sims, l: "mô phỏng" }, { icon: ClipboardCheck, n: s.tests, l: "bài KT" }].map((x) => (
-          <li key={x.l} className="rounded-xl bg-bg/70 px-1 py-2"><x.icon className="mx-auto size-4 text-muted" aria-hidden /><b className="block text-base tabular-nums text-fg">{x.n}</b><span className="text-[11px] text-muted">{x.l}</span></li>
-        ))}
-      </ul>
-      {c.status === "published" && (
-        <div className="mt-4">
-          <div className="mb-1 flex justify-between text-xs"><span className="text-muted"><Users className="mr-1 inline size-3.5" aria-hidden />{s.students} học sinh · tiến độ trung bình</span><b className="tabular-nums text-fg">{s.avg}%</b></div>
-          <div className="h-2 rounded-full bg-surface-2"><div className="h-full rounded-full bg-success" style={{ width: `${s.avg}%` }} /></div>
-        </div>
-      )}
-      <p className="mt-3 text-xs text-muted">Cập nhật {formatDate(c.updatedAt, true)}{c.sequential ? " · học lần lượt" : ""}</p>
-      <div className="mt-auto flex flex-wrap gap-2 pt-4">
-        <Button asChild size="sm"><Link href={`/teacher/courses/${c.id}`}>Mở chương trình</Link></Button>
-        {c.status === "published" && <Button asChild size="sm" variant="secondary"><Link href={`/teacher/courses/${c.id}?xem=tien-do`}>Tiến độ học sinh</Link></Button>}
-        <Button size="sm" variant="ghost" className="ml-auto" onClick={() => { if (window.confirm(`Xóa khóa học "${c.title}"? Tiến độ của học sinh cũng bị xóa.`)) { d.deleteCourse(c.id, user.id); toast.success("Đã xóa khóa học"); } }} aria-label={`Xóa ${c.title}`}><Trash2 /></Button>
-      </div>
-    </li>
-  );
-}
+const GRADE_BG: Record<Grade, string> = { 10: "from-[#22d3ee] to-[#4f7fff]", 11: "from-[#60a5fa] to-[#6366f1]", 12: "from-[#a78bfa] to-[#ec4899]" };
 
 export default function TeacherCoursesPage() {
   const { d, user } = useSessionData();
   const router = useRouter();
   const [open, setOpen] = useState(false);
+  const [q, setQ] = useState("");
   const courses = d.courses.filter((c) => c.ownerId === user.id);
-  const lessons = courses.reduce((n, c) => n + allLessons(c).length, 0);
-
+  const shown = courses.filter((c) => matchesQuery(q, c.title, c.description));
   return (
     <>
-      <PageHero variant="app" eyebrow="Khóa học · Quản lý quá trình học" icon={BookMarked} title="Xây chương trình," accent="tổ chức học theo tiến trình" description="Khóa học → Chương → Bài → Hoạt động (mô phỏng, thực hành) và Bài kiểm tra cuối bài. Phát hành cho lớp rồi theo dõi tiến độ từng em." actions={<Button onClick={() => setOpen(true)}><Plus /> Tạo khóa học</Button>} stats={[{ value: courses.length, label: "khóa học" }, { value: courses.filter((c) => c.status === "published").length, label: "đang dạy" }, { value: lessons, label: "bài học" }, { value: teacherClasses(d, user.id).length, label: "lớp phụ trách" }]} visual={<LabCollage slugs={["inside-computer-3d", "network-journey", "os-explorer", "smart-coding-city"]} hrefFor={(s) => `/labs/${s}`} />} />
-
-      <ol className="mb-8 grid gap-2 sm:grid-cols-2 lg:grid-cols-5" aria-label="Các bước">
-        {["Tạo khóa học, chọn lớp", "Tạo chương", "Thêm bài học", "Đính kèm mô phỏng, thêm bài kiểm tra", "Phát hành, theo dõi tiến độ"].map((t, i) => (
-          <li key={t} className="flex items-center gap-2 rounded-2xl border border-line bg-surface px-3 py-2.5 text-sm text-fg"><span className="grid size-7 shrink-0 place-items-center rounded-full bg-cyan/15 text-xs font-bold text-cyan-fg">{i + 1}</span>{t}</li>
-        ))}
-      </ol>
-
-      <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
-        <h2 className="text-2xl font-bold text-fg">Khóa học của tôi</h2>
-        <Button asChild variant="ghost" size="sm"><Link href="/teacher/sgk"><BookOpen /> SGK số (tham khảo)</Link></Button>
+      <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight text-fg">Khóa học</h1>
+          <p className="mt-1 text-muted">Quản lý nội dung và chương trình giảng dạy</p>
+        </div>
+        <Button onClick={() => setOpen(true)}><Plus /> Tạo khóa học</Button>
       </div>
       {courses.length === 0 ? (
-        <EmptyState icon={BookMarked} title="Chưa có khóa học" description="Tạo khóa học đầu tiên — có thể dựng sẵn chương, bài, mô phỏng và bài kiểm tra theo mục lục SGK rồi chỉnh tiếp." action={<Button onClick={() => setOpen(true)}><Plus /> Tạo khóa học</Button>} />
+        <EmptyState icon={BookMarked} title="Chưa có khóa học" description="Tạo khóa học → thêm module (bài học, mô phỏng, bài kiểm tra) → giao cho lớp. Có thể dựng sẵn module theo SGK." action={<Button onClick={() => setOpen(true)}><Plus /> Tạo khóa học</Button>} />
       ) : (
-        <ul className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">{courses.map((c) => <CourseCard key={c.id} c={c} />)}</ul>
+        <>
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+            <p className="text-sm font-medium text-muted">{courses.length} khóa học</p>
+            {courses.length > 4 && (
+              <label className="relative w-64">
+                <span className="sr-only">Tìm khóa học</span>
+                <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted" aria-hidden />
+                <Input className="h-9 pl-9" placeholder="Tìm khóa học…" value={q} onChange={(e) => setQ(e.target.value)} />
+              </label>
+            )}
+          </div>
+          <ul className="divide-y divide-line overflow-hidden rounded-2xl border border-line bg-surface">
+            {shown.map((c) => {
+              const classes = d.classes.filter((x) => c.classIds.includes(x.id)).map((x) => x.name);
+              const items = allLessons(c).reduce((n, l) => n + l.blocks.length, 0);
+              return (
+                <li key={c.id}>
+                  <Link href={`/teacher/courses/${c.id}`} className="group flex items-center gap-4 px-4 py-3.5 hover:bg-surface-2/50">
+                    <span className={cn("grid size-12 shrink-0 place-items-center rounded-xl bg-gradient-to-br text-white", GRADE_BG[c.grade])}><span className="text-center leading-none"><b className="block text-lg">{c.grade}</b><span className="text-[9px] font-semibold tracking-wider">TIN HỌC</span></span></span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate font-semibold text-fg">{c.title}</span>
+                      <span className="block truncate text-sm text-muted">{c.topics.length} module · {items} nội dung · {classes.length ? `Lớp ${classes.join(", ")}` : "chưa có lớp"}</span>
+                    </span>
+                    {c.status === "published" ? <Badge tone="success">Đang dạy</Badge> : <Badge>Bản nháp</Badge>}
+                    <ChevronRight className="size-5 shrink-0 text-muted transition-transform group-hover:translate-x-0.5" aria-hidden />
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </>
       )}
       <CreateCourseDialog open={open} onOpenChange={setOpen} onCreate={(input) => { const id = d.createCourse({ ...input, ownerId: user.id }); toast.success("Đã tạo khóa học"); router.push(`/teacher/courses/${id}`); }} />
     </>
@@ -122,7 +91,7 @@ function CreateCourseDialog({ open, onOpenChange, onCreate }: { open: boolean; o
   const fit = classes.filter((c) => c.grade === grade);
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent title="Tạo khóa học" description="Khóa học gắn với khối lớp và các lớp sẽ học. Có thể dựng sẵn chương → bài → hoạt động theo mục lục SGK.">
+      <DialogContent title="Tạo khóa học" description="Khóa học gắn với khối lớp và các lớp sẽ học. Có thể dựng sẵn module theo chủ đề SGK, sau đó thêm hoặc sắp xếp nội dung.">
         <form
           className="space-y-3"
           onSubmit={(e) => {
@@ -159,9 +128,9 @@ function CreateCourseDialog({ open, onOpenChange, onCreate }: { open: boolean; o
             )}
           </fieldset>
           <Field label="Mô tả" htmlFor="nc-desc"><Textarea id="nc-desc" rows={2} value={description} onChange={(e) => setDescription(e.target.value)} /></Field>
-          <Checkbox label={book === "kntt" ? "Dựng sẵn chương, bài, mô phỏng và bài kiểm tra cuối bài theo mục lục SGK" : "Dựng sẵn chủ đề và bài theo chương trình"} checked={scaffold} onChange={(e) => setScaffold(e.target.checked)} />
+          <Checkbox label={book === "kntt" ? "Dựng sẵn module theo chủ đề SGK (bài học, mô phỏng, bài kiểm tra)" : "Dựng sẵn chủ đề và bài theo chương trình"} checked={scaffold} onChange={(e) => setScaffold(e.target.checked)} />
           <Checkbox label="Học lần lượt: hoàn thành bài trước mới mở bài sau" checked={sequential} onChange={(e) => setSequential(e.target.checked)} />
-          <div className="flex justify-end pt-2"><Button type="submit"><Plus /> Tạo và mở chương trình</Button></div>
+          <div className="flex justify-end pt-2"><Button type="submit"><Plus /> Tạo khóa học</Button></div>
         </form>
       </DialogContent>
     </Dialog>

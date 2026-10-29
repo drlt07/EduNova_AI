@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Course, CourseProgress, PracticeAttempt } from "@/lib/domain/types";
-import { allLessons, courseCompletion, finalTest, isLessonDone, lessonCells, lessonStates, moveItem, newBlock, newLesson, newTopic, scaffoldTopics, validateForPublish, youtubeEmbed } from "@/lib/courses/course";
+import { allLessons, courseCompletion, finalTest, moduleItems, reorderModule, isLessonDone, lessonCells, lessonStates, moveItem, newBlock, newLesson, newTopic, scaffoldTopics, validateForPublish, youtubeEmbed } from "@/lib/courses/course";
 import { seedCourses } from "@/lib/data/courses-seed";
 import { buildSeed } from "@/lib/data/seed";
 import { studentClassIds } from "@/lib/store/scoped";
@@ -86,7 +86,7 @@ describe("Khóa học: soạn và phát hành", () => {
 describe("Khóa học: chương → bài → hoạt động, bài kiểm tra cuối bài", () => {
   it("dựng khung KNTT có tên chương, mô phỏng theo bài và bài kiểm tra cuối bài", () => {
     const topics = scaffoldTopics(10, "kntt");
-    expect(topics[0].title.startsWith("Chương 1.")).toBe(true);
+    expect(topics[0].title.startsWith("Module 1:")).toBe(true);
     const lessons = topics.flatMap((t) => t.lessons);
     expect(lessons.every((l) => l.sgkRef)).toBe(true);
     expect(lessons.filter((l) => finalTest(l)).length).toBeGreaterThan(25);
@@ -118,6 +118,20 @@ describe("Khóa học: chương → bài → hoạt động, bài kiểm tra cu�
     const quiz = ["s16", "s17", "s18"].map((s) => gradeCell(d, s, a("as-seed-t2-7"), now));
     expect(quiz.every((g) => g.status === "graded" || g.status === "missing")).toBe(true);
     expect(quiz.some((g) => g.status === "graded" && g.ratio! > 0)).toBe(true);
+  });
+});
+
+describe("Module", () => {
+  it("nội dung module có nhãn gọn và sắp xếp phẳng không mất khối", () => {
+    const t = scaffoldTopics(10, "kntt")[0];
+    const items = moduleItems(t);
+    expect(items[0].type).toBe("lesson");
+    expect(items[0].title.startsWith("Bài 1.")).toBe(true);
+    expect(items.some((i) => i.type === "test" && i.title.startsWith("Kiểm tra:"))).toBe(true);
+    const moved = reorderModule(t, 0, 3);
+    expect(moduleItems(moved).length).toBe(items.length);
+    expect(moduleItems(moved)[3].block.id).toBe(items[0].block.id);
+    expect(reorderModule(t, 0, 99)).toBe(t);
   });
 });
 
