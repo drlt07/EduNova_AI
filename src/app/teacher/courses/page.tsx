@@ -19,7 +19,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { EmptyState } from "@/components/ui/feedback";
 import { Checkbox, Field, Input, Select, Textarea } from "@/components/ui/form";
 
-const GRADE_BG: Record<Grade, string> = { 10: "from-[#ea580c] to-[#f59e0b]", 11: "from-[#e11d48] to-[#f97316]", 12: "from-[#c2410c] to-[#db2777]" };
+const GRADE_BG: Record<Grade, string> = { 10: "from-[#2563eb] to-[#38bdf8]", 11: "from-[#1d4ed8] to-[#4f46e5]", 12: "from-[#1e40af] to-[#0ea5e9]" };
 
 export default function TeacherCoursesPage() {
   const { d, user } = useSessionData();

@@ -26,7 +26,7 @@ export function MiniSimPreview({ href, title = "Thành phố giao thông · Tin 
           <span className="block text-sm font-semibold text-fg">{title}</span>
           <span className="block text-xs text-muted">{task}</span>
         </span>
-        <Link href={href} className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-[#22d3ee] to-[#4f7fff] px-3 py-1.5 text-xs font-semibold text-[#04111f] shadow-[0_0_20px_-6px_var(--cyan)] hover:brightness-110">
+        <Link href={href} className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-[#2563eb] to-[#0ea5e9] px-3 py-1.5 text-xs font-semibold text-white shadow-[0_0_20px_-6px_var(--cyan)] hover:brightness-110">
           <Play className="size-3.5" aria-hidden /> {cta}
         </Link>
       </figcaption>
@@ -110,7 +110,7 @@ export function StepTiles({ steps }: { steps: { title: string; text: string }[] 
     <ol className="grid gap-3">
       {steps.map((s, i) => (
         <li key={s.title} className="flex gap-3 rounded-2xl border border-line bg-surface/80 p-4 backdrop-blur">
-          <span className="grid size-8 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-[#22d3ee] to-[#4f7fff] font-bold text-[#04111f]">{i + 1}</span>
+          <span className="grid size-8 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-[#2563eb] to-[#0ea5e9] font-bold text-white">{i + 1}</span>
           <span><span className="block font-semibold text-fg">{s.title}</span><span className="block text-sm text-muted">{s.text}</span></span>
         </li>
       ))}

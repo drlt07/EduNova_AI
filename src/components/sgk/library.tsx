@@ -37,7 +37,7 @@ export function SgkLibrary({ role }: { role: Role }) {
   return <Shelf role={role} />;
 }
 
-const GRADE_BG: Record<Grade, string> = { 10: "from-[#ea580c] to-[#f59e0b]", 11: "from-[#e11d48] to-[#f97316]", 12: "from-[#c2410c] to-[#db2777]" };
+const GRADE_BG: Record<Grade, string> = { 10: "from-[#2563eb] to-[#38bdf8]", 11: "from-[#1d4ed8] to-[#4f46e5]", 12: "from-[#1e40af] to-[#0ea5e9]" };
 
 /** Bài học theo khối: Tin học 10/11/12 → chủ đề → bài, trong bài có mô phỏng và câu hỏi luyện tập. */
 function Shelf({ role }: { role: Role }) {
@@ -99,7 +99,7 @@ function Shelf({ role }: { role: Role }) {
         })}
         {!teacher && <li>
           <Link href="/thuat-toan" className="group flex h-full flex-col overflow-hidden rounded-2xl border border-line bg-surface shadow-sm transition-all hover:-translate-y-1 hover:shadow-xl hover:shadow-slate-900/10">
-            <div className="grid h-36 grid-cols-4 content-center gap-2 bg-gradient-to-br from-[#b45309] to-[#f59e0b] p-4">{(["bubble", "bfs", "dijkstra", "knapsack"] as const).map((id) => <AlgoThumb key={id} id={id} className="h-auto w-full rounded-md bg-white/90" />)}</div>
+            <div className="grid h-36 grid-cols-4 content-center gap-2 bg-gradient-to-br from-[#1e3a8a] to-[#3b82f6] p-4">{(["bubble", "bfs", "dijkstra", "knapsack"] as const).map((id) => <AlgoThumb key={id} id={id} className="h-auto w-full rounded-md bg-white/90" />)}</div>
             <div className="flex flex-1 flex-col p-5">
               <h2 className="text-lg font-bold text-fg">Chuyên đề HSG</h2>
               <p className="mt-1 text-sm text-muted">{ALGO_IDS.length} thuật toán chạy từng bước, đoán bước tiếp theo.</p>

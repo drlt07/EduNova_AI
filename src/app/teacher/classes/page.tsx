@@ -32,7 +32,7 @@ export default function ClassesPage() {
               <li key={c.id}>
                 <Link href={`/teacher/classes/${c.id}`} className="group flex h-full flex-col rounded-2xl border border-line bg-surface p-5 transition-colors hover:border-cyan/50">
                   <div className="flex items-start gap-4">
-                    <span className="grid size-14 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-[#ea580c] to-[#f59e0b] text-xl font-extrabold text-white">{c.grade}</span>
+                    <span className="grid size-14 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-[#2563eb] to-[#38bdf8] text-xl font-extrabold text-white">{c.grade}</span>
                     <div className="min-w-0 flex-1">
                       <p className="text-2xl font-bold text-fg group-hover:text-cyan-fg">{c.name}</p>
                       <p className="text-sm text-muted">Tin học {c.grade} · {classStudents(d, c.id).length} em</p>

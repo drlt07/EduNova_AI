@@ -1,9 +1,9 @@
 import { cn } from "@/lib/utils";
 
 const TONE = {
-  cyan: { icon: "from-[#22d3ee] to-[#4f7fff]", text: "from-[#0891b2] to-[#4f7fff]" },
-  violet: { icon: "from-[#a855f7] to-[#4f7fff]", text: "from-[#9333ea] to-[#4f7fff]" },
-  emerald: { icon: "from-[#34d399] to-[#0d9488]", text: "from-[#059669] to-[#0d9488]" },
+  cyan: { icon: "from-[#0ea5e9] to-[#2563eb]", text: "from-[#0369a1] to-[#2563eb]" },
+  violet: { icon: "from-[#4f46e5] to-[#2563eb]", text: "from-[#4338ca] to-[#2563eb]" },
+  emerald: { icon: "from-[#38bdf8] to-[#1d4ed8]", text: "from-[#0369a1] to-[#1d4ed8]" },
 } as const;
 
 /** Đầu trang gọn: biểu tượng tròn, tiêu đề màu và một dòng mô tả; thao tác chính bên phải. */

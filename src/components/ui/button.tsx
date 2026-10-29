@@ -15,7 +15,7 @@ export const buttonVariants = cva(
         outline: "border border-line bg-transparent text-fg hover:bg-surface-2",
         ghost: "text-muted hover:text-fg hover:bg-surface-2",
         danger: "bg-danger/15 text-danger-fg border border-danger/30 hover:bg-danger/25",
-        violet: "bg-gradient-to-r from-[#be123c] to-[#c2410c] text-white hover:brightness-110",
+        violet: "bg-gradient-to-r from-[#1d4ed8] to-[#4f46e5] text-white hover:brightness-110",
         /** Nút chính kiểu tối giản cho trang công khai: nền chữ đậm, không gradient, không phát sáng */
         ink: "bg-fg text-bg hover:bg-fg/85",
       },

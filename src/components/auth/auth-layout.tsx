@@ -37,13 +37,13 @@ export function AuthLayout({ eyebrow, title, subtitle, foot, children }: { eyebr
 /** Mô phỏng 3D "Giao lộ thông minh" chạy thật (xe dừng đèn đỏ, đèn tự chuyển), khung tông cam của EduNova. */
 function TrafficScene() {
   return (
-    <div className="relative h-full overflow-hidden rounded-[28px] bg-gradient-to-br from-[#ffedd5] via-[#fff7ed] to-[#fde68a]/60">
-      <HeroTraffic className="absolute inset-0 h-full w-full bg-[#ffe8cc]" />
-      <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-56 bg-gradient-to-b from-[#fff7ed] via-[#fff7ed]/80 to-transparent" />
+    <div className="relative h-full overflow-hidden rounded-[28px] bg-gradient-to-br from-[#dbeafe] via-[#eff6ff] to-[#e0f2fe]">
+      <HeroTraffic className="absolute inset-0 h-full w-full bg-[#cfe9ff]" />
+      <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-56 bg-gradient-to-b from-[#eff6ff] via-[#eff6ff]/80 to-transparent" />
       <div className="pointer-events-none absolute left-0 right-0 top-0 p-10">
-        <p className="inline-flex items-center gap-2 rounded-full bg-white/90 px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] text-[#c2410c] shadow-sm">Tin học 10 · Câu lệnh rẽ nhánh if</p>
+        <p className="inline-flex items-center gap-2 rounded-full bg-white/90 px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] text-blue-700 shadow-sm">Tin học 10 · Câu lệnh rẽ nhánh if</p>
         <p className="mt-4 text-[30px] font-bold leading-tight text-slate-900">Đèn đỏ thì dừng,<br /><span className="text-gradient">đèn xanh thì đi.</span></p>
-        <p className="mt-2 max-w-sm text-sm text-slate-700">Giao lộ 3D này chạy bằng chính câu lệnh <code className="rounded bg-white/80 px-1 font-mono text-[13px] text-[#c2410c]">if</code> em học: mỗi xe tự kiểm tra đèn trước vạch dừng.</p>
+        <p className="mt-2 max-w-sm text-sm text-slate-700">Giao lộ 3D này chạy bằng chính câu lệnh <code className="rounded bg-white/80 px-1 font-mono text-[13px] text-blue-700">if</code> em học: mỗi xe tự kiểm tra đèn trước vạch dừng.</p>
       </div>
     </div>
   );

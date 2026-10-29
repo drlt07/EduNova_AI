@@ -20,7 +20,7 @@ export function AuthField({ label, htmlFor, error, hint, icon: Icon, children }:
 
 export function AuthSubmit({ children, disabled, className }: { children: React.ReactNode; disabled?: boolean; className?: string }) {
   return (
-    <button type="submit" disabled={disabled} className={cn("inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#e11d48] to-[#ea580c] text-[15px] font-bold text-white shadow-lg shadow-rose-500/25 transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-rose-400/40 disabled:opacity-60", className)}>
+    <button type="submit" disabled={disabled} className={cn("inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-brand text-[15px] font-bold text-brand-ink shadow-lg shadow-brand/25 transition hover:bg-brand-hover focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand/30 disabled:opacity-60", className)}>
       {children}
     </button>
   );

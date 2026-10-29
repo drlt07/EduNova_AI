@@ -33,13 +33,13 @@ type Role = "teacher" | "student";
 type TabId = "noi-dung" | "mo-phong" | "cau-hoi" | "lap-trinh" | "nhiem-vu" | "luyen-tap";
 const TAB_META: Record<TabId, { label: string; icon: React.ComponentType<{ className?: string }>; on: string }> = {
   "noi-dung": { label: "Kiến thức", icon: FileText, on: "bg-brand text-brand-ink" },
-  "mo-phong": { label: "Mô phỏng", icon: FlaskConical, on: "bg-violet-600 text-white" },
-  "cau-hoi": { label: "Luyện tập", icon: ListChecks, on: "bg-emerald-600 text-white" },
-  "lap-trinh": { label: "Lập trình", icon: Code2, on: "bg-slate-800 text-white" },
-  "luyen-tap": { label: "Luyện tập", icon: ListChecks, on: "bg-emerald-600 text-white" },
-  "nhiem-vu": { label: "Đã giao & kết quả", icon: ClipboardList, on: "bg-slate-800 text-white" },
+  "mo-phong": { label: "Mô phỏng", icon: FlaskConical, on: "bg-brand text-brand-ink" },
+  "cau-hoi": { label: "Luyện tập", icon: ListChecks, on: "bg-brand text-brand-ink" },
+  "lap-trinh": { label: "Lập trình", icon: Code2, on: "bg-brand text-brand-ink" },
+  "luyen-tap": { label: "Luyện tập", icon: ListChecks, on: "bg-brand text-brand-ink" },
+  "nhiem-vu": { label: "Đã giao & kết quả", icon: ClipboardList, on: "bg-brand text-brand-ink" },
 };
-const GRADE_BG: Record<number, string> = { 10: "from-[#ea580c] to-[#f59e0b]", 11: "from-[#e11d48] to-[#f97316]", 12: "from-[#c2410c] to-[#db2777]" };
+const GRADE_BG: Record<number, string> = { 10: "from-[#2563eb] to-[#38bdf8]", 11: "from-[#1d4ed8] to-[#4f46e5]", 12: "from-[#1e40af] to-[#0ea5e9]" };
 /** Mỗi bài: Kiến thức · Mô phỏng · Luyện tập (gồm câu hỏi và lập trình); giáo viên có thêm tab hoạt động đã giao và kết quả. */
 const TEACHER_TABS: TabId[] = ["noi-dung", "mo-phong", "luyen-tap", "nhiem-vu"];
 const STUDENT_TABS: TabId[] = ["noi-dung", "mo-phong", "luyen-tap"];
@@ -214,13 +214,13 @@ export function BookReader({ refId, role }: { refId: string; role: Role }) {
           {teacher && picks.size > 0 && <PickedStrip e={e} picks={picks} onPresent={content ? () => setPresent(true) : undefined} />}
           {content ? (
             <>
-              <section className="rounded-2xl border border-orange-500/25 bg-orange-500/5 p-4">
-                <h2 className="flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-orange-700 dark:text-orange-300"><Target className="size-4" aria-hidden /> Yêu cầu cần đạt</h2>
+              <section className="rounded-2xl border border-blue-500/25 bg-blue-500/5 p-4">
+                <h2 className="flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-blue-700 dark:text-blue-300"><Target className="size-4" aria-hidden /> Yêu cầu cần đạt</h2>
                 <ol className="mt-3 space-y-2 text-sm text-fg">{content.objectives.map((o, i) => <li key={o} className="flex gap-2.5"><span className="grid size-6 shrink-0 place-items-center rounded-full bg-brand text-xs font-bold text-brand-ink">{i + 1}</span><span className="pt-0.5">{o}</span></li>)}</ol>
               </section>
-              <section className="mt-4 flex gap-3 rounded-2xl border border-amber-400/30 bg-gradient-to-br from-amber-400/15 to-orange-400/5 p-4">
-                <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-amber-500 text-lg text-white" aria-hidden>💡</span>
-                <div><h2 className="text-sm font-bold uppercase tracking-wide text-amber-700 dark:text-amber-300">Khởi động</h2>
+              <section className="mt-4 flex gap-3 rounded-2xl border border-sky-400/30 bg-gradient-to-br from-sky-400/15 to-blue-400/5 p-4">
+                <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-sky-500 text-lg text-white" aria-hidden>💡</span>
+                <div><h2 className="text-sm font-bold uppercase tracking-wide text-sky-700 dark:text-sky-300">Khởi động</h2>
                 <p className="mt-1 text-lg leading-relaxed text-fg"><Rich text={content.warmUp} /></p></div>
               </section>
 
@@ -241,18 +241,18 @@ export function BookReader({ refId, role }: { refId: string; role: Role }) {
               })}
 
               <section className="py-6">
-                <h2 className="flex items-center gap-2 text-xl font-bold text-fg"><ListChecks className="size-5 text-emerald-600" aria-hidden /> Luyện tập</h2>
+                <h2 className="flex items-center gap-2 text-xl font-bold text-fg"><ListChecks className="size-5 text-blue-fg" aria-hidden /> Luyện tập</h2>
                 <ol className="mt-3 space-y-3">
                   {content.practice.map((p, i) => (
-                    <li key={i} className="rounded-xl border border-emerald-500/25 bg-emerald-500/5 p-4">
+                    <li key={i} className="rounded-xl border border-blue-500/20 bg-blue-500/5 p-4">
                       <p className="text-fg"><span className="font-semibold">Bài {i + 1}.</span> <Rich text={p.task} /></p>
                       {p.hint && <details className="mt-2 text-sm" open={teacher}><summary className="cursor-pointer font-medium text-cyan-fg">Gợi ý</summary><p className="mt-1 text-fg"><Rich text={p.hint} /></p></details>}
                       {p.answer && <details className="mt-2 text-sm" open={teacher}><summary className="cursor-pointer font-medium text-cyan-fg">{teacher ? "Đáp án" : "Xem lời giải"}</summary><pre className="mt-1 overflow-x-auto whitespace-pre-wrap rounded-lg bg-surface-2 p-3 font-mono text-xs text-fg">{p.answer}</pre></details>}
                     </li>
                   ))}
                 </ol>
-                <div className="mt-6 rounded-2xl border border-violet-500/25 bg-violet-500/5 p-4">
-                  <h2 className="text-lg font-bold text-violet-700 dark:text-violet-300">Vận dụng</h2>
+                <div className="mt-6 rounded-2xl border border-indigo-500/25 bg-indigo-500/5 p-4">
+                  <h2 className="text-lg font-bold text-indigo-700 dark:text-indigo-300">Vận dụng</h2>
                   <p className="mt-1 leading-7 text-fg/90"><Rich text={content.apply} /></p>
                 </div>
                 <div className="mt-4 rounded-2xl border border-cyan/40 bg-gradient-to-br from-cyan/10 to-transparent p-4">
@@ -402,7 +402,7 @@ function TaughtStrip({ e }: { e: BookEntry }) {
 function ReadStrip({ read, total }: { read: number; total: number }) {
   return (
     <div className="mt-3 flex items-center gap-3 text-sm">
-      <div className="h-2 w-44 overflow-hidden rounded-full border border-line bg-surface"><div className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-cyan-500" style={{ width: `${(read / total) * 100}%` }} /></div>
+      <div className="h-2 w-44 overflow-hidden rounded-full border border-line bg-surface"><div className="h-full rounded-full bg-gradient-to-r from-blue-600 to-sky-400" style={{ width: `${(read / total) * 100}%` }} /></div>
       <span className="font-medium text-fg">Đã đọc {read}/{total} mục{read === total ? " 🎉" : ""}</span>
     </div>
   );

@@ -37,7 +37,7 @@ export default function StudentCoursesPage() {
       <section aria-labelledby="sgk-book-h" className="mb-8">
         <h2 id="sgk-book-h" className="mb-3 flex items-center gap-2 text-lg font-semibold text-fg"><BookOpen className="size-5 text-cyan-fg" aria-hidden /> Khóa học Tin học {grade}</h2>
         <Link href={`/student/sgk?lop=${grade}`} className="group flex items-center gap-4 rounded-2xl border border-line bg-surface p-4 transition-colors hover:border-cyan/40">
-          <span className="grid size-16 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-[#2563eb] to-[#06b6d4] text-2xl font-extrabold text-white">{grade}</span>
+          <span className="grid size-16 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-[#2563eb] to-[#38bdf8] text-2xl font-extrabold text-white">{grade}</span>
           <div className="min-w-0 flex-1">
             <p className="font-semibold text-fg">Tin học {grade}</p>
             <p className="text-sm text-muted">Học từng bài, làm mô phỏng và câu hỏi luyện tập nhiều dạng ngay trong bài.</p>

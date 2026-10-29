@@ -40,7 +40,7 @@ export function SiteHeader() {
           {NAV.map((n) => {
             const active = isActive(pathname, n);
             return n.featured ? (
-              <Link key={n.href} href={n.href} aria-current={active ? "page" : undefined} className={cn("mx-1 inline-flex items-center gap-1.5 rounded-full border border-orange-400/50 bg-orange-500/10 px-3.5 py-1.5 text-sm font-semibold text-blue-fg transition-colors hover:bg-orange-500/20", active && "bg-orange-500/20 ring-1 ring-orange-400/50")}>
+              <Link key={n.href} href={n.href} aria-current={active ? "page" : undefined} className={cn("mx-1 inline-flex items-center gap-1.5 rounded-full border border-blue-500/30 bg-blue-500/10 px-3.5 py-1.5 text-sm font-semibold text-blue-fg transition-colors hover:bg-blue-500/15", active && "bg-blue-500/15 ring-1 ring-blue-500/40")}>
                 <Gamepad2 className="size-4" aria-hidden /> {n.label}
               </Link>
             ) : (

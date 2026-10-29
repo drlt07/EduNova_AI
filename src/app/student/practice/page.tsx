@@ -21,11 +21,11 @@ type Status = "new" | "doing" | "done";
 interface Tile { id: string; kind: Kind; title: string; sub: string; href: string; status: Status; result?: string; group: string; due?: string }
 
 const KIND: Record<Kind, { label: string; icon: React.ComponentType<{ className?: string }>; bg: string }> = {
-  quiz: { label: "Trắc nghiệm", icon: ListChecks, bg: "from-[#ea580c] to-[#f59e0b]" },
-  proc: { label: "Trắc nghiệm + thao tác", icon: MousePointerClick, bg: "from-[#0d9488] to-[#22c55e]" },
+  quiz: { label: "Trắc nghiệm", icon: ListChecks, bg: "from-[#2563eb] to-[#38bdf8]" },
+  proc: { label: "Trắc nghiệm + thao tác", icon: MousePointerClick, bg: "from-[#0369a1] to-[#0ea5e9]" },
   code: { label: "Lập trình Python", icon: Code2, bg: "from-[#1e293b] to-[#475569]" },
-  teacher: { label: "Thầy cô soạn", icon: ClipboardList, bg: "from-[#7c3aed] to-[#db2777]" },
-  mission: { label: "Nhiệm vụ", icon: FlaskConical, bg: "from-[#ea580c] to-[#f59e0b]" },
+  teacher: { label: "Thầy cô soạn", icon: ClipboardList, bg: "from-[#4338ca] to-[#6366f1]" },
+  mission: { label: "Nhiệm vụ", icon: FlaskConical, bg: "from-[#1e40af] to-[#3b82f6]" },
 };
 const STATUS: Record<Status, { label: string; cls: string }> = {
   new: { label: "Chưa làm", cls: "bg-white/90 text-slate-700" },
@@ -81,10 +81,10 @@ function PracticeHub() {
     <>
       <SectionHead icon={Dumbbell} title="Luyện tập" subtitle="Bài tập thầy cô đã mở cho lớp em. Bấm vào một ô để bắt đầu." actions={<><Button asChild variant="secondary"><Link href="/student/code?bai=tu-do"><Terminal /> Sân chơi Python</Link></Button><Button asChild variant="ghost"><Link href="/student/code?che-do=web"><Globe /> HTML/CSS</Link></Button></>} />
 
-      <section className="mb-6 flex flex-wrap items-center gap-4 rounded-2xl border border-line bg-gradient-to-r from-brand/10 via-cyan/5 to-emerald-500/10 p-4">
+      <section className="mb-6 flex flex-wrap items-center gap-4 rounded-2xl border border-line bg-gradient-to-r from-brand/10 via-cyan/5 to-transparent p-4">
         <div className="min-w-0 flex-1 basis-60">
           <p className="font-semibold text-fg">Em đã xong {done}/{all.length} bài tập</p>
-          <div className="mt-2 h-2.5 max-w-md overflow-hidden rounded-full bg-surface-2"><div className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-cyan-500" style={{ width: `${all.length ? (done / all.length) * 100 : 0}%` }} /></div>
+          <div className="mt-2 h-2.5 max-w-md overflow-hidden rounded-full bg-surface-2"><div className="h-full rounded-full bg-gradient-to-r from-blue-600 to-sky-400" style={{ width: `${all.length ? (done / all.length) * 100 : 0}%` }} /></div>
         </div>
         <div className="flex flex-wrap gap-1 rounded-xl bg-surface p-1 text-sm shadow-sm" role="group" aria-label="Lọc theo trạng thái">
           {FILTERS.map(([f, l]) => {
@@ -96,7 +96,7 @@ function PracticeHub() {
 
       {shownMissions.length > 0 && (
         <section aria-labelledby="giao-h" className="mb-8">
-          <h2 id="giao-h" className="mb-3 flex items-center gap-2 text-lg font-bold text-fg"><CalendarClock className="size-5 text-orange-500" aria-hidden /> Thầy cô giao, có hạn nộp</h2>
+          <h2 id="giao-h" className="mb-3 flex items-center gap-2 text-lg font-bold text-fg"><CalendarClock className="size-5 text-blue-fg" aria-hidden /> Thầy cô giao, có hạn nộp</h2>
           <TileGrid tiles={shownMissions} />
         </section>
       )}

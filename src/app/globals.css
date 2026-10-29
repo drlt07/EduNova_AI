@@ -4,7 +4,7 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  /* Bảng màu sáng, sạch: nền slate, thẻ trắng, xanh dương làm màu chính (theo bản giao diện AI Studio) */
+  /* Bảng màu sáng, sạch: nền slate, thẻ trắng, xanh dương làm màu chính; điểm nhấn chỉ dùng họ xanh (xanh trời, chàm) */
   --bg: #f8fafc;
   --surface: #ffffff;
   --surface-2: #f1f5f9;
@@ -12,22 +12,22 @@
   --line: #e2e8f0;
   --fg: #0f172a;
   --muted: #64748b;
-  --cyan: #06b6d4;
-  --blue: #f97316;
-  --violet: #7c3aed;
+  --cyan: #0ea5e9;
+  --blue: #2563eb;
+  --violet: #4f46e5;
   --success: #059669;
   --warning: #d97706;
   --danger: #e11d48;
-  --ring: #ea580c;
-  /* màu thương hiệu (tông cam theo logo): nút chính, trạng thái đang chọn (chữ trắng trên nền 4.5:1) */
-  --brand: #d2480a;
-  --brand-hover: #b93d0a;
+  --ring: #2563eb;
+  /* màu thương hiệu: một họ xanh dương duy nhất (xanh dương · xanh trời · chàm), chữ trắng trên nền ≥ 4.5:1 */
+  --brand: #2563eb;
+  --brand-hover: #1d4ed8;
   --brand-ink: #ffffff;
   --grid: rgba(15, 23, 42, 0.04);
   /* màu chữ trên nền sáng: tương phản ≥ 4.5:1 */
-  --cyan-fg: #0e7490;
-  --blue-fg: #c2410c;
-  --violet-fg: #6d28d9;
+  --cyan-fg: #0369a1;
+  --blue-fg: #1d4ed8;
+  --violet-fg: #4338ca;
   --success-fg: #047857;
   --warning-fg: #b45309;
   --danger-fg: #be123c;
@@ -43,21 +43,21 @@
   --line: #1e293b;
   --fg: #f1f5f9;
   --muted: #94a3b8;
-  --cyan: #22d3ee;
-  --blue: #fb923c;
-  --violet: #a78bfa;
+  --cyan: #38bdf8;
+  --blue: #60a5fa;
+  --violet: #818cf8;
   --success: #34d399;
   --warning: #fbbf24;
   --danger: #fb7185;
-  --ring: #fb923c;
-  --brand: #fb923c;
-  --brand-hover: #fdba74;
+  --ring: #60a5fa;
+  --brand: #60a5fa;
+  --brand-hover: #93c5fd;
   --brand-ink: #0b1120;
   --grid: rgba(148, 163, 184, 0.06);
   /* màu chữ trên nền tối: tương phản ≥ 4.5:1 */
-  --cyan-fg: #22d3ee;
-  --blue-fg: #fdba74;
-  --violet-fg: #c4b5fd;
+  --cyan-fg: #7dd3fc;
+  --blue-fg: #93c5fd;
+  --violet-fg: #a5b4fc;
   --success-fg: #34d399;
   --warning-fg: #fbbf24;
   --danger-fg: #fb7185;
@@ -124,7 +124,7 @@ body {
 }
 
 .text-gradient {
-  background: linear-gradient(100deg, #e11d48, #ea580c 50%, #f59e0b);
+  background: linear-gradient(100deg, #1d4ed8, #2563eb 45%, #0ea5e9);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
