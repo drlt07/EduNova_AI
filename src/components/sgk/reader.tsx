@@ -15,6 +15,7 @@ import { fmtScore, labSummary } from "@/lib/sim/lab-score";
 import { teacherClasses, assignedStudents, studentClassIds } from "@/lib/store/scoped";
 import { useSessionData } from "@/lib/store/use-role";
 import { taskOutcome } from "@/lib/teacher/assign";
+import { missionStatus } from "@/lib/store/student";
 import { cn, formatDate } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/form";
@@ -287,6 +288,7 @@ export function BookReader({ refId, role }: { refId: string; role: Role }) {
 
       {tab !== "noi-dung" && (
         <div className="mt-6 max-w-4xl">
+          {tab === "mo-phong" && !teacher && <SimMissions e={e} />}
           {tab === "mo-phong" && (teacher ? <LessonLabsTab refId={refId} inline={lessonSimSlugs(e)} /> : allSims.length ? <LessonSims labs={allSims.map((s) => getLabBySlug(s)).filter((l): l is NonNullable<typeof l> => !!l)} studentId={user.id} /> : <EmptyState icon={FlaskConical} title="Chưa có mô phỏng được giao" description="Khi thầy cô giao mô phỏng của bài này cho lớp, em sẽ làm ngay tại đây." />)}
           {tab === "cau-hoi" && <><ContentChecks e={e} onOpen={() => setTab("noi-dung")} /><LessonQuizTab refId={refId} /></>}
           {tab === "lap-trinh" && <LessonCodeTab refId={refId} />}
@@ -315,6 +317,32 @@ function studentPractice(d: DemoData, userId: string, e: BookEntry, can: (key: s
   const sets = setsForLesson(e.ref, e.lesson.key).filter((s) => can(setKey(s.id))).map((s) => ({ id: s.id, title: s.title, n: s.questionIds.length, mine: false, kinds: kinds(s.questionIds.map(getQuestion).filter((q): q is PracticeQuestion => !!q).map((q) => q.kind)) }));
   const tq = d.teacherQuizzes.filter((q) => q.sgkRef === e.ref && q.status === "published" && q.classIds.some((c) => classIds.includes(c))).map((q) => ({ id: q.id, title: q.title, n: q.questions.length, mine: true, kinds: kinds(q.questions.map((x) => x.kind)) }));
   return [...tq, ...sets];
+}
+
+/** Mô phỏng thầy cô giao thành nhiệm vụ ở bài này: hạn, trạng thái, nút làm. */
+function SimMissions({ e }: { e: BookEntry }) {
+  const { d, user } = useSessionData();
+  const tasks = studentLessonTasks(d, user.id, e).filter((a) => a.task?.kind === "lab");
+  if (!tasks.length) return null;
+  return (
+    <ul className="mb-5 space-y-2">
+      {tasks.map((a) => {
+        const o = taskOutcome(d, user.id, a);
+        const late = !o.done && missionStatus(d, user.id, a) === "overdue";
+        return (
+          <li key={a.id} className={cn("flex flex-wrap items-center gap-3 rounded-2xl border p-4", o.done ? "border-success/40 bg-success/5" : late ? "border-danger/40 bg-danger/5" : "border-brand/40 bg-brand/5")}>
+            <ClipboardList className={cn("size-5 shrink-0", o.done ? "text-success-fg" : late ? "text-danger-fg" : "text-blue-fg")} aria-hidden />
+            <span className="min-w-0 flex-1">
+              <span className="block text-xs font-semibold uppercase tracking-wide text-muted">Nhiệm vụ thầy cô giao</span>
+              <span className="block font-semibold text-fg">{a.title}</span>
+              <span className="block text-sm text-muted">{o.done ? `Đã hoàn thành · ${o.text}` : `${late ? "Quá hạn" : "Hạn"} ${formatDate(a.dueAt, true)}`}{a.note ? ` · ${a.note}` : ""}</span>
+            </span>
+            <Button asChild size="sm" variant={o.done ? "secondary" : "primary"}><Link href={`/student/missions/${a.id}`}>{o.done ? "Làm lại" : "Làm nhiệm vụ"}</Link></Button>
+          </li>
+        );
+      })}
+    </ul>
+  );
 }
 
 function studentCode(e: BookEntry, can: (key: string) => boolean) {

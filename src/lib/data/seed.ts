@@ -44,7 +44,7 @@ import { compileRule, gardenTestCases, runRule, runTests } from "@/lib/sim/smart
 import { SEED_CLASSES, SEED_ENROLLMENTS, SEED_USERS } from "./people";
 import { seedCourses } from "./courses-seed";
 import { seedHistory } from "./seed-history";
-import { codeKey, gradeLessons, labKey, lessonItems, lessonKey, setKey, type Unlock } from "@/lib/access/unlocks";
+import { codeKey, gradeLessons, lessonItems, lessonKey, setKey, type Unlock } from "@/lib/access/unlocks";
 
 /** Dữ liệu demo: lượt hỏi AI Gia sư của lớp 10A1 (chỉ dữ liệu tổng hợp, không có nội dung tin nhắn). */
 function seedTutorEvents(at: (days: number, hours?: number) => string): TutorEvent[] {
@@ -156,7 +156,7 @@ function seedUnlocks(at: string): Unlock[] {
   const plan: [string, 10 | 11 | 12, number, number][] = [["c-10a1", 10, 20, 19], ["c-11a2", 11, 3, 2], ["c-12a3", 12, 3, 1]];
   return plan.flatMap(([classId, grade, lessons, practice]) => gradeLessons(grade).slice(0, lessons).flatMap((x, i) => {
     const keys = [lessonKey(x.ref)];
-    if (i < practice) { const it = lessonItems(x.ref, x.lesson.key); keys.push(...it.sets.map((s) => setKey(s.id)), ...it.code.map((c) => codeKey(c.id)), ...it.labs.map(labKey)); }
+    if (i < practice) { const it = lessonItems(x.ref, x.lesson.key); keys.push(...it.sets.map((s) => setKey(s.id)), ...it.code.map((c) => codeKey(c.id))); }
     return keys.map((key) => ({ classId, key, by: "t1", at }));
   })).filter((u, i, arr) => arr.findIndex((v) => v.classId === u.classId && v.key === u.key) === i);
 }
@@ -437,7 +437,10 @@ export function buildSeed(now: Date = new Date()): DemoData {
     rubrics: [rubric],
     activities: [activity],
     activityDrafts: [],
-    assignments: [assignment, { id: "as-seed-os", ownerId: "t1", activityId: "", classId: "c-11a2", title: "Khám phá hệ điều hành", dueAt: at(2), hintMode: "guided", publishedAt: at(-2), status: "open", task: { kind: "lab", ref: "os-explorer" }, note: "Làm hết ba nhiệm vụ, chú ý phần cấp RAM cho tiến trình." }],
+    assignments: [assignment,
+      { id: "as-seed-bin", ownerId: "t1", activityId: "", classId: "c-10a1", title: "Mô phỏng: Phòng điều khiển mã nhị phân", dueAt: at(-2), hintMode: "guided", publishedAt: at(-30), status: "open", task: { kind: "lab", ref: "binary-control" }, sgkRef: "10-4", note: "Làm hết 5 thử thách, ghi lại vì sao 255 + 1 thành 0." },
+      { id: "as-seed-robot", ownerId: "t1", activityId: "", classId: "c-10a1", title: "Mô phỏng: Nhà máy robot tự động", dueAt: at(4), hintMode: "guided", publishedAt: at(-3), status: "open", task: { kind: "lab", ref: "robot-factory" }, sgkRef: "10-20", note: "Thử đếm ngược bằng step âm." },
+      { id: "as-seed-os", ownerId: "t1", activityId: "", classId: "c-11a2", title: "Khám phá hệ điều hành", dueAt: at(2), hintMode: "guided", publishedAt: at(-2), status: "open", task: { kind: "lab", ref: "os-explorer" }, note: "Làm hết ba nhiệm vụ, chú ý phần cấp RAM cho tiến trình." }],
     attempts,
     events,
     submissions,

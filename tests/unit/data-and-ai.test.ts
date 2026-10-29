@@ -54,7 +54,7 @@ describe("data scoping (RLS simulation)", () => {
   });
 
   it("students only see assignments of enrolled classes", () => {
-    expect(studentAssignments(d, "s1").map((a) => a.id)).toEqual(["as-seed-1"]);
+    expect(studentAssignments(d, "s1").map((a) => a.id).sort()).toEqual(["as-seed-1", "as-seed-bin", "as-seed-robot"]);
     expect(studentAssignments(d, "s16")).toHaveLength(0);
     expect(canStudentViewAssignment(d, "s16", "as-seed-1")).toBe(false);
   });

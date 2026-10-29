@@ -55,7 +55,8 @@ export const NAV: Record<Role, NavItem[]> = {
     { href: "/", label: "Trang chủ", icon: Home },
     { href: "/admin", label: "Quản trị", icon: Shield },
     { href: "/curriculum", label: "Chương trình", icon: BookOpenCheck },
-    { href: "/labs", label: "Thư viện thí nghiệm", icon: GraduationCap },
+    { href: "/admin/sims", label: "Mô phỏng theo bài", icon: FlaskConical },
+    { href: "/kho", label: "Kho mô phỏng", icon: GraduationCap },
   ],
 };
 

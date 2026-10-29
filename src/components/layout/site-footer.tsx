@@ -6,7 +6,7 @@ const COLUMNS = [
     title: "Học tập",
     links: [
       { href: "/curriculum", label: "Chương trình học" },
-      { href: "/labs", label: "Kho mô phỏng" },
+      { href: "/kho", label: "Kho mô phỏng" },
       { href: "/login?role=student", label: "Dành cho học sinh" },
       { href: "/login?role=teacher", label: "Dành cho giáo viên" },
     ],

@@ -14,7 +14,7 @@ import { ThemeToggle } from "./theme-toggle";
 const NAV = [
   { href: "/", label: "Trang chủ" },
   { href: "/curriculum", label: "Chương trình học", also: ["/explore", "/bai-hoc"] },
-  { href: "/labs", label: "Kho mô phỏng", featured: true },
+  { href: "/kho", label: "Kho mô phỏng", featured: true },
   { href: "/about", label: "Giới thiệu" },
   { href: "/huong-dan", label: "Hướng dẫn" },
 ];

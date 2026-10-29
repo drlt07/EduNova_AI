@@ -12,6 +12,7 @@ import Explore from "@/app/(public)/explore/page";
 import Curriculum from "@/app/(public)/curriculum/page";
 import Labs from "@/app/(public)/labs/page";
 import LabDetailPage from "@/app/(public)/labs/[slug]/page";
+import KhoSim from "@/app/(public)/kho/[slug]/page";
 import Hsg from "@/app/(public)/thuat-toan/page";
 import TSgk from "@/app/teacher/sgk/page";
 import TClass from "@/app/teacher/classes/[id]/page";
@@ -41,6 +42,7 @@ import TAssignments from "@/app/teacher/assignments/page";
 import TAssessment from "@/app/teacher/assessment/page";
 import TAnalytics from "@/app/teacher/analytics/page";
 import TSims from "@/app/teacher/sims/page";
+import ASims from "@/app/admin/sims/page";
 import TLibrary from "@/app/teacher/library/page";
 import TSettings from "@/app/teacher/settings/page";
 
@@ -111,6 +113,8 @@ const ROUTES: Route[] = [
   r("/curriculum", "public", C(Curriculum)),
   r("/labs", "public", C(Labs)),
   r("/labs/:slug", "public", (p) => <LabDetail slug={p.slug} />),
+  r("/kho", "public", C(Labs)),
+  r("/kho/:slug", "public", C(KhoSim)),
   r("/thuat-toan", "public", C(Hsg)),
   r("/thuat-toan/:id", "public", (p) => <AlgoPage key={p.id} id={p.id} />),
   r("/bai-hoc/:id", "public", (p) => <AsyncPage page={LessonPage} params={p} />),
@@ -160,6 +164,7 @@ const ROUTES: Route[] = [
   r("/student/settings", "student", C(SSettings)),
   r("/student/profile", "student", C(SProfile)),
   r("/admin", "admin", C(Admin)),
+  r("/admin/sims", "admin", C(ASims)),
 ];
 
 function App() {
