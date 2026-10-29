@@ -1,3 +1,4 @@
+import type { LessonQuestion } from "@/lib/domain/types";
 /**
  * Tổng hợp tiến độ của học sinh từ minh chứng thật trong kho dữ liệu.
  * Ba loại tiến độ được tách riêng: nội dung (đã học phần nào), mức đạt (câu hỏi/bài kiểm tra),
@@ -219,7 +220,7 @@ export interface StudentNotification {
   tone: "info" | "warning" | "success";
 }
 
-export function studentNotifications(d: DemoData, studentId: string, now = Date.now()): StudentNotification[] {
+export function studentNotifications(d: DemoData & { lessonQA?: LessonQuestion[] }, studentId: string, now = Date.now()): StudentNotification[] {
   const out: StudentNotification[] = [];
   for (const a of studentAssignments(d, studentId)) {
     const st = missionStatus(d, studentId, a, now);
@@ -232,6 +233,9 @@ export function studentNotifications(d: DemoData, studentId: string, now = Date.
     const asg = sub && d.assignments.find((a) => a.id === sub.assignmentId);
     if (asg) out.push({ id: `fb-${asm.id}`, text: `Giáo viên đã chấm: ${asg.title}`, href: `/student/missions/${asg.id}`, at: asm.updatedAt, tone: "success" });
   }
+  for (const q of (d.lessonQA ?? []).filter((x) => x.authorId === studentId))
+    for (const r of q.replies.filter((x) => d.users.find((u) => u.id === x.authorId)?.role === "teacher"))
+      out.push({ id: `qa-${r.id}`, text: `Thầy cô đã trả lời câu hỏi của em: “${q.text.slice(0, 50)}${q.text.length > 50 ? "…" : ""}”`, href: `/student/sgk/${q.ref}?tab=hoi-dap`, at: r.at, tone: "success" });
   return out.sort((a, b) => b.at.localeCompare(a.at));
 }
 

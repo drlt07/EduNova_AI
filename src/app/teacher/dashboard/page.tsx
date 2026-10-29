@@ -1,13 +1,13 @@
 "use client";
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { ArrowRight, BookOpen, CheckCircle2, ClipboardCheck, MonitorPlay, NotebookPen, UserX } from "lucide-react";
+import { ArrowRight, BookOpen, CheckCircle2, ClipboardCheck, MonitorPlay, NotebookPen, School, Send, TrendingUp, Users, UserX } from "lucide-react";
 import { toast } from "sonner";
 import { LESSONS } from "@/lib/data/curriculum";
-import { bookEntry, bookOf } from "@/lib/sgk/book";
+import { bookOf } from "@/lib/sgk/book";
 import { teacherAssignments, teacherClasses } from "@/lib/store/scoped";
 import { useSessionData } from "@/lib/store/use-role";
-import { assignmentStats } from "@/lib/teacher/assign";
+import { assignmentProgress, classProgress, myLessons, teacherOverview } from "@/lib/teacher/overview";
 import { sameDay, todos, upcomingSlots, type Slot, type TodoKind } from "@/lib/teacher/today";
 import { cn, formatDate } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -49,35 +49,40 @@ function SlotRow({ s, now }: { s: Slot; now: Date }) {
   );
 }
 
-/** Trang làm việc của giáo viên: hôm nay dạy gì, cần làm gì trước, lớp nào cần chú ý. */
+/** Ô chỉ số: số lớn, nhãn, bấm để mở trang liên quan. */
+function Kpi({ icon: Icon, value, label, href, tone }: { icon: typeof Users; value: string; label: string; href: string; tone: string }) {
+  return (
+    <Link href={href} className="group rounded-2xl border border-line bg-surface p-4 transition hover:-translate-y-0.5 hover:border-brand/30 hover:shadow-md">
+      <span className={cn("grid size-9 place-items-center rounded-xl", tone)}><Icon className="size-[18px]" aria-hidden /></span>
+      <p className="mt-3 text-3xl font-bold tabular-nums tracking-tight text-fg">{value}</p>
+      <p className="text-sm text-muted group-hover:text-fg">{label}</p>
+    </Link>
+  );
+}
+
+const pad = (n: number) => String(n).padStart(2, "0");
+type LessonTab = "teaching" | "recent" | "saved" | "toAssign";
+const LESSON_TABS: [LessonTab, string][] = [["teaching", "Đang dạy"], ["recent", "Vừa mở"], ["saved", "Đã lưu"], ["toAssign", "Cần giao"]];
+
+/** Tổng quan của giáo viên: chỉ số lớp học, bài học của tôi, tiến độ lớp, tiết dạy và việc cần xử lý. */
 export default function TeacherToday() {
   const { d, user } = useSessionData();
   const [now] = useState(() => new Date());
   const [open, setOpen] = useState<string | null>(null);
   const [week, setWeek] = useState(false);
+  const [lessonTab, setLessonTab] = useState<LessonTab>("teaching");
+  const [by, setBy] = useState<"class" | "assignment">("class");
   const data = useMemo(() => {
     const classes = teacherClasses(d, user.id);
     const slots = upcomingSlots(d, user.id, now, 7);
     const today = slots.filter((s) => sameDay(s.at, now));
     const next = today.length ? [] : slots.slice(0, 3);
     const deadlines = teacherAssignments(d, user.id).filter((a) => isThisWeek(a.dueAt)).map((a) => ({ id: a.id, dueAt: a.dueAt, className: d.classes.find((c) => c.id === a.classId)?.name ?? "", title: a.title }));
-    const last = d.bookProgress.filter((p) => p.userId === user.id).sort((a, b) => b.at.localeCompare(a.at))[0];
-    const students = new Set(d.enrollments.filter((e) => classes.some((c) => c.id === e.classId)).map((e) => e.studentId)).size;
-    return { classes, today, next, todo: todos(d, user.id, now), deadlines, last, students };
+    return { classes, today, next, todo: todos(d, user.id, now), deadlines, ov: teacherOverview(d, user.id, now.getTime()), lessons: myLessons(d, user.id, now.getTime()), byClass: classProgress(d, user.id), byAsg: assignmentProgress(d, user.id, 8) };
   }, [d, user.id, now]);
-  const pending = data.todo.filter((t) => t.kind === "grade").reduce((n, t) => n + Number(/Chấm (\d+)/.exec(t.title)?.[1] ?? 0), 0);
-  const missing = data.todo.filter((t) => t.kind === "missing").reduce((n, t) => n + (t.names?.length ?? 0), 0);
-  const lastEntry = data.last && bookEntry(data.last.ref);
-
-  const parts = [
-    data.today.length ? `${data.today.length} tiết dạy (${data.today.map((s) => `${s.cls.name} tiết ${s.period}`).join(", ")})` : "không có tiết dạy",
-    pending ? `${pending} bài chờ chấm` : "",
-    missing ? `${missing} lượt học sinh chưa nộp sắp hết hạn` : "",
-  ].filter(Boolean);
+  const { ov, lessons } = data;
   const heroLesson = [...data.today, ...data.next].find((x) => x.lesson);
-  const summary = parts.length > 1 ? `${parts.slice(0, -1).join(", ")} và ${parts.at(-1)}` : parts[0];
-
-  const running = teacherAssignments(d, user.id).filter((a) => a.status === "open").sort((x, y) => x.dueAt.localeCompare(y.dueAt)).slice(0, 4);
+  const lessonRows = lessonTab === "toAssign" ? lessons.toAssign.map((x) => ({ e: x.e, note: `Đã dạy ở ${x.cls.name}, chưa giao hoạt động` })) : lessons[lessonTab].map((e) => ({ e, note: bookOf(e.grade).title }));
 
   return (
     <>
@@ -85,21 +90,78 @@ export default function TeacherToday() {
         <div>
           <p className="text-sm text-muted">{DAY[now.getDay()]}, {formatDate(now.toISOString())}</p>
           <h1 className="mt-1 text-2xl font-bold tracking-tight text-fg">Chào {user.name.split(" ").pop()}!</h1>
-          <p className="mt-1 text-sm text-muted">Hôm nay có {summary}.</p>
+          <p className="mt-1 text-sm text-muted">{data.today.length ? `Hôm nay có ${data.today.length} tiết dạy.` : "Hôm nay không có tiết dạy."}{ov.pending ? ` ${ov.pending} bài đang chờ chấm.` : ""}</p>
         </div>
         <div className="flex flex-wrap gap-2">
           {heroLesson && <Button asChild><Link href={`/teacher/sgk/${heroLesson.lesson!.ref}`}><MonitorPlay /> Bài {heroLesson.lesson!.lesson.no} · {heroLesson.cls.name}</Link></Button>}
-          {pending > 0 && <Button asChild variant="secondary"><Link href="/teacher/assessment"><ClipboardCheck /> Chấm {pending} bài</Link></Button>}
+          {ov.pending > 0 && <Button asChild variant="secondary"><Link href="/teacher/assessment"><ClipboardCheck /> Chấm {ov.pending} bài</Link></Button>}
         </div>
       </header>
 
-      <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
+      <section aria-label="Chỉ số" className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6">
+        <Kpi icon={School} value={pad(ov.classes)} label="Lớp đang dạy" href="/teacher/classes" tone="bg-brand/10 text-blue-fg" />
+        <Kpi icon={Users} value={pad(ov.students)} label="Học sinh" href="/teacher/classes" tone="bg-sky-500/10 text-sky-700 dark:text-sky-300" />
+        <Kpi icon={Send} value={pad(ov.assigned)} label="Bài đã giao" href="/teacher/assignments" tone="bg-indigo-500/10 text-indigo-700 dark:text-indigo-300" />
+        <Kpi icon={BookOpen} value={pad(ov.teaching)} label="Bài đang dạy" href="/teacher/sgk" tone="bg-brand/10 text-blue-fg" />
+        <Kpi icon={ClipboardCheck} value={pad(ov.pending)} label="Bài chờ chấm" href="/teacher/assessment" tone={ov.pending ? "bg-warning/15 text-warning-fg" : "bg-surface-2 text-muted"} />
+        <Kpi icon={TrendingUp} value={ov.completion === null ? "–" : `${ov.completion}%`} label="Tỷ lệ hoàn thành" href="/teacher/analytics" tone="bg-success/10 text-success-fg" />
+      </section>
+
+      <div className="grid items-start gap-6 xl:grid-cols-2">
+        <section aria-labelledby="bh-h" className="min-w-0 rounded-2xl border border-line bg-surface p-5">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div><h2 id="bh-h" className="text-lg font-bold text-fg">Bài học của tôi</h2><p className="text-sm text-muted">Bài đang dạy, vừa mở, đã lưu và hoạt động cần giao.</p></div>
+            <Button asChild size="sm" variant="ghost"><Link href="/teacher/sgk">Tất cả bài học <ArrowRight /></Link></Button>
+          </div>
+          <div role="tablist" aria-label="Nhóm bài học" className="mt-3 flex flex-wrap gap-1 rounded-xl bg-surface-2 p-1 text-sm">
+            {LESSON_TABS.map(([k, l]) => { const n = k === "toAssign" ? lessons.toAssign.length : lessons[k].length; return <button key={k} type="button" role="tab" aria-selected={lessonTab === k} onClick={() => setLessonTab(k)} className={cn("flex-1 rounded-lg px-2.5 py-1.5 font-medium", lessonTab === k ? "bg-surface text-fg shadow-sm" : "text-muted hover:text-fg")}>{l} <span className="tabular-nums text-muted">{n}</span></button>; })}
+          </div>
+          {lessonRows.length === 0 ? <p className="mt-4 text-sm text-muted">{lessonTab === "saved" ? "Chưa lưu bài nào. Bấm Lưu ở đầu một bài học." : lessonTab === "toAssign" ? "Bài đã dạy đều đã có hoạt động giao cho lớp." : "Chưa có bài nào."}</p> : (
+            <ul className="mt-3 divide-y divide-line">
+              {lessonRows.slice(0, 6).map(({ e, note }, i) => (
+                <li key={`${e.ref}-${i}`} className="flex items-center gap-3 py-2.5">
+                  <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-[#2563eb] to-[#38bdf8] text-center text-white"><span className="leading-none"><span className="block text-[9px] font-semibold uppercase opacity-80">Bài</span><b className="text-sm">{e.lesson.no}</b></span></span>
+                  <Link href={`/teacher/sgk/${e.ref}`} className="min-w-0 flex-1"><span className="block truncate font-semibold text-fg hover:underline">{e.lesson.title}</span><span className="block truncate text-xs text-muted">{note}</span></Link>
+                  <Button asChild size="sm" variant={lessonTab === "toAssign" ? "primary" : "ghost"}><Link href={`/teacher/sgk/${e.ref}${lessonTab === "toAssign" ? "?tab=mo-phong" : ""}`}>{lessonTab === "toAssign" ? <><Send /> Giao</> : "Mở"}</Link></Button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+
+        <section aria-labelledby="td-h" className="min-w-0 rounded-2xl border border-line bg-surface p-5">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div><h2 id="td-h" className="text-lg font-bold text-fg">Tiến độ lớp học</h2><p className="text-sm text-muted">Tỷ lệ hoàn thành các bài đang mở.</p></div>
+            <div role="group" aria-label="Xem theo" className="flex gap-1 rounded-xl bg-surface-2 p-1 text-sm">
+              {([["class", "Theo lớp"], ["assignment", "Theo bài giao"]] as const).map(([k, l]) => <button key={k} type="button" aria-pressed={by === k} onClick={() => setBy(k)} className={cn("rounded-lg px-2.5 py-1.5 font-medium", by === k ? "bg-surface text-fg shadow-sm" : "text-muted hover:text-fg")}>{l}</button>)}
+            </div>
+          </div>
+          <ul className="mt-4 space-y-3">
+            {by === "class" ? data.byClass.map((r) => (
+              <li key={r.cls.id}>
+                <Link href={`/teacher/classes/${r.cls.id}`} className="block rounded-xl p-1 hover:bg-surface-2">
+                  <span className="flex items-baseline justify-between gap-2 text-sm"><span><b className="text-fg">{r.cls.name}</b> <span className="text-muted">· {r.students} học sinh · {r.open} bài đang mở</span></span><b className="tabular-nums text-fg">{r.pct === null ? "–" : `${r.pct}%`}</b></span>
+                  <span className="mt-1.5 block h-2.5 overflow-hidden rounded-full bg-surface-2"><span className={cn("block h-full rounded-full", (r.pct ?? 0) >= 70 ? "bg-success" : (r.pct ?? 0) >= 40 ? "bg-brand" : "bg-warning")} style={{ width: `${r.pct ?? 0}%` }} /></span>
+                  <span className="mt-0.5 block text-xs text-muted">{r.target ? `${r.done}/${r.target} lượt hoàn thành` : "Chưa có bài đang mở"}</span>
+                </Link>
+              </li>
+            )) : data.byAsg.length === 0 ? <li className="text-sm text-muted">Chưa có bài đang mở.</li> : data.byAsg.map((r) => (
+              <li key={r.a.id}>
+                <Link href={`/teacher/assignments/${r.a.id}`} className="block rounded-xl p-1 hover:bg-surface-2">
+                  <span className="flex items-baseline justify-between gap-2 text-sm"><span className="min-w-0 truncate"><b className="text-fg">{r.a.title}</b> <span className="text-muted">· {r.cls?.name} · hạn {formatDate(r.a.dueAt)}</span></span><b className="tabular-nums text-fg">{r.pct}%</b></span>
+                  <span className="mt-1.5 block h-2.5 overflow-hidden rounded-full bg-surface-2"><span className={cn("block h-full rounded-full", r.pct >= 70 ? "bg-success" : r.pct >= 40 ? "bg-brand" : "bg-warning")} style={{ width: `${r.pct}%` }} /></span>
+                  <span className="mt-0.5 block text-xs text-muted">{r.done}/{r.target} em đã {r.a.task ? "làm" : "nộp"}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+
         <section aria-labelledby="lich-h" className="min-w-0 rounded-2xl border border-line bg-surface p-5">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h2 id="lich-h" className="text-lg font-bold text-fg">{data.today.length ? "Tiết dạy hôm nay" : "Tiết dạy sắp tới"}</h2>
             <Button size="sm" variant="ghost" onClick={() => setWeek(!week)} aria-expanded={week}>{week ? "Ẩn cả tuần" : "Xem cả tuần"}</Button>
           </div>
-          {!data.today.length && <p className="mt-1 text-sm text-muted">Hôm nay không có tiết. Các tiết gần nhất:</p>}
           <ul className="mt-2 divide-y divide-line">{(data.today.length ? data.today : data.next).map((s) => <SlotRow key={`${s.cls.id}-${s.at.toISOString()}`} s={s} now={now} />)}</ul>
           {week && <div className="mt-4"><WeekTimetable classes={data.classes} deadlines={data.deadlines} /></div>}
         </section>
@@ -128,36 +190,6 @@ export default function TeacherToday() {
           )}
         </section>
       </div>
-
-      <section aria-labelledby="tiep-h" className="mt-6">
-        <h2 id="tiep-h" className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted">Đang thực hiện</h2>
-        <div className="grid gap-3 md:grid-cols-2">
-          {lastEntry && (
-            <Link href={`/teacher/sgk/${lastEntry.ref}${data.last!.last ? `#muc-${data.last!.last}` : ""}`} className="group flex items-center gap-3 rounded-2xl border border-line bg-surface p-4 hover:border-fg/30">
-              <BookOpen className="size-5 shrink-0 text-blue-fg" aria-hidden />
-              <span className="min-w-0 flex-1">
-                <span className="block text-xs text-muted">Bài đang soạn / dạy · {bookOf(lastEntry.grade).title}</span>
-                <span className="block truncate font-semibold text-fg">Bài {lastEntry.lesson.no}. {lastEntry.lesson.title}</span>
-              </span>
-              <ArrowRight className="size-4 shrink-0 text-muted group-hover:text-fg" aria-hidden />
-            </Link>
-          )}
-          {running.map((a) => {
-            const st = assignmentStats(d, a);
-            return (
-              <Link key={a.id} href={`/teacher/assignments/${a.id}`} className="group flex items-center gap-3 rounded-2xl border border-line bg-surface p-4 hover:border-fg/30">
-                <ClipboardCheck className="size-5 shrink-0 text-violet-fg" aria-hidden />
-                <span className="min-w-0 flex-1">
-                  <span className="block text-xs text-muted">{d.classes.find((c) => c.id === a.classId)?.name} · hạn {formatDate(a.dueAt)}</span>
-                  <span className="block truncate font-semibold text-fg">{a.title}</span>
-                </span>
-                <span className="shrink-0 text-sm tabular-nums text-muted">{st.done}/{st.target}</span>
-              </Link>
-            );
-          })}
-        </div>
-      </section>
     </>
   );
 }
-

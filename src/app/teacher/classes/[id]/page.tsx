@@ -1,4 +1,5 @@
 "use client";
+import { ClassHistory } from "@/components/teacher/class-history";
 import Link from "next/link";
 import { Suspense, useState } from "react";
 import { useParams, usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -27,7 +28,7 @@ import { ClassInsights } from "@/components/teacher/dashboard-panels";
 import { UnlockChips } from "@/components/teacher/unlock-chips";
 import { classUnlocks, gradeLessons, lessonItems, lessonKey, nextLockedLesson, setKey, codeKey } from "@/lib/access/unlocks";
 
-const TABS = [["tong-quan", "Tổng quan"], ["hoc-sinh", "Học sinh"], ["nhiem-vu", "Bài đã giao"], ["ket-qua", "Kết quả"], ["bai-hoc", "Mở bài cho lớp"]] as const;
+const TABS = [["tong-quan", "Tổng quan"], ["hoc-sinh", "Học sinh"], ["nhiem-vu", "Bài đã giao"], ["ket-qua", "Kết quả"], ["bai-hoc", "Mở bài cho lớp"], ["lich-su", "Lịch sử hoạt động"]] as const;
 type Tab = (typeof TABS)[number][0];
 const CELL_STYLE: Record<CellStatus, string> = {
   "not-joined": "bg-surface-2 text-muted",
@@ -260,6 +261,7 @@ function ClassDetail() {
         </section>
       )}
 
+      {tab === "lich-su" && <ClassHistory classId={cls.id} />}
       {tab === "ket-qua" && <div className="mb-6"><Gradebook classIds={[cls.id]} /></div>}
       {tab === "ket-qua" && (
         <div className="grid items-start gap-6 lg:grid-cols-2">

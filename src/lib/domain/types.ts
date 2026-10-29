@@ -619,3 +619,20 @@ export interface TutorEvent {
   objectiveId?: string;
   source: "ai" | "rules";
 }
+
+/** Hồ sơ mở rộng của người dùng (tên nằm ở User). */
+export interface UserProfile { school?: string; subject?: string; phone?: string; bio?: string }
+
+/** Mục đã lưu: key dạng "lesson:10-19", "sim:robot-factory", "kho:qr-code", "res:<id>". */
+export interface SavedItem { userId: string; key: string; at: string }
+
+/** Hỏi đáp trong một bài học: học sinh hỏi, thầy cô (hoặc bạn cùng lớp) trả lời. */
+export interface LessonQuestion {
+  id: string;
+  ref: string;
+  classId: string;
+  authorId: string;
+  text: string;
+  at: string;
+  replies: { id: string; authorId: string; text: string; at: string }[];
+}

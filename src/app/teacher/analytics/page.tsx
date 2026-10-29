@@ -1,4 +1,5 @@
 "use client";
+import { AssessHeader } from "@/components/teacher/assess-tabs";
 import Link from "next/link";
 import { Suspense, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -103,11 +104,8 @@ function Report() {
 
   return (
     <>
-      <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-fg">Kết quả học tập</h1>
-          <p className="mt-1 text-muted">Bảng tổng quan số liệu các lớp; chuyển sang Chẩn đoán để xem việc cần xử lý và giao bài củng cố.</p>
-        </div>
+      <AssessHeader subtitle="Kết quả học tập các lớp; chuyển sang Chẩn đoán để xem việc cần xử lý và giao bài củng cố." />
+      <div className="mb-4 flex flex-wrap items-end justify-end gap-3">
         <nav aria-label="Chế độ xem" className="flex gap-1 rounded-xl border border-line bg-surface p-1">
           {([["tong-quan", "Tổng quan", LayoutDashboard], ["chan-doan", "Chẩn đoán & hành động", Sparkles]] as const).map(([v, l, I]) => (
             <button key={v} type="button" aria-pressed={view === v} onClick={() => router.replace(v === "tong-quan" ? pathname : `${pathname}?xem=${v}`, { scroll: false })} className={cn("flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-semibold", view === v ? "bg-brand text-brand-ink" : "text-muted hover:text-fg")}><I className="size-4" aria-hidden /> {l}</button>

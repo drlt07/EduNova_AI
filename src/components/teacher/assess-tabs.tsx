@@ -39,27 +39,38 @@ function SectionHeader({ title, subtitle, tabs, actions }: { title: string; subt
   );
 }
 
-/** Lớp của tôi: lớp học, bài đã giao (mọi lớp), chờ chấm, sổ điểm. */
-export function ClassesHeader({ subtitle = "Lớp, học sinh, bài đã giao và kết quả", actions }: { subtitle?: string; actions?: React.ReactNode }) {
-  const { d, user } = useSessionData();
-  const pending = teacherSubmissions(d, user.id).filter((s) => s.status === "submitted").length + labReviewQueue(d, user.id).length;
+/** Lớp của tôi: danh sách lớp (tạo lớp, học sinh, tiến độ, lịch sử) và sổ điểm. */
+export function ClassesHeader({ subtitle = "Tạo lớp, quản lý học sinh, theo dõi tiến độ, điểm số và nhận xét", actions }: { subtitle?: string; actions?: React.ReactNode }) {
   return (
     <SectionHeader title="Lớp của tôi" subtitle={subtitle} actions={actions} tabs={[
       { href: "/teacher/classes", label: "Lớp học" },
-      { href: "/teacher/assignments", label: "Bài đã giao" },
-      { href: "/teacher/assessment", label: "Chờ chấm", count: pending },
       { href: "/teacher/results", label: "Sổ điểm" },
     ]} />
   );
 }
 
-/** Thư viện: kho mô phỏng, ngân hàng luyện tập, học liệu và tài nguyên tự tạo. */
-export function LibraryHeader({ subtitle = "Tài nguyên dùng lại cho mọi bài học và lớp", actions }: { subtitle?: string; actions?: React.ReactNode }) {
+/** Bài tập & Kiểm tra: bài đã giao, tạo bài kiểm tra, chấm bài, kết quả. */
+export function AssessHeader({ subtitle = "Giao bài, tạo bài kiểm tra, chấm và xem kết quả", actions }: { subtitle?: string; actions?: React.ReactNode }) {
+  const { d, user } = useSessionData();
+  const pending = teacherSubmissions(d, user.id).filter((s) => s.status === "submitted").length + labReviewQueue(d, user.id).length;
+  return (
+    <SectionHeader title="Bài tập & Kiểm tra" subtitle={subtitle} actions={actions} tabs={[
+      { href: "/teacher/assignments", label: "Bài đã giao" },
+      { href: "/teacher/bank", label: "Tạo bài kiểm tra", match: ["/teacher/bank", "/teacher/activity-builder"] },
+      { href: "/teacher/assessment", label: "Chấm bài", count: pending },
+      { href: "/teacher/analytics", label: "Kết quả" },
+    ]} />
+  );
+}
+
+/** Thư viện: kho mô phỏng 2D/3D (theo bài và đời sống), học liệu, mục đã lưu. */
+export function LibraryHeader({ subtitle = "Kho mô phỏng 2D/3D, học liệu và tài nguyên đã lưu", actions }: { subtitle?: string; actions?: React.ReactNode }) {
   return (
     <SectionHeader title="Thư viện" subtitle={subtitle} actions={actions} tabs={[
-      { href: "/teacher/sims", label: "Mô phỏng", match: ["/teacher/sims"] },
-      { href: "/teacher/bank", label: "Ngân hàng luyện tập", match: ["/teacher/bank", "/teacher/activity-builder"] },
+      { href: "/teacher/sims", label: "Mô phỏng theo bài" },
+      { href: "/teacher/kho", label: "Mô phỏng đời sống" },
       { href: "/teacher/library", label: "Học liệu", match: ["/teacher/library", "/teacher/resources", "/teacher/labs"] },
+      { href: "/teacher/saved", label: "Đã lưu" },
     ]} />
   );
 }

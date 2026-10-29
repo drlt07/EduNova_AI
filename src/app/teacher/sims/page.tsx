@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { PageSkeleton } from "@/components/ui/feedback";
 import { SimLibrary } from "@/components/labs/sim-library";
 import { AssignDialog, type AssignPreset } from "@/components/teacher/assign-dialog";
+import { SaveToggle } from "@/components/teacher/save-toggle";
 
 /** Mô phỏng theo bài cho giáo viên: chạy thử, giao cho lớp thành nhiệm vụ có hạn và theo dõi số em đã làm xong. */
 function TeacherSims() {
@@ -22,6 +23,7 @@ function TeacherSims() {
     const mine = classes.filter((c) => lab.grades.includes(c.grade));
     return (
       <div className="space-y-1.5 rounded-xl border border-line bg-surface-2/50 px-3 py-2">
+        <div className="flex justify-end"><SaveToggle itemKey={`sim:${lab.slug}`} label={lab.title} /></div>
         {mine.length === 0 && <p className="text-xs text-muted">Chưa có lớp Tin {lab.grades.join(", ")}.</p>}
         {mine.map((c) => {
           const a = d.assignments.find((x) => x.classId === c.id && x.status !== "draft" && x.task?.kind === "lab" && x.task.ref === lab.slug);
@@ -47,7 +49,7 @@ function TeacherSims() {
   };
   return (
     <>
-      <LibraryHeader subtitle="Mô phỏng theo bài trong SGK. Giao cho lớp thì học sinh làm ngay trong bài, máy tự chấm." actions={<Button asChild variant="secondary" size="sm"><Link href="/teacher/kho">Mô phỏng đời sống</Link></Button>} />
+      <LibraryHeader subtitle="Mô phỏng theo bài trong SGK. Giao cho lớp thì học sinh làm ngay trong bài, máy tự chấm." />
       <SimLibrary hrefFor={(l) => `/labs/${l.slug}`} extra={extra} />
       <AssignDialog open={!!assign} onOpenChange={(o) => !o && setAssign(null)} preset={assign?.preset} sgkRef={assign?.ref} classId={assign?.classId} />
     </>

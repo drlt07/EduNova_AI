@@ -1,5 +1,8 @@
 import {
+  Bell,
   BookMarked,
+  LayoutDashboard,
+  UserCog,
   BarChart3,
   BookOpenCheck,
   Bot,
@@ -24,18 +27,20 @@ export interface NavItem {
   /** Nhóm trong thanh bên; mục không có nhóm thuộc nhóm đầu */
   group?: string;
   /** Số đếm trực tiếp cạnh nhãn */
-  badge?: "classes" | "todos";
+  badge?: "classes" | "todos" | "pending" | "notifs";
 }
 
 export const NAV: Record<Role, NavItem[]> = {
-  // Giáo viên: 5 mục chính + Mô phỏng đời sống (kho công khai, mở tự do). Bài học là trung tâm (giao hoạt động ngay trong bài); các trang cũ được gom vào mục hợp lý qua `match`.
+  // Giáo viên: 6 mục "Quản lý giảng dạy" + 2 mục cá nhân. Trang cũ thuộc mục hợp lý qua `match` (không mất chức năng).
   teacher: [
-    { href: "/teacher/dashboard", label: "Hôm nay", icon: Home },
-    { href: "/teacher/sgk", label: "Khóa học", icon: BookMarked, match: ["/teacher/courses", "/curriculum", "/explore", "/bai-hoc"] },
-    { href: "/teacher/classes", label: "Lớp của tôi", icon: Users, badge: "todos", match: ["/teacher/assignments", "/teacher/assessment", "/teacher/results", "/teacher/analytics"] },
+    { href: "/teacher/dashboard", label: "Tổng quan", icon: LayoutDashboard },
+    { href: "/teacher/sgk", label: "Bài học", icon: BookMarked, match: ["/teacher/courses", "/curriculum", "/explore", "/bai-hoc"] },
+    { href: "/teacher/classes", label: "Lớp của tôi", icon: Users, match: ["/teacher/results"] },
+    { href: "/teacher/assignments", label: "Bài tập & Kiểm tra", icon: ClipboardCheck, badge: "pending", match: ["/teacher/assessment", "/teacher/bank", "/teacher/activity-builder", "/teacher/analytics"] },
+    { href: "/teacher/sims", label: "Thư viện", icon: Library, match: ["/teacher/kho", "/teacher/library", "/teacher/resources", "/teacher/labs", "/teacher/saved", "/labs", "/thuat-toan"] },
     { href: "/teacher/lesson-planner", label: "Trợ lý KHBD AI", icon: NotebookPen },
-    { href: "/teacher/sims", label: "Thư viện", icon: Library, match: ["/teacher/bank", "/teacher/library", "/teacher/resources", "/teacher/labs", "/teacher/activity-builder", "/labs", "/thuat-toan"] },
-    { href: "/teacher/kho", label: "Mô phỏng đời sống", icon: Sparkles },
+    { href: "/teacher/notifications", label: "Thông báo", icon: Bell, group: "Cá nhân", badge: "notifs" },
+    { href: "/teacher/settings", label: "Hồ sơ & Cài đặt", icon: UserCog, group: "Cá nhân" },
   ],
   // Học sinh: bài được giao trước, rồi bài học, luyện tập, mô phỏng, tiến độ và AI Gia sư.
   student: [

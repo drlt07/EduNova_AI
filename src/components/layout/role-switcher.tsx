@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { LogOut } from "lucide-react";
 import { useApp } from "@/lib/store/app-store";
@@ -10,6 +11,8 @@ import { AUTH_MODE } from "@/lib/supabase/config";
 import { signOutEverywhere } from "@/components/auth/supabase-session";
 
 const SWITCHABLE = ["t1", "t2", "s1", "s16", "a1"];
+/** Bấm avatar mở hồ sơ & cài đặt của vai trò. */
+const PROFILE = { teacher: "/teacher/settings", student: "/student/profile", admin: "/admin" } as const;
 
 export function RoleSwitcher() {
   const user = useCurrentUser();
@@ -20,11 +23,13 @@ export function RoleSwitcher() {
   if (!user) return null;
   return (
     <div className="flex items-center gap-1 sm:gap-2">
-      <Avatar user={user} size={32} />
-      <div className="hidden min-w-0 lg:block">
-        <p className="truncate text-sm font-semibold leading-tight text-fg">{user.name}</p>
-        <p className="text-xs text-muted">{ROLE_LABEL[user.role]}</p>
-      </div>
+      <Link href={PROFILE[user.role]} title="Hồ sơ & Cài đặt" className="flex min-w-0 items-center gap-2 rounded-xl px-1 py-0.5 hover:bg-surface-2">
+        <Avatar user={user} size={32} />
+        <span className="hidden min-w-0 lg:block">
+          <span className="block truncate text-sm font-semibold leading-tight text-fg">{user.name}</span>
+          <span className="block text-xs text-muted">{ROLE_LABEL[user.role]}</span>
+        </span>
+      </Link>
       {AUTH_MODE === "demo" && (
         <>
         <label htmlFor="role-switch" className="sr-only">

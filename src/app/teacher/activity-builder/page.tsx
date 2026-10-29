@@ -18,7 +18,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState, Notice, PageSkeleton } from "@/components/ui/feedback";
 import { Checkbox, Field, Input, Select, Textarea } from "@/components/ui/form";
-import { LibraryHeader } from "@/components/teacher/assess-tabs";
+import { AssessHeader } from "@/components/teacher/assess-tabs";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { CASE_LABEL, HINT_LABEL, MODE_LABEL } from "@/lib/labels";
 import { LabIcon } from "@/components/labs/lab-card";
@@ -178,7 +178,7 @@ function Builder() {
 
   return (
     <>
-      <LibraryHeader subtitle="Ngân hàng luyện tập › Thiết kế hoạt động chấm theo tiêu chí từ mục tiêu trong KHBD." actions={<Button variant="secondary" onClick={saveDraft}><Save /> Lưu nháp</Button>} />
+      <AssessHeader subtitle="Tạo bài kiểm tra › Hoạt động chấm theo tiêu chí từ mục tiêu trong KHBD." actions={<Button variant="secondary" onClick={saveDraft}><Save /> Lưu nháp</Button>} />
       {myDrafts.length > 0 && !draftId && (
         <Notice tone="info" className="mb-4 flex flex-wrap items-center gap-2">
           <FileClock className="size-4 text-cyan-fg" aria-hidden /> Bạn có {myDrafts.length} bản nháp:

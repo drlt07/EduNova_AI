@@ -47,6 +47,8 @@ import TSims from "@/app/teacher/sims/page";
 import SKho from "@/app/student/kho/page";
 import SKhoSim from "@/app/student/kho/[slug]/page";
 import TKho from "@/app/teacher/kho/page";
+import TNotifications from "@/app/teacher/notifications/page";
+import TSaved from "@/app/teacher/saved/page";
 import TKhoSim from "@/app/teacher/kho/[slug]/page";
 import AKho from "@/app/admin/kho/page";
 import TBank from "@/app/teacher/bank/page";
@@ -155,6 +157,8 @@ const ROUTES: Route[] = [
   r("/teacher/bank", "teacher", C(TBank)),
   r("/teacher/assignments/:id", "teacher", C(TAssignmentDetail)),
   r("/teacher/kho", "teacher", C(TKho)),
+  r("/teacher/notifications", "teacher", C(TNotifications)),
+  r("/teacher/saved", "teacher", C(TSaved)),
   r("/teacher/kho/:slug", "teacher", C(TKhoSim)),
   r("/student/kho", "student", C(SKho)),
   r("/student/kho/:slug", "student", C(SKhoSim)),

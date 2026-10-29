@@ -1,13 +1,14 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, Settings, ShieldAlert, UserRound, X } from "lucide-react";
+import { Bell, Menu, Settings, ShieldAlert, UserRound, X } from "lucide-react";
 import { useState } from "react";
 import type { Role } from "@/lib/domain/types";
 import { useCurrentUser, useHydrated } from "@/lib/store/hooks";
 import { useApp } from "@/lib/store/app-store";
 import { teacherClasses } from "@/lib/store/scoped";
 import { todos } from "@/lib/teacher/today";
+import { pendingCount, teacherNotifications } from "@/lib/teacher/overview";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { PageSkeleton } from "@/components/ui/feedback";
@@ -25,6 +26,8 @@ function SidebarNav({ role, onNavigate }: { role: Role; onNavigate?: () => void 
   const user = useCurrentUser();
   const count = (k: NonNullable<NavItem["badge"]>) => {
     if (!user || user.role !== "teacher") return 0;
+    if (k === "pending") return pendingCount(d, user.id);
+    if (k === "notifs") { const read = new Set(d.notifRead[user.id] ?? []); return teacherNotifications(d, user.id).filter((x) => !read.has(x.id)).length; }
     return k === "classes" ? teacherClasses(d, user.id).length : todos(d, user.id, new Date()).length;
   };
   const groups = [...new Set(NAV[role].map((i) => i.group ?? ""))];
@@ -32,7 +35,7 @@ function SidebarNav({ role, onNavigate }: { role: Role; onNavigate?: () => void 
     <nav aria-label={`Điều hướng ${ROLE_LABEL[role]}`} className="flex flex-col gap-0.5">
       {groups.map((g) => (
         <div key={g} className={cn("flex flex-col gap-0.5", g && "mt-4 border-t border-line pt-3")}>
-          {(g || role === "teacher") && <p className="px-3 pb-1 text-[11px] font-semibold uppercase tracking-wide text-muted">{g || "Công việc chính"}</p>}
+          {(g || role === "teacher") && <p className="px-3 pb-1 text-[11px] font-semibold uppercase tracking-wide text-muted">{g || "Quản lý giảng dạy"}</p>}
           {NAV[role].filter((i) => (i.group ?? "") === g).map((item) => {
             const under = (h: string) => pathname === h || pathname.startsWith(h + "/");
             const active = item.href === "/" ? pathname === "/" : pathname === item.href || (item.href !== "/admin" && pathname.startsWith(item.href + "/")) || (item.match?.some(under) ?? false);
@@ -50,7 +53,7 @@ function SidebarNav({ role, onNavigate }: { role: Role; onNavigate?: () => void 
               >
                 <item.icon className={cn("size-[18px] shrink-0", active ? "text-brand-ink" : "text-muted group-hover:text-fg")} />
                 <span className="min-w-0 flex-1 truncate">{item.label}</span>
-                {n > 0 && <span className={cn("rounded-full px-1.5 text-xs font-semibold tabular-nums", active ? "bg-white/20 text-brand-ink" : item.badge === "todos" ? "bg-danger text-white" : "bg-surface-2 text-muted")} aria-label={item.badge === "todos" ? `${n} việc cần làm` : `${n} lớp`}>{n}</span>}
+                {n > 0 && <span className={cn("rounded-full px-1.5 text-xs font-semibold tabular-nums", active ? "bg-white/20 text-brand-ink" : item.badge === "classes" ? "bg-surface-2 text-muted" : "bg-danger text-white")} aria-label={item.badge === "pending" ? `${n} bài chờ chấm` : item.badge === "notifs" ? `${n} thông báo chưa đọc` : item.badge === "todos" ? `${n} việc cần làm` : `${n} lớp`}>{n}</span>}
               </Link>
             );
           })}
@@ -129,6 +132,7 @@ export function AppShell({ role, children, bleed = false }: { role: Role; childr
           </div>
           <div className="flex items-center gap-1 sm:gap-2">
             {isStudent && <NotificationBell studentId={user!.id} />}
+            {hydrated && user?.role === "teacher" && role === "teacher" && <TeacherBell teacherId={user.id} active={pathname.startsWith("/teacher/notifications")} />}
             {hydrated && user?.role === "teacher" && role === "teacher" && (
               <Link href="/teacher/settings" aria-label="Cài đặt" aria-current={pathname.startsWith("/teacher/settings") ? "page" : undefined} className="grid size-9 place-items-center rounded-xl text-muted hover:bg-surface-2 hover:text-fg">
                 <Settings className="size-[18px]" />
@@ -152,5 +156,18 @@ export function AppShell({ role, children, bleed = false }: { role: Role; childr
         {hydrated && user && <PrefsApplier userId={user.id} />}
       </div>
     </div>
+  );
+}
+
+/** Chuông thông báo của giáo viên: số chưa đọc, bấm để mở trang Thông báo. */
+function TeacherBell({ teacherId, active }: { teacherId: string; active: boolean }) {
+  const d = useApp();
+  const read = new Set(d.notifRead[teacherId] ?? []);
+  const unread = teacherNotifications(d, teacherId).filter((x) => !read.has(x.id)).length;
+  return (
+    <Link href="/teacher/notifications" aria-label={`Thông báo${unread ? `, ${unread} chưa đọc` : ""}`} aria-current={active ? "page" : undefined} className="relative grid size-9 place-items-center rounded-xl text-muted hover:bg-surface-2 hover:text-fg">
+      <Bell className="size-[18px]" />
+      {unread > 0 && <span className="absolute right-0.5 top-0.5 grid min-w-4 place-items-center rounded-full bg-danger px-1 text-[10px] font-bold text-white">{unread > 99 ? "99+" : unread}</span>}
+    </Link>
   );
 }

@@ -86,18 +86,18 @@ describe("Cấu hình giao bài: số lần làm và cách tính điểm", () =>
 });
 
 describe("Điều hướng", () => {
-  it("giáo viên có 5 mục chính và mục Mô phỏng đời sống riêng", () => {
-    expect(NAV.teacher.map((i) => i.label)).toEqual(["Hôm nay", "Khóa học", "Lớp của tôi", "Trợ lý KHBD AI", "Thư viện", "Mô phỏng đời sống"]);
+  it("giáo viên: 6 mục Quản lý giảng dạy + 2 mục cá nhân", () => {
+    expect(NAV.teacher.map((i) => i.label)).toEqual(["Tổng quan", "Bài học", "Lớp của tôi", "Bài tập & Kiểm tra", "Thư viện", "Trợ lý KHBD AI", "Thông báo", "Hồ sơ & Cài đặt"]);
   });
-  it("Mô phỏng đời sống là mục riêng ở cả ba vai trò", () => {
-    expect(NAV.teacher.find((i) => i.label === "Mô phỏng đời sống")?.href).toBe("/teacher/kho");
+  it("Mô phỏng đời sống: nằm trong Thư viện của GV, mục riêng của HS và QTV", () => {
+    expect(NAV.teacher.find((i) => i.label === "Thư viện")?.match).toContain("/teacher/kho");
     expect(NAV.student.find((i) => i.label === "Mô phỏng đời sống")?.href).toBe("/student/kho");
     expect(NAV.admin.find((i) => i.label === "Mô phỏng đời sống")?.href).toBe("/admin/kho");
     expect(NAV.student.find((i) => i.href === "/student/games")?.match).not.toContain("/student/kho");
   });
   it("trang cũ vẫn thuộc một mục (không mất chức năng)", () => {
     const all = NAV.teacher.flatMap((i) => [i.href, ...(i.match ?? [])]);
-    for (const r of ["/teacher/courses", "/teacher/assignments", "/teacher/assessment", "/teacher/results", "/teacher/analytics", "/teacher/bank", "/teacher/kho", "/teacher/library"]) expect(all).toContain(r);
+    for (const r of ["/teacher/courses", "/teacher/assignments", "/teacher/assessment", "/teacher/results", "/teacher/analytics", "/teacher/bank", "/teacher/kho", "/teacher/library", "/teacher/saved", "/teacher/activity-builder"]) expect(all).toContain(r);
   });
   it("học sinh vào thẳng Bài của tôi", () => {
     expect(NAV.student[0].href).toBe("/student/missions");

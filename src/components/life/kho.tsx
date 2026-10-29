@@ -13,6 +13,7 @@ import { cn, matchesQuery } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ErrorState } from "@/components/ui/feedback";
 import { LIFE_COMPONENTS, LifeArt } from "./life-registry";
+import { SaveToggle } from "@/components/teacher/save-toggle";
 
 export const GROUP_THEME: Record<LifeLab["group"], { chip: string; text: string; glow: string; bar: string; soft: string }> = {
   "may-tinh": { chip: "bg-indigo-100 text-indigo-800 dark:bg-indigo-500/20 dark:text-indigo-200", text: "text-indigo-700 dark:text-indigo-300", glow: "hover:shadow-indigo-500/25", bar: "from-indigo-400 to-violet-400", soft: "from-indigo-100 via-white to-violet-50 dark:from-indigo-500/15 dark:via-surface dark:to-violet-500/10" },
@@ -180,7 +181,7 @@ export function KhoSim({ slug, base }: { slug: string; base: string }) {
       <Button asChild variant="ghost" size="sm" className="mb-3"><Link href={base}><ArrowLeft /> Kho mô phỏng</Link></Button>
       <div className={cn("mb-5 rounded-[28px] border border-line bg-gradient-to-br p-5 sm:p-6", th.soft)}>
         <p className="flex flex-wrap items-center gap-2 text-xs font-bold"><span className={cn("rounded-full px-2.5 py-1", th.chip)}>{g.emoji} {g.title}</span>{lab.isNew && <span className="rounded-full bg-rose-500 px-2.5 py-1 text-white">Mới</span>}</p>
-        <h1 className="mt-2 text-3xl font-extrabold tracking-tight text-fg">{lab.title}</h1>
+        <div className="mt-2 flex flex-wrap items-start justify-between gap-3"><h1 className="text-3xl font-extrabold tracking-tight text-fg">{lab.title}</h1><SaveToggle itemKey={`kho:${slug}`} label={lab.title} /></div>
         <p className={cn("mt-1 text-lg font-semibold", th.text)}>{lab.tagline}</p>
         <div className="mt-3 flex flex-wrap gap-2 text-xs">
           <span className="inline-flex items-center gap-1.5 rounded-lg bg-surface/80 px-2.5 py-1 font-semibold text-fg"><GraduationCap className="size-3.5" aria-hidden /> Liên hệ bài học: {lab.links}</span>

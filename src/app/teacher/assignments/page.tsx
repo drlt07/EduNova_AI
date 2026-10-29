@@ -14,7 +14,7 @@ import { assignmentCourse, assignmentStats } from "@/lib/teacher/assign";
 import { cn, formatDate, matchesQuery } from "@/lib/utils";
 import { EmptyState } from "@/components/ui/feedback";
 import { Input, Select } from "@/components/ui/form";
-import { ClassesHeader, MenuItem, RowMenu } from "@/components/teacher/assess-tabs";
+import { AssessHeader, MenuItem, RowMenu } from "@/components/teacher/assess-tabs";
 
 type Bucket = "" | "ongoing" | "overdue" | "closed" | "draft";
 const BUCKETS: { id: Bucket; label: string }[] = [
@@ -43,7 +43,7 @@ export default function AssignmentsPage() {
 
   return (
     <>
-      <ClassesHeader subtitle="Bài đã giao ở mọi lớp: theo dõi hạn nộp, mở chi tiết để xem kết quả từng em" />
+      <AssessHeader subtitle="Bài đã giao ở mọi lớp: theo dõi hạn nộp, mở chi tiết để xem bài nộp và kết quả từng em" />
       <div className="mb-4 flex flex-col gap-2 md:flex-row md:items-center">
         <label className="relative min-w-0 flex-1">
           <span className="sr-only">Tìm bài</span>

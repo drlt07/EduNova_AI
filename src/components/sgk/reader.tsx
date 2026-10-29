@@ -1,8 +1,10 @@
 "use client";
+import { LessonQA } from "./lesson-qa";
+import { SaveToggle } from "@/components/teacher/save-toggle";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { ArrowLeft, ArrowRight, BookOpen, Bot, CheckCircle2, ChevronRight, Circle, ClipboardList, Code2, FileText, FlaskConical, ListChecks, Lock, MonitorPlay, PencilLine, Send, Star, Target, Trash2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, BookOpen, Bot, CheckCircle2, ChevronRight, Circle, ClipboardList, Code2, FileText, FlaskConical, ListChecks, Lock, MessageCircleQuestion, MonitorPlay, PencilLine, Send, Star, Target, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import type { Assignment } from "@/lib/domain/types";
 import type { DemoData } from "@/lib/data/seed";
@@ -30,7 +32,7 @@ import { lessonAssignables } from "@/lib/teacher/lesson-items";
 import { useAccess } from "@/lib/access/use-access";
 
 type Role = "teacher" | "student";
-type TabId = "noi-dung" | "mo-phong" | "cau-hoi" | "lap-trinh" | "nhiem-vu" | "luyen-tap";
+type TabId = "noi-dung" | "mo-phong" | "cau-hoi" | "lap-trinh" | "nhiem-vu" | "luyen-tap" | "hoi-dap";
 const TAB_META: Record<TabId, { label: string; icon: React.ComponentType<{ className?: string }>; on: string }> = {
   "noi-dung": { label: "Kiến thức", icon: FileText, on: "bg-brand text-brand-ink" },
   "mo-phong": { label: "Mô phỏng", icon: FlaskConical, on: "bg-brand text-brand-ink" },
@@ -38,11 +40,12 @@ const TAB_META: Record<TabId, { label: string; icon: React.ComponentType<{ class
   "lap-trinh": { label: "Lập trình", icon: Code2, on: "bg-brand text-brand-ink" },
   "luyen-tap": { label: "Luyện tập", icon: ListChecks, on: "bg-brand text-brand-ink" },
   "nhiem-vu": { label: "Đã giao & kết quả", icon: ClipboardList, on: "bg-brand text-brand-ink" },
+  "hoi-dap": { label: "Hỏi đáp", icon: MessageCircleQuestion, on: "bg-brand text-brand-ink" },
 };
 const GRADE_BG: Record<number, string> = { 10: "from-[#2563eb] to-[#38bdf8]", 11: "from-[#1d4ed8] to-[#4f46e5]", 12: "from-[#1e40af] to-[#0ea5e9]" };
 /** Mỗi bài: Kiến thức · Mô phỏng · Luyện tập (gồm câu hỏi và lập trình); giáo viên có thêm tab hoạt động đã giao và kết quả. */
-const TEACHER_TABS: TabId[] = ["noi-dung", "mo-phong", "luyen-tap", "nhiem-vu"];
-const STUDENT_TABS: TabId[] = ["noi-dung", "mo-phong", "luyen-tap"];
+const TEACHER_TABS: TabId[] = ["noi-dung", "mo-phong", "luyen-tap", "nhiem-vu", "hoi-dap"];
+const STUDENT_TABS: TabId[] = ["noi-dung", "mo-phong", "luyen-tap", "hoi-dap"];
 /** Đường dẫn cũ (?tab=cau-hoi, lap-trinh, nhiem-vu của học sinh) vẫn mở đúng tab mới. */
 const TAB_ALIAS: Record<string, TabId> = { "cau-hoi": "luyen-tap", "lap-trinh": "luyen-tap" };
 const base = (role: Role) => (role === "teacher" ? "/teacher/sgk" : "/student/sgk");
@@ -114,7 +117,7 @@ export function BookReader({ refId, role }: { refId: string; role: Role }) {
   const ids = content?.sections.map((s) => s.id) ?? [];
   useReadTracking(ids, (id) => markRead(userId, refId, id));
 
-  if (!e) return <EmptyState icon={BookOpen} title="Không tìm thấy bài" action={<Button asChild><Link href={base(role)}>Về Khóa học</Link></Button>} />;
+  if (!e) return <EmptyState icon={BookOpen} title="Không tìm thấy bài" action={<Button asChild><Link href={base(role)}>{role === "teacher" ? "Về Bài học" : "Về Khóa học"}</Link></Button>} />;
   const teacher = role === "teacher";
   const book = bookOf(e.grade);
   if (!teacher && !access.can(lessonKey(refId))) return <LockedLesson e={e} />;
@@ -128,13 +131,14 @@ export function BookReader({ refId, role }: { refId: string; role: Role }) {
   const myAssignments = teacher ? lessonAssignments(d, d.assignments.filter((a) => a.ownerId === user.id), user.id, e) : studentLessonTasks(d, user.id, e);
   const quizCount = teacher ? (content ? lessonChecks(content).length : 0) + d.teacherQuizzes.filter((q) => q.ownerId === user.id && q.sgkRef === refId).length + setsForLesson(e.ref, e.lesson.key).length : 0;
   const codeCount = e.lesson.key ? CODING_EXERCISES.filter((x) => x.lessonKey === e.lesson.key).length : 0;
-  const counts: Partial<Record<TabId, number>> = { "mo-phong": allSims.length, "nhiem-vu": myAssignments.length, "luyen-tap": teacher ? quizCount + codeCount : studentPractice(d, user.id, e, access.can).length + studentCode(e, access.can).length };
+  const qaClasses = new Set(teacher ? teacherClasses(d, user.id).map((c) => c.id) : studentClassIds(d, user.id));
+  const counts: Partial<Record<TabId, number>> = { "hoi-dap": d.lessonQA.filter((q) => q.ref === e.ref && qaClasses.has(q.classId)).length, "mo-phong": allSims.length, "nhiem-vu": myAssignments.length, "luyen-tap": teacher ? quizCount + codeCount : studentPractice(d, user.id, e, access.can).length + studentCode(e, access.can).length };
   const extraLabs = d.lessonLabs.filter((l) => l.sgkRef === refId && (teacher ? l.ownerId === user.id : true)).map((l) => getLabBySlug(l.slug)).filter((l): l is NonNullable<typeof l> => !!l && !lessonSimSlugs(e).includes(l.slug));
 
   return (
     <TutorScope title={`${book.title} · Bài ${e.lesson.no}. ${e.lesson.title}`} topic="general" level={teacher ? "free" : "guided"}>
       <nav aria-label="Vị trí" className="mb-3 flex flex-wrap items-center gap-1 text-xs text-muted">
-        <Link href={base(role)} className="hover:text-fg">Khóa học</Link><ChevronRight className="size-3" aria-hidden />
+        <Link href={base(role)} className="hover:text-fg">{role === "teacher" ? "Bài học" : "Khóa học"}</Link><ChevronRight className="size-3" aria-hidden />
         <Link href={`${base(role)}?lop=${e.grade}`} className="hover:text-fg">{book.title}</Link><ChevronRight className="size-3" aria-hidden />
         <span>Chủ đề {e.topic.no}. {e.topic.title}</span><ChevronRight className="size-3" aria-hidden />
         <span className="font-medium text-fg">Bài {e.lesson.no}</span>
@@ -151,6 +155,7 @@ export function BookReader({ refId, role }: { refId: string; role: Role }) {
           <span className="flex flex-wrap gap-2">
             {teacher ? (
               <>
+                <SaveToggle itemKey={`lesson:${e.ref}`} label={`Bài ${e.lesson.no}`} className="h-8" />
                 {content && <Button size="sm" variant="secondary" onClick={() => setPresent(true)}><MonitorPlay /> Trình chiếu</Button>}
                 <Button size="sm" onClick={() => setAssign(null)}><Send /> Giao cho lớp</Button>
               </>
@@ -293,6 +298,7 @@ export function BookReader({ refId, role }: { refId: string; role: Role }) {
           )}
           {tab === "luyen-tap" && !teacher && <><SimMissions e={e} kinds={["quiz", "code"]} /><StudentPracticeTab e={e} /></>}
           {tab === "nhiem-vu" && teacher && <TeacherTasks e={e} onAssign={() => setAssign(null)} />}
+          {tab === "hoi-dap" && <LessonQA e={e} />}
         </div>
       )}
 

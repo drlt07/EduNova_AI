@@ -1,7 +1,11 @@
 "use client";
 import { useState } from "react";
 import { useTheme } from "next-themes";
-import { Download, RotateCcw } from "lucide-react";
+import { Download, KeyRound, RotateCcw, Save } from "lucide-react";
+import { hashPassword, verifyLogin } from "@/lib/auth/local-auth";
+import { AUTH_MODE } from "@/lib/supabase/config";
+import { supabaseBrowser } from "@/lib/supabase/client";
+import { PasswordInput } from "@/components/auth/password-input";
 import { toast } from "sonner";
 import { useApp } from "@/lib/store/app-store";
 import { useSessionData } from "@/lib/store/use-role";
@@ -33,15 +37,10 @@ export function SettingsPanel({ extra }: { extra?: React.ReactNode }) {
 
   return (
     <>
-      <PageHeader title="Cài đặt" />
+      <PageHeader title="Hồ sơ & Cài đặt" />
       <div className="grid gap-5 lg:grid-cols-2">
-        <Card>
-          <CardHeader><CardTitle as="h2">Hồ sơ</CardTitle><CardDescription>Tài khoản dùng thử.</CardDescription></CardHeader>
-          <CardContent className="space-y-3">
-            <div className="flex items-center gap-3"><Avatar user={user} size={52} /><div><p className="font-semibold text-fg">{user.name}</p><p className="text-sm text-muted">{ROLE_LABEL[user.role]} · {user.email}</p></div></div>
-            <Field label="Họ tên" htmlFor="pf-name"><Input id="pf-name" value={user.name} readOnly /></Field>
-          </CardContent>
-        </Card>
+        <ProfileCard />
+        <PasswordCard />
         <Card>
           <CardHeader><CardTitle as="h2">Giao diện</CardTitle></CardHeader>
           <CardContent>
@@ -72,5 +71,73 @@ export function SettingsPanel({ extra }: { extra?: React.ReactNode }) {
         </DialogContent>
       </Dialog>
     </>
+  );
+}
+
+/** Hồ sơ: họ tên, trường, bộ môn (giáo viên), email chỉ xem. */
+function ProfileCard() {
+  const { d, user } = useSessionData();
+  const prof = d.profiles[user.id] ?? {};
+  const [name, setName] = useState(user.name);
+  const [school, setSchool] = useState(prof.school ?? "");
+  const [subject, setSubject] = useState(prof.subject ?? (user.role === "teacher" ? "Tin học" : ""));
+  const save = () => {
+    if (name.trim().length < 2) return toast.error("Nhập họ tên");
+    d.updateProfile(user.id, { name, school: school.trim(), subject: subject.trim() });
+    toast.success("Đã lưu hồ sơ");
+  };
+  return (
+    <Card>
+      <CardHeader><CardTitle as="h2">Hồ sơ</CardTitle><CardDescription>{ROLE_LABEL[user.role]} · {user.email}</CardDescription></CardHeader>
+      <CardContent className="space-y-3">
+        <div className="flex items-center gap-3"><Avatar user={{ ...user, name: name || user.name }} size={52} /><div><p className="font-semibold text-fg">{name || user.name}</p><p className="text-sm text-muted">{[subject, school].filter(Boolean).join(" · ") || "Chưa có trường, bộ môn"}</p></div></div>
+        <Field label="Họ tên" htmlFor="pf-name"><Input id="pf-name" value={name} maxLength={80} onChange={(e) => setName(e.target.value)} /></Field>
+        <Field label="Trường" htmlFor="pf-school"><Input id="pf-school" value={school} maxLength={120} placeholder="Ví dụ: THPT Lê Lợi" onChange={(e) => setSchool(e.target.value)} /></Field>
+        {user.role === "teacher" && <Field label="Bộ môn" htmlFor="pf-subject"><Input id="pf-subject" value={subject} maxLength={60} onChange={(e) => setSubject(e.target.value)} /></Field>}
+        <Field label="Email đăng nhập" htmlFor="pf-email"><Input id="pf-email" value={user.email} readOnly /></Field>
+        <Button onClick={save}><Save /> Lưu hồ sơ</Button>
+      </CardContent>
+    </Card>
+  );
+}
+
+/** Bảo mật: đổi mật khẩu. Bản dùng thử băm và lưu trên trình duyệt; bản nối máy chủ đổi qua Supabase Auth. */
+function PasswordCard() {
+  const { user } = useSessionData();
+  const users = useApp((s) => s.users);
+  const creds = useApp((s) => s.credentials);
+  const setCredential = useApp((s) => s.setCredential);
+  const [cur, setCur] = useState("");
+  const [next, setNext] = useState("");
+  const [again, setAgain] = useState("");
+  const [busy, setBusy] = useState(false);
+  const change = async () => {
+    if (next.length < 8 || !/[0-9]/.test(next)) return toast.error("Mật khẩu mới tối thiểu 8 ký tự, có chữ số");
+    if (next !== again) return toast.error("Mật khẩu nhập lại không khớp");
+    setBusy(true);
+    try {
+      if (AUTH_MODE === "supabase") {
+        const sb = supabaseBrowser();
+        const { error } = (await sb?.auth.updateUser({ password: next })) ?? { error: new Error("no client") };
+        if (error) return toast.error("Chưa đổi được mật khẩu, thử lại sau");
+      } else {
+        const r = await verifyLogin(user.email, cur, users, creds ?? {});
+        if (!r.ok) return toast.error("Mật khẩu hiện tại không đúng");
+        setCredential(user.id, await hashPassword(next));
+      }
+      setCur(""); setNext(""); setAgain("");
+      toast.success("Đã đổi mật khẩu");
+    } finally { setBusy(false); }
+  };
+  return (
+    <Card>
+      <CardHeader><CardTitle as="h2">Bảo mật</CardTitle><CardDescription>Đổi mật khẩu đăng nhập.</CardDescription></CardHeader>
+      <CardContent className="space-y-3">
+        {AUTH_MODE !== "supabase" && <Field label="Mật khẩu hiện tại" htmlFor="pw-cur"><PasswordInput id="pw-cur" autoComplete="current-password" value={cur} onChange={(e) => setCur(e.target.value)} /></Field>}
+        <Field label="Mật khẩu mới" htmlFor="pw-new" hint="≥ 8 ký tự, có chữ số"><PasswordInput id="pw-new" autoComplete="new-password" value={next} onChange={(e) => setNext(e.target.value)} /></Field>
+        <Field label="Nhập lại mật khẩu mới" htmlFor="pw-again"><PasswordInput id="pw-again" autoComplete="new-password" value={again} onChange={(e) => setAgain(e.target.value)} /></Field>
+        <Button variant="secondary" onClick={change} loading={busy}><KeyRound /> Đổi mật khẩu</Button>
+      </CardContent>
+    </Card>
   );
 }

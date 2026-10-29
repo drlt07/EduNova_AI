@@ -36,6 +36,9 @@ import type {
   SmartGardenParams,
   TestResult,
   Visibility,
+  LessonQuestion,
+  SavedItem,
+  UserProfile,
 } from "@/lib/domain/types";
 import { buildSeed, type DemoData } from "@/lib/data/seed";
 import { uid } from "@/lib/utils";
@@ -72,6 +75,10 @@ export interface SubmitInput {
 
 interface Session {
   userId: string | null;
+  /** Hồ sơ mở rộng (trường, bộ môn…) theo id người dùng. */
+  profiles: Record<string, UserProfile>;
+  saved: SavedItem[];
+  lessonQA: LessonQuestion[];
   /** Bản dùng thử: muối + băm mật khẩu của tài khoản tự đăng ký (không bao giờ lưu mật khẩu gốc). */
   credentials: Record<string, LocalCredential>;
 }
@@ -79,6 +86,12 @@ interface Session {
 interface Actions {
   login: (userId: string) => void;
   logout: () => void;
+  updateProfile: (userId: string, patch: { name?: string } & UserProfile) => void;
+  /** Đổi mật khẩu tài khoản trên trình duyệt (đã băm sẵn). */
+  setCredential: (userId: string, credential: LocalCredential) => void;
+  toggleSaved: (userId: string, key: string) => void;
+  askQuestion: (q: Omit<LessonQuestion, "id" | "at" | "replies">) => void;
+  replyQuestion: (questionId: string, authorId: string, text: string) => void;
   /** Bản dùng thử: tạo tài khoản trên trình duyệt này. Trả về id, hoặc null nếu email đã có. Học sinh nhập mã lớp đúng thì vào lớp luôn. */
   registerLocal: (u: { name: string; email: string; role: "teacher" | "student"; credential: LocalCredential; inviteCode?: string }) => { id: string; classId?: string } | null;
   /** Đăng nhập thật (Supabase): đưa hồ sơ đã xác thực vào phiên; vai trò lấy từ cơ sở dữ liệu. */
@@ -192,7 +205,18 @@ export const useApp = create<AppState>()(
         ...buildSeed(),
         userId: null,
         credentials: {},
+        profiles: {},
+        saved: [],
+        lessonQA: [],
         login: (userId) => set({ userId }),
+        updateProfile: (userId, { name, ...patch }) => set((s) => ({
+          users: name?.trim() ? s.users.map((u) => (u.id === userId ? { ...u, name: name.trim() } : u)) : s.users,
+          profiles: { ...s.profiles, [userId]: { ...(s.profiles[userId] ?? {}), ...patch } },
+        })),
+        setCredential: (userId, credential) => set((s) => ({ credentials: { ...s.credentials, [userId]: credential } })),
+        toggleSaved: (userId, key) => set((s) => ({ saved: s.saved.some((x) => x.userId === userId && x.key === key) ? s.saved.filter((x) => !(x.userId === userId && x.key === key)) : [{ userId, key, at: now() }, ...s.saved] })),
+        askQuestion: (q) => set((s) => ({ lessonQA: [{ ...q, text: q.text.trim(), id: uid("qa"), at: now(), replies: [] }, ...s.lessonQA] })),
+        replyQuestion: (questionId, authorId, text) => set((s) => ({ lessonQA: s.lessonQA.map((q) => (q.id === questionId ? { ...q, replies: [...q.replies, { id: uid("qr"), authorId, text: text.trim(), at: now() }] } : q)) })),
         registerLocal: ({ name, email, role, credential, inviteCode }) => {
           const e = normalizeEmail(email);
           if (get().users.some((u) => normalizeEmail(u.email) === e)) return null;
