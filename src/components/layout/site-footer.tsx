@@ -31,7 +31,7 @@ const COLUMNS = [
 /** Không đưa số liệu, đối tác hay đánh giá chưa được xác nhận vào chân trang. */
 export function SiteFooter() {
   return (
-    <footer className="border-t border-line bg-surface/40">
+    <footer className="border-t border-line bg-surface/40 pb-[var(--corner-safe)]">
       <div className="mx-auto grid max-w-7xl gap-10 px-4 py-12 sm:px-6 md:grid-cols-[1.4fr_repeat(3,1fr)]">
         <div>
           <Logo />

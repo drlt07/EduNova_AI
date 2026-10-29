@@ -113,7 +113,7 @@ export function TutorProvider({ userId, children }: { userId: string; children: 
         <div className={cn("transition-[margin] duration-200", opened && "lg:mr-[400px]")}>{children}</div>
       </RegCtx.Provider>
       {!opened && (
-        <Button className="fixed z-[46] shadow-lg" style={{ right: "max(20px, env(safe-area-inset-right, 0px))", bottom: "calc(20px + env(safe-area-inset-bottom, 0px))" }} variant="violet" onClick={() => open()} data-testid="tutor-open">
+        <Button className="fixed z-[46] shadow-lg" style={{ right: "max(20px, env(safe-area-inset-right, 0px))", bottom: "calc(var(--corner-safe) + env(safe-area-inset-bottom, 0px))" }} variant="violet" onClick={() => open()} data-testid="tutor-open">
           <Bot /> AI Gia sư
         </Button>
       )}
@@ -128,7 +128,7 @@ export function TutorProvider({ userId, children }: { userId: string; children: 
             exit={{ x: 40, opacity: 0 }}
             transition={{ duration: 0.2 }}
             className="fixed inset-0 z-50 flex flex-col border-l border-line bg-surface p-4 shadow-2xl lg:inset-y-0 lg:left-auto lg:right-0 lg:top-16 lg:z-[46] lg:w-[400px] lg:shadow-xl"
-            style={{ paddingBottom: "calc(16px + env(safe-area-inset-bottom, 0px))", paddingTop: "calc(16px + env(safe-area-inset-top, 0px))", paddingRight: "max(16px, env(safe-area-inset-right, 0px))" }}
+            style={{ paddingBottom: "calc(var(--corner-safe) + env(safe-area-inset-bottom, 0px))", paddingTop: "calc(16px + env(safe-area-inset-top, 0px))", paddingRight: "max(16px, env(safe-area-inset-right, 0px))" }}
           >
             <div className="mb-2 flex items-center justify-between">
               <p className="flex items-center gap-2 font-semibold text-fg"><Bot className="size-5 text-violet-fg" aria-hidden /> AI Gia sư EduNova</p>

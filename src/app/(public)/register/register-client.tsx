@@ -15,7 +15,8 @@ import { AuthSubmit } from "@/components/auth/auth-form";
 import { AUTH_MODE } from "@/lib/supabase/config";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { authErrorVi } from "@/lib/auth/errors";
-import { hashPassword } from "@/lib/auth/local-auth";
+import { hashPassword, normalizeEmail } from "@/lib/auth/local-auth";
+import { remember } from "@/lib/auth/remembered";
 import { ROLE_HOME } from "@/lib/auth/paths";
 import { useApp } from "@/lib/store/app-store";
 
@@ -51,6 +52,7 @@ export function RegisterClient() {
     const credential = await hashPassword(v.password);
     const r = registerLocal({ name: v.name, email: v.email, role: v.role, credential, inviteCode: code });
     if (!r) return setError("Email này đã có tài khoản. Hãy đăng nhập, hoặc dùng email khác.");
+    remember({ email: normalizeEmail(v.email), name: v.name.trim(), hue: useApp.getState().users.find((u) => u.id === r.id)?.hue ?? 200 });
     login(r.id);
     toast.success(r.classId ? `Đã tạo tài khoản và vào lớp ${classes.find((c) => c.id === r.classId)?.name}` : "Đã tạo tài khoản");
     router.push(ROLE_HOME[v.role]);
@@ -93,7 +95,7 @@ export function RegisterClient() {
       ) : (
         <p className="text-sm text-muted">Bản dùng thử: tài khoản được lưu trên trình duyệt này, mật khẩu mã hóa một chiều. Đăng ký xong em vào học ngay.</p>
       )}
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-4">
         <Field label="Họ và tên" htmlFor="name" error={errors.name?.message}><Input id="name" autoComplete="name" {...register("name")} {...err("name")} /></Field>
         <Field label="Email" htmlFor="email" error={errors.email?.message}><Input id="email" type="email" autoComplete="email" {...register("email")} {...err("email")} /></Field>
         {!real && (

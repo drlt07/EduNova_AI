@@ -18,7 +18,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
       <MotionConfig reducedMotion="user">
         {AUTH_MODE === "supabase" && <SupabaseSession />}
         {children}
-        <Toaster richColors position="bottom-right" closeButton />
+        <Toaster richColors position="top-center" closeButton />
       </MotionConfig>
     </ThemeProvider>
   );

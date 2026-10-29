@@ -31,6 +31,8 @@
   --success-fg: #047857;
   --warning-fg: #b45309;
   --danger-fg: #be123c;
+  /* Góc dưới phải dành cho huy hiệu của nơi xuất bản (Netlify ~ 56px cao): nút nổi và vùng nhập đặt cao hơn mức này */
+  --corner-safe: 88px;
 }
 
 .dark {
@@ -247,3 +249,11 @@ html[data-contrast="high"] {
 .sim-pop { animation: sim-pop 0.35s ease-out both; transform-box: fill-box; transform-origin: center; }
 @keyframes sim-glow { 50% { opacity: 0.45; } }
 .sim-glow { animation: sim-glow 1.8s ease-in-out infinite; }
+
+/* Trang đăng nhập: hộp rơi lặp lại trên băng chuyền mini */
+@keyframes nova-drop {
+  0%, 6% { transform: translateY(-34px); opacity: 0; }
+  14%, 82% { transform: none; opacity: 1; }
+  92%, 100% { transform: none; opacity: 0; }
+}
+.nova-drop { animation: nova-drop 6s cubic-bezier(.3,1.3,.5,1) infinite both; transform-box: fill-box; }

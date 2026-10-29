@@ -10,8 +10,11 @@ import { authErrorVi } from "@/lib/auth/errors";
 import { ROLE_HOME, safeNext } from "@/lib/auth/paths";
 import type { Role } from "@/lib/domain/types";
 import { Notice } from "@/components/ui/feedback";
-import { AuthField, AuthSubmit, authInput } from "./auth-form";
+import { ArrowRight, LockKeyhole, Mail } from "lucide-react";
+import { AuthAlt, AuthField, AuthSubmit, authInput } from "./auth-form";
 import { PasswordInput } from "./password-input";
+import { RememberedChip } from "./remembered-chip";
+import { remember, type Remembered } from "@/lib/auth/remembered";
 
 const schema = z.object({
   email: z.string().trim().email("Email không hợp lệ"),
@@ -20,10 +23,10 @@ const schema = z.object({
 type Values = z.infer<typeof schema>;
 
 /** Đăng nhập thật bằng email + mật khẩu (Supabase Auth). Vai trò lấy từ hồ sơ trong cơ sở dữ liệu. */
-export function PasswordLogin({ next }: { next: string | null }) {
+export function PasswordLogin({ next, remembered, onSwitch }: { next: string | null; remembered?: Remembered | null; onSwitch?: () => void }) {
   const router = useRouter();
   const [error, setError] = useState("");
-  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<Values>({ resolver: zodResolver(schema) });
+  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<Values>({ resolver: zodResolver(schema), defaultValues: { email: remembered?.email ?? "", password: "" } });
 
   async function onSubmit(v: Values) {
     setError("");
@@ -33,6 +36,7 @@ export function PasswordLogin({ next }: { next: string | null }) {
     if (e || !data.user) return setError(authErrorVi(e?.message));
     const { data: profile } = await sb.from("profiles").select("role").eq("id", data.user.id).single<{ role: Role }>();
     const role = profile?.role ?? "student";
+    remember({ email: data.user.email ?? v.email, name: (data.user.user_metadata?.full_name as string | undefined) ?? v.email.split("@")[0], hue: 210 });
     router.replace(safeNext(next, role) ?? ROLE_HOME[role]);
     router.refresh();
   }
@@ -40,15 +44,23 @@ export function PasswordLogin({ next }: { next: string | null }) {
   const err = (k: keyof Values) => (errors[k] ? { "aria-invalid": true, "aria-describedby": `${k}-error` } : {});
   return (
     <form noValidate onSubmit={handleSubmit(onSubmit)} className="space-y-5" aria-label="Đăng nhập">
-      <AuthField label="Email" htmlFor="email" error={errors.email?.message}>
-        <input id="email" type="email" autoComplete="email" autoFocus className={authInput} {...register("email")} {...err("email")} />
+      {remembered && onSwitch ? (
+        <>
+          <RememberedChip who={remembered} onSwitch={onSwitch} />
+          <input type="hidden" autoComplete="username" {...register("email")} />
+        </>
+      ) : (
+        <AuthField label="Email" htmlFor="email" icon={Mail} error={errors.email?.message}>
+          <input id="email" type="email" autoComplete="email" placeholder="ten@truong.edu.vn" autoFocus className={`${authInput} pl-11`} {...register("email")} {...err("email")} />
+        </AuthField>
+      )}
+      <AuthField label="Mật khẩu" htmlFor="password" icon={LockKeyhole} error={errors.password?.message}>
+        <PasswordInput id="password" autoComplete="current-password" className={`${authInput} pl-11`} {...register("password")} {...err("password")} />
       </AuthField>
-      <AuthField label="Mật khẩu" htmlFor="password" error={errors.password?.message}>
-        <PasswordInput id="password" autoComplete="current-password" className={authInput} {...register("password")} {...err("password")} />
-      </AuthField>
-      <div className="-mt-2 flex justify-end text-sm"><Link href="/forgot-password" className="text-muted underline underline-offset-2 hover:text-fg">Quên mật khẩu?</Link></div>
+      <div className="-mt-1 flex justify-end text-sm"><Link href="/forgot-password" className="font-medium text-blue-fg hover:underline">Quên mật khẩu?</Link></div>
       {error && <div role="alert"><Notice tone="danger">{error}</Notice></div>}
-      <AuthSubmit disabled={isSubmitting}>{isSubmitting ? "Đang đăng nhập…" : "Đăng nhập"}</AuthSubmit>
+      <AuthSubmit disabled={isSubmitting}>{isSubmitting ? "Đang đăng nhập…" : <>Đăng nhập <ArrowRight className="size-4" aria-hidden /></>}</AuthSubmit>
+      <AuthAlt />
     </form>
   );
 }
