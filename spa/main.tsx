@@ -40,6 +40,7 @@ import TClasses from "@/app/teacher/classes/page";
 import TAssignments from "@/app/teacher/assignments/page";
 import TAssessment from "@/app/teacher/assessment/page";
 import TAnalytics from "@/app/teacher/analytics/page";
+import TSims from "@/app/teacher/sims/page";
 import TLibrary from "@/app/teacher/library/page";
 import TSettings from "@/app/teacher/settings/page";
 
@@ -134,6 +135,7 @@ const ROUTES: Route[] = [
   r("/teacher/assignments", "teacher", C(TAssignments)),
   r("/teacher/assessment", "teacher", C(TAssessment)),
   r("/teacher/analytics", "teacher", C(TAnalytics)),
+  r("/teacher/sims", "teacher", C(TSims)),
   r("/teacher/library", "teacher", C(TLibrary)),
   r("/teacher/settings", "teacher", C(TSettings)),
   r("/student(?:/dashboard)?", "student", C(SDashboard)),

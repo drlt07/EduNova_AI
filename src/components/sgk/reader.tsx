@@ -25,7 +25,7 @@ import { Block, Rich, type BlockCtx } from "./blocks";
 import { Presenter } from "./presenter";
 import { LessonSims } from "@/components/lessons/lesson-sims";
 import { UnlockChips } from "@/components/teacher/unlock-chips";
-import { codeKey, lessonKey, setKey } from "@/lib/access/unlocks";
+import { codeKey, labKey, lessonKey, setKey } from "@/lib/access/unlocks";
 import { useAccess } from "@/lib/access/use-access";
 
 type Role = "teacher" | "student";
@@ -124,10 +124,10 @@ export function BookReader({ refId, role }: { refId: string; role: Role }) {
   const { prev, next } = neighbors(refId);
   const progress = d.bookProgress.find((p) => p.userId === user.id && p.ref === refId);
   const picks = new Set(d.bookPicks.filter((p) => p.userId === user.id && p.key.startsWith(`${refId}#`)).map((p) => p.key));
-  const ctx: BlockCtx = { teacher, picked: (k) => picks.has(k), onPick: (k) => { d.toggleBookPick(user.id, k); }, onAssign: (slug) => setAssign({ kind: "lab", ref: slug }) };
+  const ctx: BlockCtx = { teacher, canSim: (slug) => access.can(labKey(slug)), picked: (k) => picks.has(k), onPick: (k) => { d.toggleBookPick(user.id, k); }, onAssign: (slug) => setAssign({ kind: "lab", ref: slug }) };
   const simKey = (slug: string) => `${refId}#sim:${slug}`;
   const ask = (section: string) => tutor.open({ title: `${book.title} · Bài ${e.lesson.no}. ${e.lesson.title} — ${section}`, capability: teacher ? "guide" : "explain" });
-  const allSims = [...lessonSimSlugs(e), ...d.lessonLabs.filter((l) => l.sgkRef === refId && (teacher ? l.ownerId === user.id : true)).map((l) => l.slug)].filter((x, i, arr) => arr.indexOf(x) === i);
+  const allSims = [...lessonSimSlugs(e), ...d.lessonLabs.filter((l) => l.sgkRef === refId && (teacher ? l.ownerId === user.id : true)).map((l) => l.slug)].filter((x, i, arr) => arr.indexOf(x) === i).filter((slug) => teacher || access.can(labKey(slug)));
   const myAssignments = teacher ? lessonAssignments(d, d.assignments.filter((a) => a.ownerId === user.id), user.id, e) : studentLessonTasks(d, user.id, e);
   const quizCount = teacher ? (content ? lessonChecks(content).length : 0) + d.teacherQuizzes.filter((q) => q.ownerId === user.id && q.sgkRef === refId).length + setsForLesson(e.ref, e.lesson.key).length : 0;
   const codeCount = e.lesson.key ? CODING_EXERCISES.filter((x) => x.lessonKey === e.lesson.key).length : 0;
@@ -287,7 +287,7 @@ export function BookReader({ refId, role }: { refId: string; role: Role }) {
 
       {tab !== "noi-dung" && (
         <div className="mt-6 max-w-4xl">
-          {tab === "mo-phong" && (teacher ? <LessonLabsTab refId={refId} inline={lessonSimSlugs(e)} /> : allSims.length ? <LessonSims labs={allSims.map((s) => getLabBySlug(s)).filter((l): l is NonNullable<typeof l> => !!l)} studentId={user.id} /> : <p className="text-sm text-muted">Bài này chưa có mô phỏng.</p>)}
+          {tab === "mo-phong" && (teacher ? <LessonLabsTab refId={refId} inline={lessonSimSlugs(e)} /> : allSims.length ? <LessonSims labs={allSims.map((s) => getLabBySlug(s)).filter((l): l is NonNullable<typeof l> => !!l)} studentId={user.id} /> : <EmptyState icon={FlaskConical} title="Chưa có mô phỏng được giao" description="Khi thầy cô giao mô phỏng của bài này cho lớp, em sẽ làm ngay tại đây." />)}
           {tab === "cau-hoi" && <><ContentChecks e={e} onOpen={() => setTab("noi-dung")} /><LessonQuizTab refId={refId} /></>}
           {tab === "lap-trinh" && <LessonCodeTab refId={refId} />}
           {tab === "luyen-tap" && <StudentPracticeTab e={e} />}

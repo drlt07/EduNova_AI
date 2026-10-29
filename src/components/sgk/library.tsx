@@ -17,7 +17,7 @@ import { AlgoThumb } from "@/components/algo/hsg-catalog";
 import { LabArt } from "@/components/labs/lab-art";
 import { AssignDialog, type AssignPreset } from "@/components/teacher/assign-dialog";
 import { lessonAssignables, lessonAssignments } from "./reader";
-import { lessonKey } from "@/lib/access/unlocks";
+import { labKey, lessonKey } from "@/lib/access/unlocks";
 import { useAccess } from "@/lib/access/use-access";
 
 type Role = "teacher" | "student";
@@ -211,7 +211,7 @@ function LessonPreview({ e, role }: { e: BookEntry; role: Role }) {
     </article>
   );
   const href = `${base(role)}/${e.ref}`;
-  const sims = [...new Set([...lessonSimSlugs(e), ...d.lessonLabs.filter((l) => l.sgkRef === e.ref && (!teacher || l.ownerId === user.id)).map((l) => l.slug)])].map((s) => getLabBySlug(s)).filter((l): l is NonNullable<typeof l> => !!l);
+  const sims = [...new Set([...lessonSimSlugs(e), ...d.lessonLabs.filter((l) => l.sgkRef === e.ref && (!teacher || l.ownerId === user.id)).map((l) => l.slug)])].filter((s) => teacher || access.can(labKey(s))).map((s) => getLabBySlug(s)).filter((l): l is NonNullable<typeof l> => !!l);
   const checks = e.content ? lessonChecks(e.content).length : 0;
   const quizzes = setsForLesson(e.ref, e.lesson.key).length + d.teacherQuizzes.filter((q) => q.sgkRef === e.ref && (teacher ? q.ownerId === user.id : q.status === "published")).length;
   const code = e.lesson.key ? CODING_EXERCISES.filter((x) => x.lessonKey === e.lesson.key).length : 0;

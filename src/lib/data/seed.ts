@@ -44,7 +44,7 @@ import { compileRule, gardenTestCases, runRule, runTests } from "@/lib/sim/smart
 import { SEED_CLASSES, SEED_ENROLLMENTS, SEED_USERS } from "./people";
 import { seedCourses } from "./courses-seed";
 import { seedHistory } from "./seed-history";
-import { codeKey, gradeLessons, lessonItems, lessonKey, setKey, type Unlock } from "@/lib/access/unlocks";
+import { codeKey, gradeLessons, labKey, lessonItems, lessonKey, setKey, type Unlock } from "@/lib/access/unlocks";
 
 /** Dữ liệu demo: lượt hỏi AI Gia sư của lớp 10A1 (chỉ dữ liệu tổng hợp, không có nội dung tin nhắn). */
 function seedTutorEvents(at: (days: number, hours?: number) => string): TutorEvent[] {
@@ -156,7 +156,7 @@ function seedUnlocks(at: string): Unlock[] {
   const plan: [string, 10 | 11 | 12, number, number][] = [["c-10a1", 10, 20, 19], ["c-11a2", 11, 3, 2], ["c-12a3", 12, 3, 1]];
   return plan.flatMap(([classId, grade, lessons, practice]) => gradeLessons(grade).slice(0, lessons).flatMap((x, i) => {
     const keys = [lessonKey(x.ref)];
-    if (i < practice) { const it = lessonItems(x.ref, x.lesson.key); keys.push(...it.sets.map((s) => setKey(s.id)), ...it.code.map((c) => codeKey(c.id))); }
+    if (i < practice) { const it = lessonItems(x.ref, x.lesson.key); keys.push(...it.sets.map((s) => setKey(s.id)), ...it.code.map((c) => codeKey(c.id)), ...it.labs.map(labKey)); }
     return keys.map((key) => ({ classId, key, by: "t1", at }));
   })).filter((u, i, arr) => arr.findIndex((v) => v.classId === u.classId && v.key === u.key) === i);
 }

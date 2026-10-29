@@ -38,7 +38,7 @@ export const NAV: Record<Role, NavItem[]> = {
     { href: "/teacher/assignments", label: "Bài tập & Đánh giá", icon: ClipboardCheck, badge: "todos", match: ["/teacher/assessment", "/teacher/activity-builder"] },
     { href: "/teacher/analytics", label: "Kết quả học tập", icon: BarChart3 },
     { href: "/teacher/lesson-planner", label: "Trợ lý KHBD AI", icon: NotebookPen },
-    { href: "/labs", label: "Tình huống mô phỏng", icon: Gamepad2, match: ["/student/games"] },
+    { href: "/teacher/sims", label: "Tình huống mô phỏng", icon: Gamepad2 },
     { href: "/teacher/library", label: "Thư viện học liệu", icon: Library, group: "Kho dùng chung", match: ["/teacher/resources"] },
     { href: "/teacher/labs", label: "Thiết lập mô phỏng", icon: FlaskConical, group: "Kho dùng chung" },
     { href: "/thuat-toan", label: "Chuyên đề HSG", icon: Trophy, group: "Kho dùng chung" },

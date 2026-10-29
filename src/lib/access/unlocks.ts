@@ -7,6 +7,7 @@ import { CODING_EXERCISES } from "@/lib/data/coding-exercises";
 import { setsForLesson } from "@/lib/data/practice";
 import { SGK_KNTT, sgkRef } from "@/lib/data/sgk-kntt";
 import { studentClassIds } from "@/lib/store/scoped";
+import { bookEntry, lessonSimSlugs } from "@/lib/sgk/book";
 import type { Grade } from "@/lib/domain/types";
 
 export interface Unlock { classId: string; key: string; by: string; at: string }
@@ -14,6 +15,7 @@ export interface Unlock { classId: string; key: string; by: string; at: string }
 export const lessonKey = (ref: string) => `bai:${ref}`;
 export const setKey = (id: string) => `bo:${id}`;
 export const codeKey = (id: string) => `code:${id}`;
+export const labKey = (slug: string) => `lab:${slug}`;
 
 type D = Pick<DemoData, "unlocks" | "enrollments" | "assignments" | "teacherQuizzes">;
 
@@ -27,7 +29,7 @@ export function studentUnlocks(d: D, studentId: string): Set<string> {
   const keys = new Set(d.unlocks.filter((u) => mine.includes(u.classId)).map((u) => u.key));
   for (const a of d.assignments) {
     if (!mine.includes(a.classId) || a.status === "draft" || (a.studentIds && !a.studentIds.includes(studentId)) || !a.task) continue;
-    keys.add(a.task.kind === "quiz" ? setKey(a.task.ref) : a.task.kind === "code" ? codeKey(a.task.ref) : `lab:${a.task.ref}`);
+    keys.add(a.task.kind === "quiz" ? setKey(a.task.ref) : a.task.kind === "code" ? codeKey(a.task.ref) : labKey(a.task.ref));
     if (a.sgkRef) keys.add(lessonKey(a.sgkRef));
   }
   return keys;
@@ -40,9 +42,11 @@ export function gradeLessons(grade: Grade) {
 
 /** Nội dung mở được của một bài: bộ luyện tập và bài lập trình gắn với bài. */
 export function lessonItems(ref: string, key?: string) {
+  const e = bookEntry(ref);
   return {
     sets: setsForLesson(ref, key),
     code: key ? CODING_EXERCISES.filter((x) => x.lessonKey === key) : [],
+    labs: e ? lessonSimSlugs(e) : [],
   };
 }
 

@@ -3,12 +3,16 @@ import type { Role } from "@/lib/domain/types";
 export const ROLE_HOME: Record<Role, string> = { teacher: "/teacher/dashboard", student: "/student/courses", admin: "/admin" };
 
 /**
- * Trang công khai nhưng là chức năng (kho mô phỏng, chương trình, bài học): phải đăng nhập mới dùng được.
+ * Trang công khai nhưng là chức năng (mở mô phỏng, chương trình, bài học): phải đăng nhập mới dùng được.
+ * Riêng danh sách Kho mô phỏng (/labs) khách vẫn xem được.
  * Trang chủ, Giới thiệu, Hướng dẫn, Chính sách, Đăng nhập/Đăng ký vẫn mở cho khách.
  */
 export const GATED_PREFIXES = ["/labs", "/curriculum", "/explore", "/bai-hoc"];
+/** Trang danh sách khách xem được (kho mô phỏng); mở một mô phỏng cụ thể vẫn cần đăng nhập. */
+const OPEN_INDEX = new Set(["/labs"]);
 
 export function isGatedPath(pathname: string) {
+  if (OPEN_INDEX.has(pathname)) return false;
   return GATED_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`));
 }
 

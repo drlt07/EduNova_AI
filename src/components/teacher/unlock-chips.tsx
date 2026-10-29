@@ -1,20 +1,21 @@
 "use client";
-import { BookOpen, Code2, ListChecks, Lock, LockOpen } from "lucide-react";
+import { BookOpen, Code2, FlaskConical, ListChecks, Lock, LockOpen } from "lucide-react";
 import { toast } from "sonner";
-import { classUnlocks, codeKey, lessonItems, lessonKey, setKey } from "@/lib/access/unlocks";
+import { classUnlocks, codeKey, labKey, lessonItems, lessonKey, setKey } from "@/lib/access/unlocks";
 import { useSessionData } from "@/lib/store/use-role";
 import { cn } from "@/lib/utils";
 
 interface Props { classId: string; className?: string; refId: string; lessonKey?: string; label?: string; compact?: boolean }
 
-/** Ba công tắc mở cho lớp: nội dung bài, bộ luyện tập của bài, bài lập trình của bài. */
+/** Công tắc mở cho lớp: nội dung bài, bộ luyện tập, mô phỏng, bài lập trình của bài. */
 export function UnlockChips({ classId, refId, lessonKey: key, label, compact }: Props) {
   const { d, user } = useSessionData();
   const open = classUnlocks(d, classId);
-  const { sets, code } = lessonItems(refId, key);
+  const { sets, code, labs } = lessonItems(refId, key);
   const groups = [
     { id: "bai", icon: BookOpen, text: "Bài học", keys: [lessonKey(refId)] },
     { id: "luyen", icon: ListChecks, text: `Luyện tập`, n: sets.reduce((a, s) => a + s.questionIds.length, 0), keys: sets.map((s) => setKey(s.id)) },
+    { id: "mo-phong", icon: FlaskConical, text: "Mô phỏng", n: labs.length, keys: labs.map(labKey) },
     { id: "code", icon: Code2, text: "Lập trình", n: code.length, keys: code.map((c) => codeKey(c.id)) },
   ].filter((g) => g.keys.length);
   return (

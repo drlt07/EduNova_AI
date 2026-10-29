@@ -37,7 +37,7 @@ export default function LabsPage() {
         visual={<MiniSimPreview href="/labs/smart-coding-city" />}
       />
       <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
-        <h2 className="mb-4 text-xl font-bold text-fg">Tất cả mô phỏng</h2>
+        <h2 className="mb-4 text-xl font-bold text-fg">Kho mô phỏng</h2>
         <Suspense fallback={<PageSkeleton />}>
           <LabsClient />
         </Suspense>

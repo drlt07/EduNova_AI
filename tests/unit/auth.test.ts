@@ -22,6 +22,8 @@ describe("chuyển hướng sau đăng nhập", () => {
     expect(roleArea("/teachers")).toBeNull();
     expect(isGatedPath("/curriculum")).toBe(true);
     expect(isGatedPath("/labsx")).toBe(false);
+    expect(isGatedPath("/labs")).toBe(false); // khách xem được danh sách kho mô phỏng
+    expect(isGatedPath("/labs/smart-garden")).toBe(true);
   });
 });
 

@@ -1,6 +1,6 @@
 "use client";
 import { Fragment, useState, type ReactNode } from "react";
-import { AlertTriangle, CheckCircle2, ChevronDown, KeyRound, Lightbulb, Play, Send, Star, XCircle } from "lucide-react";
+import { AlertTriangle, CheckCircle2, ChevronDown, KeyRound, Lightbulb, Lock, Play, Send, Star, XCircle } from "lucide-react";
 import type { BookBlock } from "@/lib/sgk/types";
 import { getLabBySlug } from "@/lib/data/labs";
 import { ALGOS } from "@/lib/data/hsg";
@@ -32,6 +32,8 @@ export interface BlockCtx {
   picked?: (key: string) => boolean;
   onPick?: (key: string) => void;
   onAssign?: (slug: string) => void;
+  /** Học sinh: mô phỏng này đã được thầy cô giao/mở chưa (chưa thì chỉ hiện tên, không mở được). */
+  canSim?: (slug: string) => boolean;
 }
 
 /** Câu hỏi củng cố ngay trong bài: chọn đáp án, xem giải thích. Giáo viên thấy đáp án ngay. */
@@ -67,6 +69,11 @@ function Sim({ slug, task, ctx, itemKey }: { slug: string; task: string; ctx: Bl
   const [open, setOpen] = useState(!!ctx.present);
   if (!lab) return null;
   const picked = itemKey && ctx.picked?.(itemKey);
+  if (!ctx.teacher && ctx.canSim && !ctx.canSim(slug)) return (
+    <div className="my-4 flex items-center gap-3 rounded-2xl border border-dashed border-line bg-surface-2/50 p-3 text-sm text-muted">
+      <Lock className="size-4 shrink-0" aria-hidden /> Mô phỏng “{lab.title}” sẽ mở khi thầy cô giao cho lớp.
+    </div>
+  );
   return (
     <div className="my-4 overflow-hidden rounded-2xl border border-cyan/40 bg-cyan/5">
       <div className="flex flex-wrap items-center gap-3 p-3">

@@ -34,17 +34,40 @@ export function simsByLesson(grade: Grade) {
   return { groups, other, total: seen.size + other.length };
 }
 
-export function SimLibrary({ hrefFor, progressOf }: { hrefFor: (lab: LabTemplate) => string | undefined; progressOf?: (lab: LabTemplate) => LabProgress }) {
+interface Props {
+  hrefFor: (lab: LabTemplate) => string | undefined;
+  progressOf?: (lab: LabTemplate) => LabProgress;
+  /** Chỉ hiện mô phỏng thỏa điều kiện (vd học sinh: chỉ mô phỏng thầy cô đã giao). */
+  filter?: (lab: LabTemplate) => boolean;
+  /** Nút thêm dưới mỗi thẻ (vd giáo viên: giao, mở cho lớp). */
+  extra?: (lab: LabTemplate, ref?: string) => React.ReactNode;
+  /** Lời nhắn khi một khối chưa có mô phỏng nào hiện. */
+  emptyText?: string;
+}
+
+export function SimLibrary({ hrefFor, progressOf, filter, extra, emptyText = "Không có mô phỏng phù hợp." }: Props) {
   const [lop, setLop] = useQueryState("lop");
   const [q, setQ] = useQueryState("q");
   const grade = GRADES.find((g) => String(g) === lop);
-  const data = useMemo(() => Object.fromEntries(GRADES.map((g) => [g, simsByLesson(g)])) as Record<Grade, ReturnType<typeof simsByLesson>>, []);
-  const card = (l: LabTemplate) => { const href = hrefFor(l); return href ? <LabCard key={l.slug} lab={l} href={href} progress={progressOf?.(l)} /> : null; };
+  const data = useMemo(() => Object.fromEntries(GRADES.map((g) => {
+    const x = simsByLesson(g);
+    if (!filter) return [g, x];
+    const groups = x.groups.map((gr) => ({ ...gr, labs: gr.labs.filter(filter) })).filter((gr) => gr.labs.length);
+    const other = x.other.filter(filter);
+    return [g, { groups, other, total: groups.reduce((n, gr) => n + gr.labs.length, 0) + other.length }];
+  })) as Record<Grade, ReturnType<typeof simsByLesson>>, [filter]);
+  const card = (l: LabTemplate, ref?: string) => {
+    const href = hrefFor(l);
+    if (!href) return null;
+    return <div key={l.slug} className="flex min-w-0 flex-col gap-2"><LabCard lab={l} href={href} progress={progressOf?.(l)} />{extra?.(l, ref)}</div>;
+  };
 
   if (!grade) {
+    const shown = GRADES.filter((g) => !filter || data[g].total > 0);
+    if (!shown.length) return <EmptyState icon={FlaskConical} title="Chưa có mô phỏng" description={emptyText} />;
     return (
       <ul className="grid gap-5 md:grid-cols-3">
-        {GRADES.map((g) => {
+        {shown.map((g) => {
           const x = data[g];
           const arts = [...x.groups.flatMap((gr) => gr.labs), ...x.other].slice(0, 3);
           const done = progressOf ? [...x.groups.flatMap((gr) => gr.labs), ...x.other].filter((l) => progressOf(l)?.done).length : null;
@@ -85,7 +108,7 @@ export function SimLibrary({ hrefFor, progressOf }: { hrefFor: (lab: LabTemplate
         <Search className="pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-muted" aria-hidden />
         <Input type="search" aria-label="Tìm mô phỏng" placeholder="Tìm theo tên bài hoặc mô phỏng…" value={q} onChange={(e) => setQ(e.target.value)} className="h-11 rounded-xl pl-11" />
       </div>
-      {groups.length === 0 && other.length === 0 && <EmptyState icon={SearchX} title="Không có mô phỏng phù hợp" description="Thử từ khóa khác." />}
+      {groups.length === 0 && other.length === 0 && <EmptyState icon={SearchX} title={q ? "Không có mô phỏng phù hợp" : "Chưa có mô phỏng"} description={q ? "Thử từ khóa khác." : emptyText} />}
       <div className="space-y-10">
         {groups.map((gr) => (
           <section key={gr.ref} aria-labelledby={`sim-${gr.ref}`}>
@@ -93,13 +116,13 @@ export function SimLibrary({ hrefFor, progressOf }: { hrefFor: (lab: LabTemplate
               <p className="text-xs font-semibold uppercase tracking-wide text-muted">{gr.topic}</p>
               <h3 id={`sim-${gr.ref}`} className="mt-0.5 flex flex-wrap items-baseline gap-2 text-xl font-bold text-fg"><span className="rounded-lg bg-brand/10 px-2 py-0.5 text-base text-blue-fg">Bài {gr.no}</span>{gr.title}</h3>
             </div>
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">{gr.labs.map(card)}</div>
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">{gr.labs.map((l) => card(l, gr.ref))}</div>
           </section>
         ))}
         {other.length > 0 && (
           <section aria-labelledby="sim-other">
             <h3 id="sim-other" className="mb-4 flex items-center gap-2 border-b-2 border-line pb-2 text-xl font-bold text-fg"><FlaskConical className="size-5 text-muted" aria-hidden /> Mô phỏng mở rộng</h3>
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">{other.map(card)}</div>
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">{other.map((l) => card(l))}</div>
           </section>
         )}
       </div>
