@@ -42,6 +42,11 @@ import TAssignments from "@/app/teacher/assignments/page";
 import TAssessment from "@/app/teacher/assessment/page";
 import TAnalytics from "@/app/teacher/analytics/page";
 import TSims from "@/app/teacher/sims/page";
+import SKho from "@/app/student/kho/page";
+import SKhoSim from "@/app/student/kho/[slug]/page";
+import TKho from "@/app/teacher/kho/page";
+import TKhoSim from "@/app/teacher/kho/[slug]/page";
+import AKho from "@/app/admin/kho/page";
 import TBank from "@/app/teacher/bank/page";
 import TResults from "@/app/teacher/results/page";
 import ASims from "@/app/admin/sims/page";
@@ -143,6 +148,11 @@ const ROUTES: Route[] = [
   r("/teacher/analytics", "teacher", C(TAnalytics)),
   r("/teacher/sims", "teacher", C(TSims)),
   r("/teacher/bank", "teacher", C(TBank)),
+  r("/teacher/kho", "teacher", C(TKho)),
+  r("/teacher/kho/:slug", "teacher", C(TKhoSim)),
+  r("/student/kho", "student", C(SKho)),
+  r("/student/kho/:slug", "student", C(SKhoSim)),
+  r("/admin/kho", "admin", C(AKho)),
   r("/teacher/results", "teacher", C(TResults)),
   r("/teacher/library", "teacher", C(TLibrary)),
   r("/teacher/settings", "teacher", C(TSettings)),

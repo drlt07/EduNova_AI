@@ -57,12 +57,12 @@ export default function ResultsPage() {
   const colStats = cols.map(({ a }) => {
     const cs = rows.map((r) => r.cells.get(a.id)).filter((c): c is GradeCell => !!c);
     const graded = cs.flatMap((c) => (c.status === "graded" && c.ratio !== undefined ? [ten(c.ratio)] : []));
-    return { id: a.id, mean: avg(graded), handed: cs.filter((c) => c.status !== "missing" && c.status !== "open").length, total: cs.length };
+    return { id: a.id, mean: avg(graded), handed: cs.filter((c) => c.status !== "missing" && c.status !== "open").length, total: cs.length, due: cs.filter((c) => c.status !== "open").length };
   });
   const all = rows.flatMap((r) => (r.mean !== null ? [r.mean] : []));
   const classMean = avg(all);
   const handed = colStats.reduce((n, c) => n + c.handed, 0);
-  const total = colStats.reduce((n, c) => n + c.total, 0);
+  const total = colStats.reduce((n, c) => n + c.due, 0);
   const atRisk = rows.filter((r) => (r.mean !== null && r.mean < 5) || r.missing >= 2);
 
   function exportCsv() {

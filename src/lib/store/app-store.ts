@@ -167,6 +167,9 @@ interface Actions {
   markCourseBlock: (studentId: string, courseId: string, blockId: string, done: boolean, score?: number) => void;
   setCourseLastLesson: (studentId: string, courseId: string, lessonId: string) => void;
   logTutorEvent: (e: Omit<TutorEvent, "id" | "at">) => void;
+  setKhoHidden: (slug: string, hidden: boolean) => void;
+  setKhoFeatured: (slug: string, featured: boolean) => void;
+  countKhoPlay: (slug: string) => void;
 }
 
 export type AppState = DemoData & Session & Actions;
@@ -484,6 +487,9 @@ export const useApp = create<AppState>()(
               return { ...p, done: next };
             }),
           })),
+        setKhoHidden: (slug, hidden) => set((s) => ({ kho: { ...s.kho, hidden: hidden ? [...new Set([...s.kho.hidden, slug])] : s.kho.hidden.filter((x) => x !== slug) } })),
+        setKhoFeatured: (slug, featured) => set((s) => ({ kho: { ...s.kho, featured: featured ? [...new Set([...s.kho.featured, slug])] : s.kho.featured.filter((x) => x !== slug) } })),
+        countKhoPlay: (slug) => set((s) => ({ kho: { ...s.kho, plays: { ...s.kho.plays, [slug]: (s.kho.plays[slug] ?? 0) + 1 } } })),
         saveTeacherQuiz: (q) => {
           const id = q.id ?? uid("tq");
           set((s) => ({ teacherQuizzes: [{ ...q, id, updatedAt: now() }, ...s.teacherQuizzes.filter((x) => x.id !== id)] }));
@@ -543,6 +549,9 @@ export const useApp = create<AppState>()(
         out.assignments = add(p.assignments, seed.assignments).map((a) => a.courseId || !seed.assignments.find((x) => x.id === a.id)?.courseId ? a : { ...a, courseId: seed.assignments.find((x) => x.id === a.id)!.courseId });
         const has = new Set((p.unlocks ?? []).map((u) => `${u.classId}|${u.key}`));
         out.unlocks = [...(p.unlocks ?? []), ...seed.unlocks.filter((u) => !has.has(`${u.classId}|${u.key}`))];
+        out.kho = p.kho ?? seed.kho;
+        const mine = new Set((p.courseProgress ?? []).map((x) => `${x.studentId}|${x.courseId}`));
+        out.courseProgress = [...(p.courseProgress ?? []), ...seed.courseProgress.filter((x) => !mine.has(`${x.studentId}|${x.courseId}`))];
         return out as AppState;
       },
       storage: createJSONStorage(safeStorage),

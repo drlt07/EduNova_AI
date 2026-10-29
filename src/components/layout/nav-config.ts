@@ -41,6 +41,7 @@ export const NAV: Record<Role, NavItem[]> = {
     { href: "/teacher/sims", label: "Tình huống mô phỏng", icon: Gamepad2 },
     { href: "/teacher/library", label: "Thư viện học liệu", icon: Library, group: "Kho dùng chung", match: ["/teacher/resources"] },
     { href: "/teacher/labs", label: "Thiết lập mô phỏng", icon: FlaskConical, group: "Kho dùng chung" },
+    { href: "/teacher/kho", label: "Kho mô phỏng công khai", icon: GraduationCap, group: "Kho dùng chung" },
     { href: "/thuat-toan", label: "Chuyên đề HSG", icon: Trophy, group: "Kho dùng chung" },
   ],
   // 5 chức năng của học sinh (Trang chủ = trang giới thiệu chung); trang con (match) vẫn đánh dấu đúng mục cha. Kết quả học tập nằm ở Trang cá nhân.
@@ -50,13 +51,14 @@ export const NAV: Record<Role, NavItem[]> = {
     { href: "/student/games", label: "Tình huống mô phỏng", icon: Gamepad2, match: ["/labs", "/thuat-toan"] },
     { href: "/student/practice", label: "Luyện tập", icon: Dumbbell, match: ["/student/code", "/student/projects"] },
     { href: "/student/tutor", label: "AI Gia sư", icon: Bot },
+    { href: "/student/kho", label: "Kho mô phỏng", icon: GraduationCap, group: "Khám phá thêm" },
   ],
   admin: [
     { href: "/", label: "Trang chủ", icon: Home },
     { href: "/admin", label: "Quản trị", icon: Shield },
     { href: "/curriculum", label: "Chương trình", icon: BookOpenCheck },
     { href: "/admin/sims", label: "Mô phỏng theo bài", icon: FlaskConical },
-    { href: "/kho", label: "Kho mô phỏng", icon: GraduationCap },
+    { href: "/admin/kho", label: "Kho mô phỏng công khai", icon: GraduationCap, match: ["/kho"] },
   ],
 };
 

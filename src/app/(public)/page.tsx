@@ -11,7 +11,6 @@ import {
   FlaskConical,
   Gamepad2,
   GraduationCap,
-  Hourglass,
   Lightbulb,
   Lock,
   NotebookPen,
@@ -24,10 +23,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { HeroTraffic } from "@/components/landing/hero-traffic";
 import { RoleLink } from "@/components/landing/role-link";
-import { ComputerArt, FarmArt, NetworkArt, TrafficArt } from "@/components/landing/sim-art";
-import { LAB_TEMPLATES, getLabBySlug } from "@/lib/data/labs";
+import { LAB_TEMPLATES } from "@/lib/data/labs";
 import { LESSONS } from "@/lib/data/curriculum";
 import { cn } from "@/lib/utils";
+import { KhoShowcase } from "@/components/life/kho";
 
 const GRADES = [
   { g: 10, title: "Dữ liệu và lập trình", text: "Thông tin và dữ liệu, hệ nhị phân, an toàn số, lập trình Python: biến, rẽ nhánh, vòng lặp, hàm.", tone: "from-cyan/25 via-cyan/5" },
@@ -35,13 +34,6 @@ const GRADES = [
   { g: 12, title: "Mạng, AI và sáng tạo số", text: "Mạng máy tính, trí tuệ nhân tạo, thiết kế web với HTML/CSS, công dân số.", tone: "from-violet/25 via-violet/5" },
 ];
 
-/** Mô tả bám đúng những gì mô phỏng làm được hôm nay; phần chưa có ghi rõ "sắp có". */
-const SIMS = [
-  { slug: "smart-coding-city", art: TrafficArt, title: "Điều khiển giao thông thông minh", meta: "Tin học 10 • Câu lệnh rẽ nhánh", text: "Điều khiển đèn tín hiệu, quan sát xe dừng trước vạch và đi qua giao lộ trong thành phố 3D.", note: "Trình soạn Python điều khiển xe và đèn: sắp có" },
-  { slug: "smart-garden", art: FarmArt, title: "Nông trại thông minh", meta: "Tin học 10 • Điều kiện và vòng lặp", text: "Thiết lập quy tắc tưới nước dựa trên cảm biến và quan sát cây trồng." },
-  { slug: "inside-computer-3d", art: ComputerArt, title: "Khám phá bên trong máy tính", meta: "Tin học 11 • Hệ thống máy tính", text: "Xoay, quan sát và tương tác với các thành phần phần cứng." },
-  { slug: "network-journey", art: NetworkArt, title: "Giải cứu mạng máy tính", meta: "Tin học 12 • Mạng máy tính", text: "Kết nối các thiết bị, truyền dữ liệu và xử lý sự cố mạng." },
-];
 
 const STEPS = [
   { icon: BookOpen, title: "Tìm hiểu kiến thức", text: "Tiếp cận bài học bằng hình ảnh, ví dụ và hoạt động tương tác." },
@@ -198,42 +190,8 @@ export default function HomePage() {
       <section className="relative overflow-hidden" aria-labelledby="sims-h">
         <div aria-hidden className="pointer-events-none absolute -right-40 top-10 h-[420px] w-[620px] rounded-full bg-[radial-gradient(closest-side,rgba(139,92,246,0.18),transparent)]" />
         <div className="relative mx-auto max-w-7xl px-4 py-20 sm:px-6">
-          <SectionHead id="sims-h" eyebrow="Kho mô phỏng" title="Kiến thức trở nên sống động qua từng mô phỏng" text="Không chỉ đọc và ghi nhớ, học sinh được trực tiếp thao tác, thử nghiệm và giải quyết những tình huống gắn với kiến thức Tin học." />
-          <div className="mt-10 grid gap-6 sm:grid-cols-2">
-            {SIMS.map((s) => {
-              const ready = getLabBySlug(s.slug)?.status === "available";
-              return (
-                <Link key={s.slug} href={`/labs/${s.slug}`} className="group flex flex-col overflow-hidden rounded-3xl border border-line bg-surface transition-all hover:-translate-y-1 hover:border-cyan/40 hover:shadow-[0_18px_50px_-24px_var(--cyan)]">
-                  <div className={cn("relative aspect-[16/9] overflow-hidden", !ready && "grayscale-[35%]")}>
-                    <s.art className="h-full w-full transition-transform duration-500 group-hover:scale-[1.03]" />
-                    <span className="absolute left-3 top-3">
-                      {ready ? (
-                        <Badge tone="success" className="bg-surface/90 backdrop-blur"><Play className="size-3" aria-hidden /> Chơi được</Badge>
-                      ) : (
-                        <Badge tone="violet" className="bg-surface/90 backdrop-blur"><Hourglass className="size-3" aria-hidden /> Đang phát triển</Badge>
-                      )}
-                    </span>
-                  </div>
-                  <div className="flex flex-1 flex-col p-6">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-cyan-fg">{s.meta}</p>
-                    <h3 className="mt-1 text-xl font-bold text-fg">{s.title}</h3>
-                    <p className="mt-2 text-sm text-muted">{s.text}</p>
-                    {s.note && <p className="mt-2 text-xs text-muted">{s.note}</p>}
-                    <span className="mt-auto inline-flex items-center gap-1 pt-4 text-sm font-semibold text-cyan-fg">
-                      {ready ? "Bắt đầu" : "Xem giới thiệu"} <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
-                    </span>
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
-          <div className="mt-10 text-center">
-            <Button asChild size="lg" variant="outline">
-              <Link href="/labs">
-                Xem toàn bộ kho mô phỏng <ArrowRight />
-              </Link>
-            </Button>
-          </div>
+          <SectionHead id="sims-h" eyebrow="Kho mô phỏng" title="Tin học quanh em, thử ngay không cần tài khoản" text="Mã QR, GPS, mật khẩu, màn hình RGB, thư rác, gợi ý video… Mỗi mô phỏng có màn Khám phá để tự tay thao tác và màn Thử thách để kiểm tra hiểu biết." />
+          <KhoShowcase />
         </div>
       </section>
 

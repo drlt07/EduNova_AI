@@ -42,6 +42,7 @@ import type {
 } from "@/lib/domain/types";
 import { compileRule, gardenTestCases, runRule, runTests } from "@/lib/sim/smart-garden";
 import { SEED_CLASSES, SEED_ENROLLMENTS, SEED_USERS } from "./people";
+import { DEFAULT_FEATURED } from "./life-labs";
 import { seedCourses } from "./courses-seed";
 import { seedHistory } from "./seed-history";
 import { codeKey, gradeLessons, lessonItems, lessonKey, setKey, type Unlock } from "@/lib/access/unlocks";
@@ -66,6 +67,8 @@ function seedGraded(r: Omit<LabResult, "score" | "answer" | "grade">, answer: st
   const grade = gradeLabWithRules({ slug: r.labSlug, labTitle: r.labSlug, mistakes: r.mistakes, seconds: r.seconds, answer });
   return { ...r, score: grade.score, answer, grade };
 }
+
+export interface KhoSettings { hidden: string[]; featured: string[]; plays: Record<string, number> }
 
 export interface DemoData {
   users: User[];
@@ -101,6 +104,8 @@ export interface DemoData {
   courseProgress: CourseProgress[];
   tutorEvents: TutorEvent[];
   teacherQuizzes: TeacherQuiz[];
+  /** Kho mô phỏng công khai do quản trị viên quản lí: ẩn bớt, chọn nổi bật, đếm lượt thử. */
+  kho: KhoSettings;
   labResults: LabResult[];
   bookNotes: BookNote[];
   /** Mục giáo viên chọn để dùng khi dạy: itemKey(ref, sectionId) hoặc "ref#sim:slug". */
@@ -161,7 +166,25 @@ function seedUnlocks(at: string): Unlock[] {
   })).filter((u, i, arr) => arr.findIndex((v) => v.classId === u.classId && v.key === u.key) === i);
 }
 
+/** Tiến độ khóa học mẫu: em nào đã làm bài kiểm tra của bài thì coi như đã học các hoạt động của bài đó. */
+function seedCourseProgress(courses: Course[], attempts: PracticeAttempt[]): CourseProgress[] {
+  return courses.filter((c) => c.status === "published").flatMap((c) => {
+    const students = SEED_ENROLLMENTS.filter((e) => c.classIds.includes(e.classId) && !e.status && e.studentId !== "s1").map((e) => e.studentId);
+    return students.flatMap((studentId) => {
+      const done: CourseProgress["done"] = {};
+      for (const l of c.topics.flatMap((t) => t.lessons)) {
+        const test = l.blocks.find((b) => b.final)?.practiceSetId;
+        const first = test && attempts.filter((a) => a.studentId === studentId && a.setId === test).sort((x, y) => x.startedAt.localeCompare(y.startedAt))[0];
+        if (!first) continue;
+        for (const b of l.blocks) if (!b.final && b.kind !== "python") done[b.id] = { at: first.startedAt };
+      }
+      return Object.keys(done).length ? [{ studentId, courseId: c.id, done, updatedAt: new Date().toISOString() }] : [];
+    });
+  });
+}
+
 export function buildSeed(now: Date = new Date()): DemoData {
+  const courses = seedCourses(new Date(now.getTime() - 10 * 86_400_000).toISOString());
   const hist = seedHistory(now, SEED_CLASSES, SEED_ENROLLMENTS, new Set(["s9|os-explorer", "s10|os-explorer", "s11|os-explorer", "s12|os-explorer", "s9|inside-computer-3d"]));
   const at = (days: number, hours = 0) => new Date(now.getTime() + days * 86_400_000 + hours * 3_600_000).toISOString();
 
@@ -412,10 +435,11 @@ export function buildSeed(now: Date = new Date()): DemoData {
 
   return {
     users: SEED_USERS,
-    courses: seedCourses(at(-10)),
-    courseProgress: [],
+    courses,
+    courseProgress: seedCourseProgress(courses, hist.attempts),
     tutorEvents: seedTutorEvents(at),
     teacherQuizzes: [],
+    kho: { hidden: [], featured: DEFAULT_FEATURED, plays: { "qr-code": 1284, gps: 932, barcode: 611, encryption: 1047, "spam-filter": 588, recommender: 1390, "image-compress": 476, password: 214, "rgb-pixel": 167 } },
     bookNotes: [],
     bookPicks: [],
     bookProgress: [{ userId: "t1", ref: "10-19", read: ["dieu-kien", "if-else"], last: "if-else", at: at(-1) }],

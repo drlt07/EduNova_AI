@@ -234,3 +234,8 @@ html[data-contrast="high"] {
   --s1: #3987e5; --s2: #d95926; --s3: #199e70;
   --grid: #1f2937; --axis: #475569;
 }
+
+/* Kho mô phỏng: chuyển cảnh mô phỏng nổi bật */
+@keyframes kho-in { from { opacity: 0; transform: translateY(8px) scale(0.98); } to { opacity: 1; transform: none; } }
+.kho-in { animation: kho-in 0.5s ease both; }
+@media (prefers-reduced-motion: reduce) { .kho-in { animation: none; } }

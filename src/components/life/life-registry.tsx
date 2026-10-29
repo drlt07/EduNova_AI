@@ -7,9 +7,11 @@ import { EncryptionLab } from "./encryption";
 import { SpamFilterLab } from "./spam-filter";
 import { RecommenderLab } from "./recommender";
 import { ImageCompressLab } from "./image-compress";
+import { PasswordLab } from "./password";
+import { RgbPixelLab } from "./rgb-pixel";
 
 export const LIFE_COMPONENTS: Record<string, () => React.ReactElement> = {
-  "qr-code": QrCodeLab, gps: GpsLab, barcode: BarcodeLab, encryption: EncryptionLab, "spam-filter": SpamFilterLab, recommender: RecommenderLab, "image-compress": ImageCompressLab,
+  "qr-code": QrCodeLab, gps: GpsLab, barcode: BarcodeLab, encryption: EncryptionLab, "spam-filter": SpamFilterLab, recommender: RecommenderLab, "image-compress": ImageCompressLab, password: PasswordLab, "rgb-pixel": RgbPixelLab,
 };
 
 type P = { className?: string };
@@ -68,6 +70,25 @@ const ART: Record<string, (p: P) => React.ReactElement> = {
       <path d="M150 90 h30" stroke="#0891b2" strokeWidth="3" /><path d="M176 84 l8 6 -8 6" fill="none" stroke="#0891b2" strokeWidth="3" />
       {Array.from({ length: 16 }, (_, i) => { const x = i % 4, y = Math.floor(i / 4); return <rect key={i} x={196 + x * 26} y={35 + y * 26} width="26" height="26" fill={y < 2 ? "rgb(170,205,250)" : "rgb(60,135,70)"} />; })}
       <text x="82" y="160" textAnchor="middle" fontSize="11" fontFamily={M} fill="#0e7490">2 900 KB</text><text x="248" y="160" textAnchor="middle" fontSize="11" fontFamily={M} fill="#0e7490">180 KB</text>
+    </Svg>
+  ),
+  password: ({ className }) => (
+    <Svg className={className} bg="#fef3c7" label="Ổ khóa và mật khẩu">
+      <rect x="40" y="62" width="150" height="44" rx="12" fill="#fff" stroke="#f59e0b" strokeWidth="2" />
+      <text x="115" y="90" textAnchor="middle" fontSize="16" fontFamily={M} fill="#0f172a">••••••••••</text>
+      {[0, 1, 2, 3].map((i) => <rect key={i} x={40 + i * 39} y="116" width="33" height="8" rx="4" fill={["#ef4444", "#f59e0b", "#3b82f6", "#22c55e"][i]} />)}
+      <rect x="215" y="72" width="70" height="62" rx="10" fill="#0f172a" /><path d="M230 72 v-14 a20 20 0 0 1 40 0 v14" fill="none" stroke="#0f172a" strokeWidth="8" />
+      <circle cx="250" cy="98" r="7" fill="#fbbf24" /><rect x="247" y="100" width="6" height="16" rx="2" fill="#fbbf24" />
+      <text x="115" y="48" textAnchor="middle" fontSize="11" fontFamily={M} fill="#92400e">95¹⁶ khả năng</text>
+    </Svg>
+  ),
+  "rgb-pixel": ({ className }) => (
+    <Svg className={className} bg="#0f172a" label="Ba đèn đỏ xanh lá xanh dương trộn màu">
+      <circle cx="135" cy="75" r="48" fill="#ff2a2a" opacity="0.85" style={{ mixBlendMode: "screen" }} />
+      <circle cx="185" cy="75" r="48" fill="#22ff55" opacity="0.85" style={{ mixBlendMode: "screen" }} />
+      <circle cx="160" cy="118" r="48" fill="#3a6bff" opacity="0.85" style={{ mixBlendMode: "screen" }} />
+      <text x="40" y="160" fontSize="12" fontFamily={M} fill="#94a3b8">#FF8C00</text>
+      <text x="280" y="160" textAnchor="end" fontSize="12" fontFamily={M} fill="#94a3b8">24 bit</text>
     </Svg>
   ),
 };
