@@ -7,7 +7,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { authErrorVi } from "@/lib/auth/errors";
-import { ROLE_HOME, safeNext } from "@/lib/auth/paths";
+import { CHOOSE_ROLE, ROLE_HOME, safeNext } from "@/lib/auth/paths";
+import { needsRoleChoice } from "@/lib/auth/profile";
 import type { Role } from "@/lib/domain/types";
 import { Notice } from "@/components/ui/feedback";
 import { ArrowRight, LockKeyhole, Mail } from "lucide-react";
@@ -34,10 +35,10 @@ export function PasswordLogin({ next, remembered, onSwitch }: { next: string | n
     if (!sb) return;
     const { data, error: e } = await sb.auth.signInWithPassword({ email: v.email, password: v.password });
     if (e || !data.user) return setError(authErrorVi(e?.message));
-    const { data: profile } = await sb.from("profiles").select("role").eq("id", data.user.id).single<{ role: Role }>();
+    const { data: profile } = await sb.from("profiles").select("*").eq("id", data.user.id).single<{ role: Role; role_chosen?: boolean }>();
     const role = profile?.role ?? "student";
     remember({ email: data.user.email ?? v.email, name: (data.user.user_metadata?.full_name as string | undefined) ?? v.email.split("@")[0], hue: 210 });
-    router.replace(safeNext(next, role) ?? ROLE_HOME[role]);
+    router.replace(needsRoleChoice(profile) ? CHOOSE_ROLE : (safeNext(next, role) ?? ROLE_HOME[role]));
     router.refresh();
   }
 

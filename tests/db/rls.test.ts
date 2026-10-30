@@ -123,6 +123,33 @@ describe("tài khoản và vai trò", () => {
     expect(await role(id)).toBe("teacher");
   });
 
+  it("tài khoản mới tự chọn vai trò đúng một lần; không chọn được quản trị viên", async () => {
+    const chosen = async (id: string) => (await sys<{ role_chosen: boolean }>("select role_chosen from profiles where id = $1", [id]))[0].role_chosen;
+    const a = await signUp("co-giao-moi@gmail.com");
+    expect(await role(a)).toBe("student");
+    expect(await chosen(a)).toBe(false);
+    await expect(as(a, "select choose_role('admin')")).rejects.toThrow(/Giáo viên hoặc Học sinh/);
+    await as(a, "select choose_role('teacher')");
+    expect(await role(a)).toBe("teacher");
+    expect(await chosen(a)).toBe(true);
+    await expect(as(a, "select choose_role('student')")).rejects.toThrow(/đã được xác nhận/);
+    // đổi email không ghi đè vai trò đã chọn
+    await sys("update auth.users set email = 'co-giao-moi2@gmail.com' where id = $1", [a]);
+    expect(await role(a)).toBe("teacher");
+    const b = await signUp("hs-moi@gmail.com");
+    await as(b, "select choose_role('student')");
+    await expect(as(b, "select choose_role('teacher')")).rejects.toThrow(/đã được xác nhận/);
+    expect(await role(b)).toBe("student");
+  });
+
+  it("email trường và quản trị viên không phải chọn; khách không gọi được choose_role", async () => {
+    await expect(as(ids.t1, "select choose_role('student')")).rejects.toThrow(/đã được xác nhận/);
+    await expect(as(ids.admin, "select choose_role('teacher')")).rejects.toThrow(/đã được xác nhận/);
+    await db.exec("reset role; select set_config('request.jwt.claim.sub', '', false); set role anon;");
+    await expect(db.query("select choose_role('teacher')")).rejects.toThrow(/permission denied/);
+    await db.exec("reset role;");
+  });
+
   it("học sinh không thấy hồ sơ người khác; không ai đọc được danh sách tên miền trừ quản trị viên", async () => {
     expect(await as(ids.s1, "select id from profiles")).toEqual([{ id: ids.s1 }]);
     expect(await as(ids.t1, "select * from school_domains")).toEqual([]);
@@ -176,6 +203,9 @@ describe("lớp học", () => {
     const t = await signUp("gv@thpt-a.edu.vn", { inviteCode: "TIN10A1" });
     const n = async (id: string) => (await sys("select 1 from enrollments where student_id = $1", [id])).length;
     expect([await n(a), await n(b), await n(t)]).toEqual([1, 0, 0]);
+    // vào lớp bằng mã thì đã là học sinh, không phải chọn vai trò; mã sai thì vẫn được hỏi
+    const chosen = async (id: string) => (await sys<{ role_chosen: boolean }>("select role_chosen from profiles where id = $1", [id]))[0].role_chosen;
+    expect([await chosen(a), await chosen(b)]).toEqual([true, false]);
   });
 
   it("quản trị viên xem được ghi danh của mọi lớp", async () => {

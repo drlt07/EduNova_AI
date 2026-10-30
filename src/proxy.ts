@@ -1,7 +1,8 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { AUTH_MODE, SUPABASE_ANON_KEY, SUPABASE_URL } from "@/lib/supabase/config";
-import { ROLE_HOME, isGatedPath, roleArea } from "@/lib/auth/paths";
+import { CHOOSE_ROLE, ROLE_HOME, isGatedPath, roleArea } from "@/lib/auth/paths";
+import { needsRoleChoice } from "@/lib/auth/profile";
 import type { Role } from "@/lib/domain/types";
 
 /**
@@ -34,12 +35,14 @@ export async function proxy(request: NextRequest) {
   };
 
   if (!user) {
-    if (area || isGatedPath(pathname)) return redirect(`/login?next=${encodeURIComponent(pathname + search)}`);
+    if (area || isGatedPath(pathname) || pathname === CHOOSE_ROLE) return redirect(`/login?next=${encodeURIComponent(pathname + search)}`);
     return response;
   }
-  if (area || pathname === "/login" || pathname === "/register") {
-    const { data } = await supabase.from("profiles").select("role").eq("id", user.id).single<{ role: Role }>();
+  if (area || pathname === "/login" || pathname === "/register" || pathname === CHOOSE_ROLE) {
+    // select("*"): chưa chạy migration role_choice (thiếu cột role_chosen) vẫn đọc được vai trò
+    const { data } = await supabase.from("profiles").select("*").eq("id", user.id).single<{ role: Role; role_chosen?: boolean }>();
     const role = data?.role;
+    if (needsRoleChoice(data)) return pathname === CHOOSE_ROLE ? response : redirect(CHOOSE_ROLE);
     if (role && area && area !== role) return redirect(ROLE_HOME[role]);
     if (role && !area) return redirect(ROLE_HOME[role]);
   }

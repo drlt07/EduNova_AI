@@ -1,5 +1,8 @@
 import type { Role } from "@/lib/domain/types";
 
+/** Trang xác nhận vai trò sau lần đăng nhập đầu. */
+export const CHOOSE_ROLE = "/chon-vai-tro";
+
 export const ROLE_HOME: Record<Role, string> = { teacher: "/teacher/dashboard", student: "/student/missions", admin: "/admin" };
 
 /**

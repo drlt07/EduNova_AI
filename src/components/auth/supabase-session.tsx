@@ -21,7 +21,7 @@ export function SupabaseSession() {
       const { data: { user } } = await sb.auth.getUser();
       if (!alive) return;
       if (user) {
-        const { data } = await sb.from("profiles").select("id, role, full_name, email").eq("id", user.id).single<ProfileRow>();
+        const { data } = await sb.from("profiles").select("*").eq("id", user.id).single<ProfileRow>();
         if (!alive) return;
         if (data) { signInAs(profileToUser(data)); await pullCore(); await pullRecords(); startRecordSync(); }
         else { resetRecordSync(); logout(); }

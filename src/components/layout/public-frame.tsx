@@ -9,7 +9,7 @@ import { SiteFooter } from "./site-footer";
 import { SiteHeader } from "./site-header";
 
 /** Các trang đăng nhập/đăng ký luôn giữ giao diện công khai. */
-const AUTH_PAGES = ["/login", "/register", "/forgot-password", "/reset-password"];
+const AUTH_PAGES = ["/login", "/register", "/forgot-password", "/reset-password", "/chon-vai-tro"];
 
 /**
  * Khung cho trang công khai (trang chủ, kho mô phỏng, chương trình…). Khách: thanh menu trên + chân trang.
