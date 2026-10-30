@@ -1593,9 +1593,12 @@ function spr(t, bg, sc) {
 function unstick() {
   if (!P || !blocked(P.position.x, P.position.z)) return;
   const x0 = P.position.x, z0 = P.position.z;
+  const roomy = (x, z) => !blocked(x, z) && [[.4, 0], [-.4, 0], [0, -.4]].every(([dx, dz]) => !blocked(x + dx, z + dz));
+  // Ưu tiên tiến thẳng vào giữa phòng (−z): đứng sau đồ vật sát tường thì bấm sàn để đi sẽ bị chắn, khó hiểu.
+  for (let d = .15; d <= 5; d += .15) if (roomy(x0, z0 - d)) { P.position.z = z0 - d; return; }
   for (let r = .2; r <= 5; r += .15) {
     for (let a = 0; a < 24; a++) {
-      const ang = Math.PI / 2 + (a % 2 ? 1 : -1) * Math.ceil(a / 2) * (Math.PI / 12); // bắt đầu từ phía trước phòng (+z), quét dần sang hai bên
+      const ang = Math.PI / 2 + (a % 2 ? 1 : -1) * Math.ceil(a / 2) * (Math.PI / 12); // không tìm được chỗ phía trước thì quét vòng quanh
       const x = x0 + Math.cos(ang) * r, z = z0 + Math.sin(ang) * r;
       if (!blocked(x, z) && [[.12, 0], [-.12, 0], [0, .12], [0, -.12]].some(([dx, dz]) => !blocked(x + dx, z + dz))) { P.position.x = x; P.position.z = z; return; }
     }
