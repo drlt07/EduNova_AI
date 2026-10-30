@@ -44,7 +44,7 @@ export default function ClassesPage() {
                     <div className="h-2 rounded-full bg-surface-2"><div className="h-full rounded-full bg-cyan" style={{ width: `${(p.taught / p.total) * 100}%` }} /></div>
                   </div>
                   <p className="mt-3 text-sm text-fg"><span className="text-muted">Dạy tiếp:</span> {next ? `Bài ${next.lesson.no}. ${next.lesson.title}` : "đã hết sách"}</p>
-                  <p className="text-sm text-muted">{h.doneRate}% lượt nhiệm vụ đã xong</p>
+                  <p className="text-sm text-muted">{h.assigned ? `${h.doneRate}% lượt nhiệm vụ đã xong` : "Chưa giao bài nào"}</p>
                   {h.flag && <p className="mt-2 flex items-center gap-1.5 text-sm font-medium text-warning-fg"><AlertTriangle className="size-4" aria-hidden /> {h.flag}</p>}
                   <span className="mt-auto inline-flex items-center gap-1 pt-4 text-sm font-semibold text-cyan-fg">Mở lớp <ArrowRight className="size-4" aria-hidden /></span>
                 </Link>

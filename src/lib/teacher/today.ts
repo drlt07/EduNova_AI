@@ -90,7 +90,17 @@ export function todos(d: DemoData, teacherId: string, now: Date): Todo[] {
   return out.sort((a, b) => b.urgency - a.urgency);
 }
 
-export interface ClassHealth { cls: ClassRoom; students: number; doneRate: number; missing: number; avgLab?: number; taught: number; flag?: string }
+export interface ClassHealth {
+  cls: ClassRoom;
+  students: number;
+  doneRate: number;
+  /** Tổng lượt được giao (bài × học sinh); 0 = lớp chưa có bài giao. */
+  assigned: number;
+  missing: number;
+  avgLab?: number;
+  taught: number;
+  flag?: string;
+}
 
 /** Tình hình từng lớp: tỉ lệ hoàn thành nhiệm vụ, số lượt chưa làm, điểm mô phỏng TB, bài đã dạy. */
 export function classHealth(d: DemoData, teacherId: string): ClassHealth[] {
@@ -103,6 +113,6 @@ export function classHealth(d: DemoData, teacherId: string): ClassHealth[] {
     const avgLab = labs.length ? Math.round((labs.reduce((s, r) => s + r.score, 0) / labs.length) * 10) / 10 : undefined;
     const doneRate = expected ? Math.round((done / expected) * 100) : 100;
     const flag = expected && doneRate < 70 ? `chỉ ${doneRate}% lượt nhiệm vụ đã xong` : avgLab !== undefined && avgLab < 7 ? `điểm mô phỏng TB ${avgLab}` : undefined;
-    return { cls, students: students.length, doneRate, missing: expected - done, avgLab, taught: d.taughtLessons.filter((t) => t.teacherId === teacherId && t.classId === cls.id).length, flag };
+    return { cls, students: students.length, doneRate, assigned: expected, missing: expected - done, avgLab, taught: d.taughtLessons.filter((t) => t.teacherId === teacherId && t.classId === cls.id).length, flag };
   });
 }

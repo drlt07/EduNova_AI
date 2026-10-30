@@ -696,5 +696,7 @@ function safeStorage(): Storage {
 
 function makeInvite(name: string): string {
   const code = Math.random().toString(36).slice(2, 5).toUpperCase();
-  return `TIN${name.replace(/\W/g, "").toUpperCase()}-${code}`;
+  // "Tin 77" → TIN77-XXX (không lặp chữ TIN)
+  const base = name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/đ/gi, "D").replace(/\W/g, "").toUpperCase().replace(/^TIN(HOC)?/, "");
+  return `TIN${base || "LOP"}-${code}`;
 }
