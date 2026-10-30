@@ -1,9 +1,10 @@
 import Link from "next/link";
-import { ArrowLeft, BookOpen, Clock, Gamepad2, Hourglass, Keyboard, MousePointerClick, Play, Save } from "lucide-react";
+import { ArrowLeft, BookOpen, Clock, Gamepad2, Hourglass, Keyboard, Maximize, MousePointerClick, Play, Save } from "lucide-react";
 import { ADVENTURES, ADVENTURE_SLOTS, chapterLabel, getAdventure, type Adventure } from "@/lib/data/nova-adventure";
 import { getLifeLab } from "@/lib/data/life-labs";
 import { getLabBySlug } from "@/lib/data/labs";
 import { cn } from "@/lib/utils";
+import { NovaFrame } from "./nova-frame";
 
 /** Tên và đường dẫn của một mô phỏng liên quan: kho đời sống theo không gian đang đứng, mô phỏng theo bài ở trang công khai. */
 function simLink(slug: string, khoBase: string) {
@@ -77,12 +78,11 @@ export function AdventurePlay({ slug, base, khoBase }: { slug: string; base: str
         <p className="mt-1 max-w-3xl text-muted">{a.summary}</p>
       </header>
 
-      <section aria-label="Trò chơi" className="overflow-hidden rounded-3xl border border-line bg-[#d9e4ee] shadow-xl">
-        <iframe src={a.src} title={`Trò chơi ${a.title}`} className="block h-[min(640px,80vh)] w-full" allow="autoplay; fullscreen" />
-      </section>
+      <NovaFrame src={a.src} title={`Trò chơi ${a.title}`} />
       <ul className="mt-3 flex flex-wrap gap-x-5 gap-y-1.5 text-sm text-muted" aria-label="Cách chơi">
         <li className="inline-flex items-center gap-1.5"><MousePointerClick className="size-4" aria-hidden /> Bấm xuống sàn để đi, mũi tên vàng chỉ đường</li>
         <li className="inline-flex items-center gap-1.5"><Keyboard className="size-4" aria-hidden /> W A S D hoặc phím mũi tên · E để tương tác · Space để đọc tiếp</li>
+        <li className="inline-flex items-center gap-1.5"><Maximize className="size-4" aria-hidden /> F: toàn màn hình · nút nốt nhạc bật/tắt nhạc nền</li>
         <li className="inline-flex items-center gap-1.5"><Save className="size-4" aria-hidden /> Tiến độ tự lưu trên trình duyệt này</li>
       </ul>
 
