@@ -54,6 +54,18 @@ Kiểm chứng: `tests/db/rls.test.ts` chạy chính file migration trên Postgr
 7. Đặt biến môi trường (Vercel → Settings → Environment Variables, hoặc `.env` khi chạy máy):
    `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`. Không cần và **không được** đặt service_role key phía client.
 
+## Chạy trên máy với Supabase (phát triển)
+
+1. Tạo file `.env.local` ở thư mục gốc (đã nằm trong .gitignore):
+   ```
+   NEXT_PUBLIC_SUPABASE_URL=https://<project>.supabase.co
+   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
+   ```
+2. SQL Editor: chạy migration, rồi `supabase/seed-test-accounts.sql` để có 3 tài khoản thử (mật khẩu `EduNova@2026`):
+   `gv.test@edunova.test` (giáo viên), `hs.test@edunova.test` (học sinh, đã vào lớp 10A1 (thử)), `admin.test@edunova.test` (quản trị).
+3. URL Configuration: Site URL `http://localhost:3000`, Redirect URLs thêm `http://localhost:3000/auth/callback`.
+4. `npm install && npm run dev` → http://localhost:3000/login
+
 ## Luồng người dùng
 
 - **Đăng ký** `/register` → thư xác nhận → `/auth/callback` → vào khu vực theo vai trò.
