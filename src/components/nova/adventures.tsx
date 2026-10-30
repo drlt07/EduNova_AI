@@ -82,7 +82,7 @@ export function AdventurePlay({ slug, base, khoBase }: { slug: string; base: str
       <ul className="mt-3 flex flex-wrap gap-x-5 gap-y-1.5 text-sm text-muted" aria-label="Cách chơi">
         <li className="inline-flex items-center gap-1.5"><MousePointerClick className="size-4" aria-hidden /> Bấm xuống sàn để đi, mũi tên vàng chỉ đường</li>
         <li className="inline-flex items-center gap-1.5"><Keyboard className="size-4" aria-hidden /> W A S D hoặc phím mũi tên · E để tương tác · Space để đọc tiếp</li>
-        <li className="inline-flex items-center gap-1.5"><Maximize className="size-4" aria-hidden /> F: toàn màn hình · nút nốt nhạc bật/tắt nhạc nền</li>
+        <li className="inline-flex items-center gap-1.5"><Maximize className="size-4" aria-hidden /> F: toàn màn hình · A+ đổi cỡ chữ · nút nốt nhạc bật/tắt nhạc nền</li>
         <li className="inline-flex items-center gap-1.5"><Save className="size-4" aria-hidden /> Tiến độ tự lưu trên trình duyệt này</li>
       </ul>
 
