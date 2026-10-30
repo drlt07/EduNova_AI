@@ -2357,9 +2357,9 @@ function s3Rgb() {
     mg(`${tag('Thử thách 1 · Màu RGB')}${h2('Pha màu cam rgb(255, 153, 0) cho vùng bão bụi')}${desc('Mỗi kênh nhận 0 – 255. Kéo ba thanh để ô bên phải giống ô mẫu. Đỏ mạnh + lục vừa + không có lam sẽ ra cam.')}
 <div style="display:grid;grid-template-columns:1fr 120px;gap:12px;align-items:center">
 <div>${N.map((n, i) => `<div class="cb" style="gap:10px"><span style="width:62px">${n}</span><input type="range" min="0" max="255" step="51" value="${cur[i]}" data-c="${i}" style="flex:1;accent-color:${['#ef4444', '#22c55e', '#3b82f6'][i]}"><b style="width:34px;text-align:right">${cur[i]}</b></div>`).join('')}</div>
-<div style="display:grid;gap:6px;text-align:center;font-size:12px"><div style="height:44px;border-radius:8px;background:rgb(${T})"></div>mẫu<div style="height:44px;border-radius:8px;background:rgb(${cur})"></div>bạn pha</div></div>
+<div style="display:grid;gap:6px;text-align:center;font-size:12px"><div style="height:44px;border-radius:8px;background:rgb(${T})"></div>mẫu<div id="swatch" style="height:44px;border-radius:8px;background:rgb(${cur})"></div>bạn pha</div></div>
 <div id="fb" style="font-size:13px;min-height:20px;margin-top:8px;line-height:1.55">${msg || ''}</div>${runBtn('rgbok', 'Áp dụng')}`);
-    document.querySelectorAll('#mgb [data-c]').forEach((r) => (r.oninput = () => { cur[+r.dataset.c] = +r.value; r.nextElementSibling.textContent = r.value; r.closest('#mgb').querySelectorAll('div[style*="height:44px"]')[1].style.background = `rgb(${cur})`; }));
+    document.querySelectorAll('#mgb [data-c]').forEach((r) => (r.oninput = () => { cur[+r.dataset.c] = +r.value; r.nextElementSibling.textContent = r.value; $('swatch').style.background = `rgb(${cur})`; }));
     $('rgbok').onclick = () => {
       const k = cur.findIndex((v, i) => v !== T[i]);
       if (k >= 0) { bad(); draw(fbErr(`Kênh ${N[k]} đang là ${cur[k]}, cần ${T[k] > cur[k] ? 'tăng' : 'giảm'} về ${T[k]}.`)); return; }
