@@ -4,7 +4,8 @@
  * chọn một khối thì hiện các bài trong sách theo thứ tự, dưới tên mỗi bài là các mô phỏng của bài đó.
  */
 import { useMemo } from "react";
-import { ArrowLeft, ArrowRight, FlaskConical, Search, SearchX } from "lucide-react";
+import Link from "next/link";
+import { ArrowLeft, ArrowRight, FlaskConical, Search, SearchX, Trophy } from "lucide-react";
 import type { Grade, LabTemplate } from "@/lib/domain/types";
 import { LAB_TEMPLATES } from "@/lib/data/labs";
 import { bookLessons, lessonSimSlugs } from "@/lib/sgk/book";
@@ -14,6 +15,8 @@ import { LabCard, type LabProgress } from "@/components/labs/lab-card";
 import { LabArt } from "@/components/labs/lab-art";
 import { Input } from "@/components/ui/form";
 import { EmptyState } from "@/components/ui/feedback";
+import { AlgoThumb } from "@/components/algo/hsg-catalog";
+import { ALGO_IDS, HSG_TOPICS } from "@/lib/data/hsg";
 
 const GRADES: Grade[] = [10, 11, 12];
 const GRADE_BG: Record<Grade, string> = { 10: "from-[#2563eb] to-[#38bdf8]", 11: "from-[#1d4ed8] to-[#4f46e5]", 12: "from-[#1e40af] to-[#0ea5e9]" };
@@ -43,9 +46,11 @@ interface Props {
   extra?: (lab: LabTemplate, ref?: string) => React.ReactNode;
   /** Lời nhắn khi một khối chưa có mô phỏng nào hiện. */
   emptyText?: string;
+  /** Thêm ô Chuyên đề HSG (mô phỏng thuật toán) cạnh ba khối lớp — dùng cho giáo viên, quản trị. */
+  hsg?: boolean;
 }
 
-export function SimLibrary({ hrefFor, progressOf, filter, extra, emptyText = "Không có mô phỏng phù hợp." }: Props) {
+export function SimLibrary({ hrefFor, progressOf, filter, extra, emptyText = "Không có mô phỏng phù hợp.", hsg }: Props) {
   const [lop, setLop] = useQueryState("lop");
   const [q, setQ] = useQueryState("q");
   const grade = GRADES.find((g) => String(g) === lop);
@@ -66,7 +71,7 @@ export function SimLibrary({ hrefFor, progressOf, filter, extra, emptyText = "Kh
     const shown = GRADES.filter((g) => !filter || data[g].total > 0);
     if (!shown.length) return <EmptyState icon={FlaskConical} title="Chưa có mô phỏng" description={emptyText} />;
     return (
-      <ul className="grid gap-5 md:grid-cols-3">
+      <ul className={cn("grid gap-5", hsg ? "md:grid-cols-2 xl:grid-cols-4" : "md:grid-cols-3")}>
         {shown.map((g) => {
           const x = data[g];
           const arts = [...x.groups.flatMap((gr) => gr.labs), ...x.other].slice(0, 3);
@@ -88,6 +93,22 @@ export function SimLibrary({ hrefFor, progressOf, filter, extra, emptyText = "Kh
             </li>
           );
         })}
+        {hsg && (
+          <li>
+            <Link href="/thuat-toan" className="group flex h-full w-full flex-col overflow-hidden rounded-3xl border border-line bg-surface text-left shadow-sm transition-all hover:-translate-y-1 hover:shadow-xl">
+              <div className="relative grid h-44 grid-cols-3 gap-2 bg-gradient-to-br from-[#b45309] to-[#f59e0b] p-4">
+                {(["bubble", "bfs", "dijkstra"] as const).map((id) => <AlgoThumb key={id} id={id} className="h-full w-full rounded-xl bg-white/90 ring-2 ring-white/30" />)}
+                <span className="absolute bottom-3 left-4 text-5xl font-black text-white drop-shadow">HSG</span>
+              </div>
+              <div className="flex flex-1 flex-col p-5">
+                <h2 className="flex items-center gap-2 text-xl font-bold text-fg"><Trophy className="size-5 text-warning-fg" aria-hidden /> Chuyên đề HSG</h2>
+                <p className="mt-1 text-sm text-muted">Sắp xếp, tìm kiếm, BFS/DFS, Dijkstra, quy hoạch động, sàng nguyên tố</p>
+                <p className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-sm text-fg"><span><b>{ALGO_IDS.length}</b> thuật toán</span><span><b>{HSG_TOPICS.length}</b> chuyên đề</span></p>
+                <span className="mt-4 inline-flex items-center gap-1.5 self-start rounded-xl bg-warning/15 px-4 py-2 text-sm font-semibold text-warning-fg transition-colors group-hover:bg-warning group-hover:text-white">Mở chuyên đề <ArrowRight className="size-4" aria-hidden /></span>
+              </div>
+            </Link>
+          </li>
+        )}
       </ul>
     );
   }

@@ -10,7 +10,7 @@ export default function Page() {
   return (
     <>
       <PageHero variant="app" eyebrow="Quản trị" icon={FlaskConical} title="Mô phỏng" accent="theo bài SGK" description="Bộ mô phỏng gắn với từng bài Tin học 10, 11, 12. Chỉ giáo viên và quản trị viên thấy; giáo viên giao cho lớp thành nhiệm vụ. Kho mô phỏng công khai là bộ riêng về Tin học trong đời sống." />
-      <Suspense fallback={<PageSkeleton />}><SimLibrary hrefFor={(l) => `/labs/${l.slug}`} /></Suspense>
+      <Suspense fallback={<PageSkeleton />}><SimLibrary hrefFor={(l) => `/labs/${l.slug}`} hsg /></Suspense>
     </>
   );
 }

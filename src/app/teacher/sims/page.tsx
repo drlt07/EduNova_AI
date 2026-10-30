@@ -50,7 +50,7 @@ function TeacherSims() {
   return (
     <>
       <LibraryHeader subtitle="Mô phỏng theo bài trong SGK. Giao cho lớp thì học sinh làm ngay trong bài, máy tự chấm." />
-      <SimLibrary hrefFor={(l) => `/labs/${l.slug}`} extra={extra} />
+      <SimLibrary hrefFor={(l) => `/labs/${l.slug}`} extra={extra} hsg />
       <AssignDialog open={!!assign} onOpenChange={(o) => !o && setAssign(null)} preset={assign?.preset} sgkRef={assign?.ref} classId={assign?.classId} />
     </>
   );
