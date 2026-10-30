@@ -2465,7 +2465,7 @@ function s2Html() {
     const html = order.map((opts, i) => opts[pick[i]][0]).join('\n');
     mg(`${tag('Thử thách 1 · HTML')}${h2('Sửa ba dòng mã của trang thông báo')}${desc('Chọn phiên bản đúng cho từng dòng. Khung bên dưới hiển thị trang theo mã bạn chọn.')}
 ${order.map((opts, i) => `<div class="cb" style="justify-content:space-between"><span style="flex-shrink:0;opacity:.6">Dòng ${i + 1}</span><select data-l="${i}" style="font-family:var(--font-mono);font-size:12px;max-width:80%">${opts.map((o, j) => `<option value="${j}" ${pick[i] === j ? 'selected' : ''}>${esc(o[0])}</option>`).join('')}</select></div>`).join('')}
-<div style="margin-top:8px;border-radius:8px;padding:10px 12px;background:white;color:#0f172a;font-family:Georgia,serif;max-height:150px;overflow:auto" id="pv"></div>
+<div style="margin-top:8px;border-radius:8px;padding:10px 12px;background:white;color:#111827;font-family:Georgia,serif;max-height:150px;overflow:auto" id="pv"></div>
 <div id="fb" style="font-size:13px;min-height:20px;margin-top:8px;line-height:1.55">${msg || ''}</div>${runBtn('pub', 'Xuất bản trang')}`);
     const pv = $('pv'); pv.innerHTML = html.replace(/<a /g, '<a onclick="return false" ');
     document.querySelectorAll('#mgb [data-l]').forEach((s) => (s.onchange = () => { pick[+s.dataset.l] = +s.value; draw(); }));
@@ -2492,7 +2492,7 @@ function s2Css() {
     const st2 = ok ? `color:${g('color')[0]};${g('fw')[0].startsWith('font-weight: bold') ? 'font-weight:bold;' : ''}${g('fs')[0] === '20px' ? 'font-size:20px;' : g('fs')[0] === '20%' ? 'font-size:20%;' : ''}` : '';
     mg(`${tag('Thử thách 2 · CSS')}${h2('Giờ thi: màu đỏ, chữ đậm, cỡ 20px')}${desc('HTML: &lt;span class="gio-thi"&gt;7:30&lt;/span&gt;. Chọn bộ chọn và ba khai báo.')}
 <div class="term" style="white-space:normal;min-height:0">${S_('sel')} {<br>&nbsp;&nbsp;color: ${S_('color')};<br>&nbsp;&nbsp;${S_('fw')};<br>&nbsp;&nbsp;font-size: ${S_('fs')};<br>}</div>
-<div style="margin-top:8px;border-radius:8px;padding:10px 12px;background:white;color:#0f172a;font-family:Georgia,serif">Môn Toán: <span style="${st2}">7:30</span></div>
+<div style="margin-top:8px;border-radius:8px;padding:10px 12px;background:white;color:#111827;font-family:Georgia,serif">Môn Toán: <span style="${st2}">7:30</span></div>
 <div id="fb" style="font-size:13px;min-height:20px;margin-top:8px;line-height:1.55">${msg || ''}</div>${runBtn('apply', 'Áp dụng')}`);
     document.querySelectorAll('#mgb [data-k]').forEach((s) => (s.onchange = () => { cur[s.dataset.k] = +s.value; draw(); }));
     $('apply').onclick = () => {
