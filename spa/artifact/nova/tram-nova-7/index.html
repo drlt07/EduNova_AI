@@ -2055,7 +2055,7 @@ function restyle() {
 const roomBase = room;
 room = function (map, wallC, h) {
   roomBase(map, wallC, h);
-  const led = keepMat(new THREE.MeshBasicMaterial({ color: CH && CH.dark ? 0x38bdf8 : 0x22d3ee }));
+  const led = keepMat(new THREE.MeshBasicMaterial({ color: typeof uiAccentHex === 'function' ? uiAccentHex() : 0x22d3ee })); // màu chủ đạo của chương (ui-pack.js)
   const add2 = (w, d, x, y, z) => { const m = new THREE.Mesh(new THREE.BoxGeometry(w, .025, d), led); m.position.set(x, y, z); W.add(m); };
   add2(13.4, .02, 0, .2, -4.84); add2(.02, 9.4, -6.84, .2, 0); add2(.02, 9.4, 6.84, .2, 0);
   const top = keepMat(new THREE.MeshBasicMaterial({ color: 0x0ea5e9, transparent: true, opacity: .55 }));
@@ -2248,6 +2248,8 @@ function setHard(sets) { Object.keys(HARD).forEach((k) => delete HARD[k]); Objec
  * (Tin 10–12), lập trình điều khiển cảm biến (Tin 10), bảng tính và biểu đồ, AI có con người giám sát (Tin 12).
  * Độ khó vừa phải: có gợi ý ngay trong đề, phản hồi nói rõ vì sao sai. Câu đố và lời thoại viết mới.
  */
+// Bảng màu chủ đạo theo khoang, tông sao Hỏa (ui-pack.js đọc biến này).
+const UI_ACC = ['#fb923c', '#f472b6', '#facc15', '#4ade80', '#38bdf8', '#f43f5e'];
 WHO.GLITCH = ['ECHO · AI bảo trì', '#e11d48', 'ti-robot', '#9f1239'];
 WHO.CO = ['Chỉ huy Linh', '#f59e0b', 'ti-user', '#b45309'];
 
@@ -2363,7 +2365,7 @@ function s3Rgb() {
   const draw = (msg) => {
     mg(`${tag('Thử thách 1 · Màu RGB')}${h2('Pha màu cam rgb(255, 153, 0) cho vùng bão bụi')}${desc('Mỗi kênh nhận 0 – 255. Kéo ba thanh để ô bên phải giống ô mẫu. Đỏ mạnh + lục vừa + không có lam sẽ ra cam.')}
 <div style="display:grid;grid-template-columns:1fr 120px;gap:12px;align-items:center">
-<div>${N.map((n, i) => `<div class="cb" style="gap:10px"><span style="width:62px">${n}</span><input type="range" min="0" max="255" step="51" value="${cur[i]}" data-c="${i}" style="flex:1;accent-color:${['#ef4444', '#22c55e', '#3b82f6'][i]}"><b style="width:34px;text-align:right">${cur[i]}</b></div>`).join('')}</div>
+<div>${N.map((n, i) => `<div class="cb" style="gap:10px"><span style="width:74px;white-space:nowrap">${n}</span><input type="range" min="0" max="255" step="51" value="${cur[i]}" data-c="${i}" style="flex:1;accent-color:${['#ef4444', '#22c55e', '#3b82f6'][i]}"><b style="width:34px;text-align:right">${cur[i]}</b></div>`).join('')}</div>
 <div style="display:grid;gap:6px;text-align:center;font-size:12px"><div style="height:44px;border-radius:8px;background:rgb(${T})"></div>mẫu<div id="swatch" style="height:44px;border-radius:8px;background:rgb(${cur})"></div>bạn pha</div></div>
 <div id="fb" style="font-size:13px;min-height:20px;margin-top:8px;line-height:1.55">${msg || ''}</div>${runBtn('rgbok', 'Áp dụng')}`);
     document.querySelectorAll('#mgb [data-c]').forEach((r) => (r.oninput = () => { cur[+r.dataset.c] = +r.value; r.nextElementSibling.textContent = r.value; $('swatch').style.background = `rgb(${cur})`; }));
@@ -2644,6 +2646,92 @@ setHard({
     { t: '18,9', e: '18,9 là giá trị nhỏ nhất, dùng MIN.' },
     { t: 'Ngày có oxy cao nhất', e: 'MAX trả về giá trị, không trả về số ngày tương ứng.' }] }],
 });
+
+/* ===== Gói giao diện bảng thử thách và màu theo chương (mọi kịch bản, mọi phong cách) =====
+ * Chèn cuối cùng (tools/nova/build.mjs), sau gói hình ảnh và gói nội dung.
+ * 1. Mỗi chương một màu chủ đạo (--acc): nút, viền, khung mục tiêu, nút tương tác, dải LED trong phòng.
+ *    Kịch bản có thể đặt bảng màu riêng bằng biến UI_ACC (mảng 6 màu) trước gói này.
+ * 2. Bảng thử thách: dải tiêu đề có biểu tượng và tên chương, đáp án đánh chữ A/B/C/D, dấu ✓/✗ khi chọn,
+ *    lời phản hồi thành ô thông báo màu (đúng / sai / gợi ý), hiệu ứng bật ra.
+ */
+const UI_CUTE = typeof cuteRoomBase !== 'undefined';
+const UI_PAL = (typeof UI_ACC !== 'undefined' && UI_ACC) || (UI_CUTE
+  ? ['#ec4899', '#a855f7', '#f97316', '#10b981', '#0ea5e9', '#e11d48']
+  : ['#22d3ee', '#a78bfa', '#f59e0b', '#34d399', '#fb923c', '#f43f5e']);
+function uiAccent(n) { return UI_PAL[((n || (CH && CH.n) || 1) - 1) % UI_PAL.length]; }
+function uiAccentHex(n) { return parseInt(uiAccent(n).slice(1), 16); }
+
+(function uiCss() {
+  const st = document.createElement('style');
+  const panelSoft = UI_CUTE ? 'rgba(255,255,255,.7)' : 'rgba(255,255,255,.04)';
+  st.textContent = `
+.g{--acc:#22d3ee}
+.g .bt:not([style*="background"]){background:linear-gradient(180deg,color-mix(in srgb,var(--acc) 82%,white),color-mix(in srgb,var(--acc) 80%,black))!important;box-shadow:0 6px 16px color-mix(in srgb,var(--acc) 35%,transparent)!important}
+.g .prompt{background:linear-gradient(180deg,color-mix(in srgb,var(--acc) 82%,white),color-mix(in srgb,var(--acc) 78%,black))!important}
+.g #hudL{border-left:3px solid var(--acc)}
+.g .hard-tag{color:var(--acc)!important;border-color:color-mix(in srgb,var(--acc) 55%,transparent)!important;background:color-mix(in srgb,var(--acc) 12%,transparent)!important}
+.g input[type=range]{accent-color:var(--acc)}
+/* Bảng thử thách */
+.g #mg:not(.hidden) .pn{animation:uiPop .32s cubic-bezier(.2,.9,.3,1.15)}
+@keyframes uiPop{from{transform:translateY(14px) scale(.96);opacity:0}to{transform:none;opacity:1}}
+.g .mg-head{display:flex;align-items:center;gap:10px;margin:-18px -20px 14px;padding:12px 20px;border-bottom:1px solid color-mix(in srgb,var(--acc) 30%,transparent);background:linear-gradient(90deg,color-mix(in srgb,var(--acc) 22%,transparent),transparent 75%);border-radius:inherit;border-bottom-left-radius:0;border-bottom-right-radius:0}
+.g .mg-head .ic{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:19px;background:var(--acc);color:${UI_CUTE ? '#fff' : '#0b1220'};flex-shrink:0;box-shadow:0 4px 12px color-mix(in srgb,var(--acc) 40%,transparent)}
+.g .mg-head .tt{font-size:12px;letter-spacing:.06em;text-transform:uppercase;opacity:.75;line-height:1.3}
+.g .mg-head .rm2{font-size:14px;font-weight:600;line-height:1.3}
+.g #mgb .op{transition:transform .12s,border-color .12s,background .12s;position:relative}
+.g #mgb .op:not([disabled]):hover{transform:translateY(-1px);border-color:var(--acc)!important}
+.g #mgb [data-i].op,.g #mgb [data-j].op{counter-increment:uiopt;padding-left:46px!important;min-height:44px}
+.g #mgb [data-i].op::before,.g #mgb [data-j].op::before{content:counter(uiopt,upper-alpha);position:absolute;left:10px;top:50%;transform:translateY(-50%);width:26px;height:26px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:12.5px;font-weight:700;background:color-mix(in srgb,var(--acc) 18%,transparent);color:var(--acc)}
+.g #mgb [data-i].op i,.g #mgb [data-j].op i{display:none}
+.g #mgb div:has(>[data-i].op),.g #mgb div:has(>[data-j].op){counter-reset:uiopt}
+.g #mgb .op.good::after,.g #mgb .op.bad::after{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-weight:800;font-size:15px}
+.g #mgb .op.good::after{content:"✓";color:#10b981}
+.g #mgb .op.bad::after{content:"✗";color:#e11d48}
+.g #mgb .op.good::before{background:#10b981!important;color:#fff!important}
+.g #mgb .op.bad::before{background:#e11d48!important;color:#fff!important}
+.g #fb.fb-ok,.g #fb.fb-err,.g #fb.fb-info{padding:10px 12px 10px 38px;border-radius:12px;position:relative;margin-top:12px!important}
+.g #fb.fb-ok{background:color-mix(in srgb,#10b981 14%,transparent);border:1px solid color-mix(in srgb,#10b981 40%,transparent)}
+.g #fb.fb-err{background:color-mix(in srgb,#e11d48 12%,transparent);border:1px solid color-mix(in srgb,#e11d48 38%,transparent)}
+.g #fb.fb-info{background:${panelSoft};border:1px solid color-mix(in srgb,var(--acc) 35%,transparent)}
+.g #fb.fb-ok::before,.g #fb.fb-err::before,.g #fb.fb-info::before{position:absolute;left:12px;top:10px;font-weight:800}
+.g #fb.fb-ok::before{content:"✓";color:#10b981}
+.g #fb.fb-err::before{content:"!";color:#e11d48}
+.g #fb.fb-info::before{content:"i";color:var(--acc);font-style:italic}
+.g #fb.fb-err span{color:inherit!important}
+.g .term{border-left:3px solid color-mix(in srgb,var(--acc) 60%,transparent)}`;
+  document.head.appendChild(st);
+})();
+
+/* Dải tiêu đề + phân loại phản hồi mỗi khi nội dung bảng thay đổi */
+let uiLastBtn = null;
+$('mgb').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) uiLastBtn = b; }, true);
+function uiDecorate() {
+  const mgb = $('mgb');
+  if (CH && !mgb.querySelector('.mg-head') && !$('mg').classList.contains('hidden')) {
+    const h = document.createElement('div'); h.className = 'mg-head';
+    const [part, room] = String(CH.t || '').split(' · ');
+    h.innerHTML = `<div class="ic"><i class="ti ${CH.ic || 'ti-star'}" aria-hidden="true"></i></div><div><div class="tt">${part || ''}</div><div class="rm2">${room || CH.room || ''}</div></div>`;
+    mgb.prepend(h);
+  }
+  const fb = $('fb');
+  if (fb) {
+    const txt = fb.textContent.trim(), html = fb.innerHTML;
+    let k = '';
+    if (txt) {
+      if (/be123c|fda4af/.test(html) || /^(Sai|Chưa đúng|Hết giờ)/.test(txt) || (uiLastBtn && uiLastBtn.classList.contains('bad') && mgb.contains(uiLastBtn))) k = 'fb-err';
+      else if ((uiLastBtn && uiLastBtn.classList.contains('good') && mgb.contains(uiLastBtn)) || /6ee7b7|0f766e/.test(html) || /^(Đúng|Chính xác|Tìm thấy|Xong|Đã )/.test(txt)) k = 'fb-ok';
+      else k = 'fb-info';
+    }
+    if (fb.dataset.k !== k) { fb.classList.remove('fb-ok', 'fb-err', 'fb-info'); if (k) fb.classList.add(k); fb.dataset.k = k; }
+  }
+}
+new MutationObserver(() => requestAnimationFrame(uiDecorate)).observe($('mgb'), { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ['class'] });
+new MutationObserver(uiDecorate).observe($('mg'), { attributes: true, attributeFilter: ['class'] });
+
+/* Màu chủ đạo đổi theo chương */
+const uiLoad = load;
+load = function (n) { const r = uiLoad(n); G.style.setProperty('--acc', uiAccent(n)); return r; };
+G.style.setProperty('--acc', uiAccent(1));
 
 CH=CHS[1];S.background=new THREE.Color(CH.bg);CH.build();GL.position.set(...CH.gl);P.position.set(0,0,4.2);requestAnimationFrame(loop);
 </script>

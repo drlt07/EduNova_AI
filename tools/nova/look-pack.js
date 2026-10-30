@@ -197,7 +197,7 @@ function restyle() {
 const roomBase = room;
 room = function (map, wallC, h) {
   roomBase(map, wallC, h);
-  const led = keepMat(new THREE.MeshBasicMaterial({ color: CH && CH.dark ? 0x38bdf8 : 0x22d3ee }));
+  const led = keepMat(new THREE.MeshBasicMaterial({ color: typeof uiAccentHex === 'function' ? uiAccentHex() : 0x22d3ee })); // màu chủ đạo của chương (ui-pack.js)
   const add2 = (w, d, x, y, z) => { const m = new THREE.Mesh(new THREE.BoxGeometry(w, .025, d), led); m.position.set(x, y, z); W.add(m); };
   add2(13.4, .02, 0, .2, -4.84); add2(.02, 9.4, -6.84, .2, 0); add2(.02, 9.4, 6.84, .2, 0);
   const top = keepMat(new THREE.MeshBasicMaterial({ color: 0x0ea5e9, transparent: true, opacity: .55 }));

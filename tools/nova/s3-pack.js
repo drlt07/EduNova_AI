@@ -6,6 +6,8 @@
  * (Tin 10–12), lập trình điều khiển cảm biến (Tin 10), bảng tính và biểu đồ, AI có con người giám sát (Tin 12).
  * Độ khó vừa phải: có gợi ý ngay trong đề, phản hồi nói rõ vì sao sai. Câu đố và lời thoại viết mới.
  */
+// Bảng màu chủ đạo theo khoang, tông sao Hỏa (ui-pack.js đọc biến này).
+const UI_ACC = ['#fb923c', '#f472b6', '#facc15', '#4ade80', '#38bdf8', '#f43f5e'];
 WHO.GLITCH = ['ECHO · AI bảo trì', '#e11d48', 'ti-robot', '#9f1239'];
 WHO.CO = ['Chỉ huy Linh', '#f59e0b', 'ti-user', '#b45309'];
 
@@ -121,7 +123,7 @@ function s3Rgb() {
   const draw = (msg) => {
     mg(`${tag('Thử thách 1 · Màu RGB')}${h2('Pha màu cam rgb(255, 153, 0) cho vùng bão bụi')}${desc('Mỗi kênh nhận 0 – 255. Kéo ba thanh để ô bên phải giống ô mẫu. Đỏ mạnh + lục vừa + không có lam sẽ ra cam.')}
 <div style="display:grid;grid-template-columns:1fr 120px;gap:12px;align-items:center">
-<div>${N.map((n, i) => `<div class="cb" style="gap:10px"><span style="width:62px">${n}</span><input type="range" min="0" max="255" step="51" value="${cur[i]}" data-c="${i}" style="flex:1;accent-color:${['#ef4444', '#22c55e', '#3b82f6'][i]}"><b style="width:34px;text-align:right">${cur[i]}</b></div>`).join('')}</div>
+<div>${N.map((n, i) => `<div class="cb" style="gap:10px"><span style="width:74px;white-space:nowrap">${n}</span><input type="range" min="0" max="255" step="51" value="${cur[i]}" data-c="${i}" style="flex:1;accent-color:${['#ef4444', '#22c55e', '#3b82f6'][i]}"><b style="width:34px;text-align:right">${cur[i]}</b></div>`).join('')}</div>
 <div style="display:grid;gap:6px;text-align:center;font-size:12px"><div style="height:44px;border-radius:8px;background:rgb(${T})"></div>mẫu<div id="swatch" style="height:44px;border-radius:8px;background:rgb(${cur})"></div>bạn pha</div></div>
 <div id="fb" style="font-size:13px;min-height:20px;margin-top:8px;line-height:1.55">${msg || ''}</div>${runBtn('rgbok', 'Áp dụng')}`);
     document.querySelectorAll('#mgb [data-c]').forEach((r) => (r.oninput = () => { cur[+r.dataset.c] = +r.value; r.nextElementSibling.textContent = r.value; $('swatch').style.background = `rgb(${cur})`; }));

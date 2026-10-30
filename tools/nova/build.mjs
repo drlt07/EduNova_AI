@@ -4,6 +4,7 @@
  * để trò chơi chạy cả khi không ra được mạng ngoài (bản demo một tệp, trường chặn CDN),
  * và chèn các gói: đồ họa (visual-pack.js), âm thanh + toàn màn hình (audio-pack.js), cỡ chữ + sửa lỗi kẹt (read-pack.js),
  * luật chơi + độ khó (pro-pack.js), hình ảnh THPT (look-pack.js) hoặc dễ thương (cute-pack.js). Kịch bản 2, 3 thêm bộ dụng cụ chung (kit-pack.js) và gói nội dung riêng.
+ * Cuối cùng là giao diện bảng thử thách và màu theo chương (ui-pack.js).
  * Chạy: node tools/nova/build.mjs
  */
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
@@ -21,6 +22,7 @@ const audio = read("audio-pack.js");
 const readable = read("read-pack.js");
 const pro = read("pro-pack.js");
 const look = read("look-pack.js");
+const ui = read("ui-pack.js");
 // Hậu kỳ (bloom) của three r128, bản examples/js gắn vào biến THREE toàn cục.
 const post = ["CopyShader", "LuminosityHighPassShader", "EffectComposer", "RenderPass", "ShaderPass", "UnrealBloomPass"].map((f) => read(`vendor/post/${f}.js`)).join("\n");
 if (three.includes("</script")) throw new Error("three.min.js chứa </script>, không nhúng thẳng được");
@@ -37,7 +39,7 @@ function buildGame({ out, extra = "", edits = [], skin = look }) {
   swap('<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>', `<script>${three}</script>\n<script>${post}</script>`);
   // Gói đồ họa (visual-pack.js), âm thanh + toàn màn hình (audio-pack.js), cỡ chữ + sửa lỗi kẹt (read-pack.js):
   // chèn ngay trước dòng khởi chạy trò chơi.
-  swap("CH=CHS[1];S.background=", `${visual}\n${audio}\n${readable}\n${pro}\n${skin}\n${extra}\nCH=CHS[1];S.background=`);
+  swap("CH=CHS[1];S.background=", `${visual}\n${audio}\n${readable}\n${pro}\n${skin}\n${extra}\n${ui}\nCH=CHS[1];S.background=`);
   // Sửa lỗi bản gốc, chương 4: ô chọn thứ ba trong bảng luật đèn có id="c", trùng với khung vẽ 3D <canvas id="c">,
   // nên $('c').value luôn rỗng và trò chơi mãi báo "Hãy chọn đủ cả ba ô" (không qua được chương 4).
   swap('Trước khi đổi: <select id="c">', 'Trước khi đổi: <select id="r4c">');
