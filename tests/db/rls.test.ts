@@ -297,3 +297,37 @@ describe("chương trình và nhật ký", () => {
     expect(await as(ids.s1, "select * from audit_events")).toEqual([]);
   });
 });
+
+describe("dữ liệu app đồng bộ (app_records)", () => {
+  const put = (uid: string, kind: string, id: string, owner: string, shared = false, classIds: string[] = []) =>
+    as(uid, "insert into app_records (kind, id, owner_id, shared, class_ids, data) values ($1, $2, $3, $4, $5, '{}')", [kind, id, owner, shared, classIds]);
+  const ids_ = async (uid: string, kind: string) => (await as<{ id: string }>(uid, "select id from app_records where kind = $1 order by id", [kind])).map((r) => r.id);
+
+  it("bài giao chia sẻ cho lớp: học sinh lớp đó thấy, lớp khác không; không ai ghi hộ giáo viên", async () => {
+    await put(ids.t1, "assignments", "a1", ids.t1, true, [ids.c1]);
+    await put(ids.t1, "assignments", "nhap", ids.t1, false);
+    expect(await ids_(ids.s1, "assignments")).toEqual(["a1"]);
+    expect(await ids_(ids.s3, "assignments")).toEqual([]);
+    expect(await ids_(ids.t2, "assignments")).toEqual([]);
+    await expect(put(ids.s1, "assignments", "gia", ids.t1, true)).rejects.toThrow(/row-level security/);
+  });
+
+  it("bài làm của học sinh: bạn cùng lớp không xem được; giáo viên lớp mình xem và chấm được, giáo viên khác thì không", async () => {
+    await put(ids.s1, "labResults", "r1", ids.s1);
+    expect(await ids_(ids.s2, "labResults")).toEqual([]);
+    expect(await ids_(ids.t1, "labResults")).toEqual(["r1"]);
+    expect(await ids_(ids.t2, "labResults")).toEqual([]);
+    await as(ids.t1, "update app_records set data = '{\"review\":{\"score\":9}}' where kind = 'labResults' and id = 'r1'");
+    expect((await sys<{ data: { review: { score: number } } }>("select data from app_records where id = 'r1'"))[0].data.review.score).toBe(9);
+    expect((await as(ids.t2, "update app_records set data = '{}' where kind = 'labResults' and id = 'r1' returning id")).length).toBe(0);
+    await expect(put(ids.t2, "assessments", "x1", ids.s1)).rejects.toThrow(/row-level security/);
+    await put(ids.t1, "assessments", "x1", ids.s1);
+    expect(await ids_(ids.s1, "assessments")).toEqual(["x1"]);
+  });
+
+  it("chỉ chủ bản ghi xóa được; quản trị viên đọc được tất cả", async () => {
+    expect((await as(ids.t1, "delete from app_records where kind = 'labResults' and id = 'r1' returning id")).length).toBe(0);
+    expect((await as(ids.s1, "delete from app_records where kind = 'labResults' and id = 'r1' returning id")).length).toBe(1);
+    expect((await as(ids.admin, "select id from app_records")).length).toBeGreaterThan(0);
+  });
+});

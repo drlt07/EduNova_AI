@@ -5,8 +5,10 @@ import { profileToUser, type ProfileRow } from "@/lib/auth/profile";
 import { setAuthReady } from "@/lib/auth/session-state";
 import { useApp } from "@/lib/store/app-store";
 import { pullCore } from "@/lib/cloud/sync";
+import { pullRecords, resetRecordSync, startRecordSync } from "@/lib/cloud/records-sync";
 
-/** Đồng bộ phiên Supabase vào giao diện: người dùng, vai trò (từ bảng profiles), lớp học/ghi danh và đăng xuất. */
+/** Đồng bộ phiên Supabase vào giao diện: người dùng, vai trò (từ bảng profiles), lớp học/ghi danh, bài tập và kết quả
+ * (app_records, tự đẩy lên sau mỗi thay đổi) và đăng xuất. */
 export function SupabaseSession() {
   const signInAs = useApp((s) => s.signInAs);
   const logout = useApp((s) => s.logout);
@@ -21,9 +23,9 @@ export function SupabaseSession() {
       if (user) {
         const { data } = await sb.from("profiles").select("id, role, full_name, email").eq("id", user.id).single<ProfileRow>();
         if (!alive) return;
-        if (data) { signInAs(profileToUser(data)); await pullCore(); }
-        else logout();
-      } else logout();
+        if (data) { signInAs(profileToUser(data)); await pullCore(); await pullRecords(); startRecordSync(); }
+        else { resetRecordSync(); logout(); }
+      } else { resetRecordSync(); logout(); }
       setAuthReady();
     };
     // chờ kho dữ liệu nạp xong để phiên thật không bị dữ liệu cũ ghi đè
@@ -31,12 +33,12 @@ export function SupabaseSession() {
     if (useApp.persist.hasHydrated()) start();
     const unsubHydrate = useApp.persist.onFinishHydration(start);
     const { data: sub } = sb.auth.onAuthStateChange((event) => {
-      if (event === "SIGNED_OUT") logout();
+      if (event === "SIGNED_OUT") { resetRecordSync(); logout(); }
       else if (event === "SIGNED_IN" || event === "USER_UPDATED") void sync();
     });
     // quay lại tab thì tải lại (học sinh mới vào lớp, thầy cô đổi lớp ở máy khác)
     let last = 0;
-    const onFocus = () => { const t = performance.now(); if (t - last > 30_000 && useApp.getState().userId) { last = t; void pullCore(); } };
+    const onFocus = () => { const t = performance.now(); if (t - last > 30_000 && useApp.getState().userId) { last = t; void pullCore().then(pullRecords); } };
     window.addEventListener("focus", onFocus);
     return () => {
       alive = false;

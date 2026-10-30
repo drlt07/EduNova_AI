@@ -10,6 +10,7 @@ import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import type { LabGrade } from "@/lib/ai/lab-grader";
 import { AUTH_MODE } from "@/lib/supabase/config";
+import { rowsToPatch } from "@/lib/cloud/records";
 import { normalizeEmail, type LocalCredential } from "@/lib/auth/local-auth";
 import type { TeacherQuiz } from "@/lib/data/practice";
 import type {
@@ -240,7 +241,8 @@ export const useApp = create<AppState>()(
           return { id, classId: cls?.id };
         },
         // bản thật: đăng xuất thì xóa người dùng/lớp tải từ máy chủ khỏi trình duyệt
-        logout: () => set(CLOUD ? { userId: null, users: [], classes: [], enrollments: [] } : { userId: null }),
+        // bản thật: xóa cả dữ liệu đồng bộ của tài khoản vừa thoát, người đăng nhập sau tải lại từ máy chủ
+        logout: () => set(CLOUD ? { userId: null, users: [], classes: [], enrollments: [], ...rowsToPatch([]) } : { userId: null }),
         signInAs: (user) => set((s) => ({ users: [...s.users.filter((u) => u.id !== user.id), user], userId: user.id })),
         // Giữ tài khoản tự đăng ký khi làm mới dữ liệu mẫu
         resetDemo: () => set((s) => {

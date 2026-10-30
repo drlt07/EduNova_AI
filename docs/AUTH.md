@@ -34,12 +34,14 @@ EduNova chạy ở một trong hai chế độ, tự chọn theo biến môi tr�
 
 Khách chưa đăng nhập (`anon`) không đọc được bảng nào.
 
-Kiểm chứng: `tests/db/rls.test.ts` chạy chính file migration trên PostgreSQL (PGlite) với `auth.users`/`auth.uid()` giả lập, đóng vai từng người dùng — 22 tình huống (nâng quyền, đọc chéo lớp, sửa bài sau khi chấm, giáo viên sửa bài học sinh…). Chạy cùng `npm test`.
+Kiểm chứng: `tests/db/rls.test.ts` chạy chính file migration trên PostgreSQL (PGlite) với `auth.users`/`auth.uid()` giả lập, đóng vai từng người dùng — 29 tình huống (gồm phân quyền bảng app_records) (nâng quyền, đọc chéo lớp, sửa bài sau khi chấm, giáo viên sửa bài học sinh…). Chạy cùng `npm test`.
 
 ## Cài đặt
 
 1. Tạo project trên [supabase.com](https://supabase.com).
-2. Chạy migration: `supabase/migrations/20261027000000_init.sql` (SQL Editor, hoặc `supabase db push` với Supabase CLI).
+2. Chạy lần lượt mọi file trong `supabase/migrations/` theo thứ tự tên (SQL Editor, hoặc `supabase db push` với Supabase CLI).
+   `20261031000000_app_records.sql` tạo bảng `app_records`: bài giao, bài nộp, điểm, kết quả mô phỏng, luyện tập, tiến độ…
+   được app tự đồng bộ (`src/lib/cloud/records.ts`, `records-sync.ts`). Thiếu bảng này thì các dữ liệu đó chỉ nằm trên từng trình duyệt.
 3. **Authentication → Sign In / Providers → Email**: bật Email, **bật "Confirm email"** (bắt buộc: nếu tắt, ai cũng có thể khai email trường để nhận quyền giáo viên). Đặt độ dài mật khẩu tối thiểu 8.
 4. **Authentication → URL Configuration**: *Site URL* = địa chỉ triển khai (vd `https://edunova.vercel.app`); *Redirect URLs* thêm `https://<tên-miền>/auth/callback` (và `http://localhost:3000/auth/callback` khi phát triển).
 5. Thêm tên miền email trường (SQL Editor):
