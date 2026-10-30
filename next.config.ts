@@ -10,6 +10,8 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  // Cho máy khác cùng mạng Wi-Fi/LAN mở bản chạy thử (npm run dev) qua IP nội bộ, ví dụ http://192.168.3.1:3000
+  allowedDevOrigins: ["192.168.*.*", "10.*.*.*", "172.16.*.*", "*.local"],
   // Trợ lý soạn KHBD đọc .docx/.pdf ở máy chủ
   serverExternalPackages: ["pdf-parse", "mammoth", "@xmldom/xmldom"],
   turbopack: {
