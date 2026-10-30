@@ -1,0 +1,9 @@
+# Netlify: build ứng dụng Next.js (Netlify tự dùng runtime Next.js cho proxy.ts, route API, trang động).
+# Biến NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY đặt ở Site configuration → Environment variables
+# (không ghi khóa vào file này). Đổi biến thì phải deploy lại vì NEXT_PUBLIC_* được gắn vào lúc build.
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+[build.environment]
+  NODE_VERSION = "22"
