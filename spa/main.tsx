@@ -14,6 +14,11 @@ import Labs from "@/app/(public)/labs/page";
 import LabDetailPage from "@/app/(public)/labs/[slug]/page";
 import KhoSim from "@/app/(public)/kho/[slug]/page";
 import NovaAdventure from "@/app/(public)/phieu-luu-nova/page";
+import NovaPlay from "@/app/(public)/phieu-luu-nova/[slug]/page";
+import SNova from "@/app/student/phieu-luu/page";
+import SNovaPlay from "@/app/student/phieu-luu/[slug]/page";
+import TNova from "@/app/teacher/phieu-luu/page";
+import TNovaPlay from "@/app/teacher/phieu-luu/[slug]/page";
 import Hsg from "@/app/(public)/thuat-toan/page";
 import TSgk from "@/app/teacher/sgk/page";
 import TClass from "@/app/teacher/classes/[id]/page";
@@ -128,6 +133,11 @@ const ROUTES: Route[] = [
   r("/labs/:slug", "public", (p) => <LabDetail slug={p.slug} />),
   r("/kho", "public", C(Labs)),
   r("/phieu-luu-nova", "public", C(NovaAdventure)),
+  r("/phieu-luu-nova/:slug", "public", C(NovaPlay)),
+  r("/student/phieu-luu", "student", C(SNova)),
+  r("/student/phieu-luu/:slug", "student", C(SNovaPlay)),
+  r("/teacher/phieu-luu", "teacher", C(TNova)),
+  r("/teacher/phieu-luu/:slug", "teacher", C(TNovaPlay)),
   r("/kho/:slug", "public", C(KhoSim)),
   r("/thuat-toan", "public", C(Hsg)),
   r("/thuat-toan/:id", "public", (p) => <AlgoPage key={p.id} id={p.id} />),

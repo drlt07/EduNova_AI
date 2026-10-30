@@ -27,7 +27,7 @@ import { LAB_TEMPLATES } from "@/lib/data/labs";
 import { LESSONS } from "@/lib/data/curriculum";
 import { cn } from "@/lib/utils";
 import { KhoShowcase } from "@/components/life/kho";
-import { NOVA_CHAPTERS, NOVA_PATH } from "@/lib/data/nova-adventure";
+import { NOVA_CHAPTERS, NOVA_HOME_GAME, NOVA_PATH } from "@/lib/data/nova-adventure";
 
 const GRADES = [
   { g: 10, title: "Dữ liệu và lập trình", text: "Thông tin và dữ liệu, hệ nhị phân, an toàn số, lập trình Python: biến, rẽ nhánh, vòng lặp, hàm.", tone: "from-cyan/25 via-cyan/5" },
@@ -171,7 +171,8 @@ export default function HomePage() {
               <h2 id="nova-h" className="mt-3 text-3xl font-extrabold tracking-tight sm:text-4xl">Sự cố ở Ngôi nhà Nova</h2>
               <p className="mt-3 max-w-xl text-indigo-100">Mã độc Glitch chiếm ngôi nhà thông minh. Lắp lại máy tính, sửa mạng Wi-Fi, vạch mặt mã QR giả, lập trình đèn giao thông, dạy lại AI — rồi đánh bại Glitch ở phòng máy chủ.</p>
               <div className="mt-6 flex flex-wrap gap-3">
-                <Button asChild size="lg" className="bg-white text-indigo-900 hover:bg-indigo-50"><Link href={NOVA_PATH}><Play /> Chơi ngay</Link></Button>
+                <Button asChild size="lg" className="bg-white text-indigo-900 hover:bg-indigo-50"><Link href={NOVA_HOME_GAME}><Play /> Chơi ngay</Link></Button>
+                <Button asChild size="lg" variant="ghost" className="text-white hover:bg-white/10 hover:text-white"><Link href={NOVA_PATH}>Tất cả kịch bản</Link></Button>
                 <span className="self-center text-sm text-indigo-200">Không cần tài khoản · tiến độ tự lưu</span>
               </div>
             </div>

@@ -86,8 +86,8 @@ describe("Cấu hình giao bài: số lần làm và cách tính điểm", () =>
 });
 
 describe("Điều hướng", () => {
-  it("giáo viên: 6 mục Quản lý giảng dạy + 2 mục cá nhân", () => {
-    expect(NAV.teacher.map((i) => i.label)).toEqual(["Tổng quan", "Khóa học", "Lớp của tôi", "Bài tập & Kiểm tra", "Thư viện", "Trợ lý KHBD AI", "Thông báo", "Hồ sơ & Cài đặt"]);
+  it("giáo viên: Quản lý giảng dạy + Phiêu lưu Nova + 2 mục cá nhân", () => {
+    expect(NAV.teacher.map((i) => i.label)).toEqual(["Tổng quan", "Khóa học", "Lớp của tôi", "Bài tập & Kiểm tra", "Thư viện", "Phiêu lưu Nova", "Trợ lý KHBD AI", "Thông báo", "Hồ sơ & Cài đặt"]);
   });
   it("Mô phỏng đời sống: nằm trong Thư viện của GV, mục riêng của HS và QTV", () => {
     expect(NAV.teacher.find((i) => i.label === "Thư viện")?.match).toContain("/teacher/kho");
@@ -98,6 +98,10 @@ describe("Điều hướng", () => {
   it("trang cũ vẫn thuộc một mục (không mất chức năng)", () => {
     const all = NAV.teacher.flatMap((i) => [i.href, ...(i.match ?? [])]);
     for (const r of ["/teacher/courses", "/teacher/assignments", "/teacher/assessment", "/teacher/results", "/teacher/analytics", "/teacher/bank", "/teacher/kho", "/teacher/library", "/teacher/saved", "/teacher/activity-builder"]) expect(all).toContain(r);
+  });
+  it("Phiêu lưu Nova có ở cả giáo viên và học sinh", () => {
+    expect(NAV.teacher.find((i) => i.label === "Phiêu lưu Nova")?.href).toBe("/teacher/phieu-luu");
+    expect(NAV.student.find((i) => i.label === "Phiêu lưu Nova")?.href).toBe("/student/phieu-luu");
   });
   it("học sinh vào thẳng Bài của tôi", () => {
     expect(NAV.student[0].href).toBe("/student/missions");

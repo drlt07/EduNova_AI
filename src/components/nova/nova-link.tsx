@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Gamepad2 } from "lucide-react";
-import { NOVA_PATH, chapterLabel, novaChapterFor } from "@/lib/data/nova-adventure";
+import { NOVA_HOME_GAME, chapterLabel, novaChapterFor } from "@/lib/data/nova-adventure";
 import { cn } from "@/lib/utils";
 
 /**
@@ -12,5 +12,5 @@ export function NovaChapterNote({ slug, asText, className }: { slug: string; asT
   if (!c) return null;
   const body = <><Gamepad2 className="size-4 shrink-0" aria-hidden /> <span>Thử thách này có trong {chapterLabel(c)} của <b className="font-semibold">Phiêu lưu Nova</b></span></>;
   const cls = cn("inline-flex items-center gap-1.5 rounded-lg bg-indigo-500/10 px-2.5 py-1 text-xs text-indigo-700 dark:text-indigo-300", className);
-  return asText ? <span className={cls}>{body}</span> : <Link href={NOVA_PATH} className={cn(cls, "hover:bg-indigo-500/15")}>{body} <span aria-hidden>→</span></Link>;
+  return asText ? <span className={cls}>{body}</span> : <Link href={NOVA_HOME_GAME} className={cn(cls, "hover:bg-indigo-500/15")}>{body} <span aria-hidden>→</span></Link>;
 }

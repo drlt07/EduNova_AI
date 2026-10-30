@@ -9,6 +9,7 @@ import {
   ClipboardCheck,
   Dumbbell,
   FlaskConical,
+  Gamepad2,
   Library,
   Home,
   NotebookPen,
@@ -31,13 +32,14 @@ export interface NavItem {
 }
 
 export const NAV: Record<Role, NavItem[]> = {
-  // Giáo viên: 6 mục "Quản lý giảng dạy" + 2 mục cá nhân. Trang cũ thuộc mục hợp lý qua `match` (không mất chức năng).
+  // Giáo viên: 6 mục "Quản lý giảng dạy" + Phiêu lưu Nova + 2 mục cá nhân. Trang cũ thuộc mục hợp lý qua `match` (không mất chức năng).
   teacher: [
     { href: "/teacher/dashboard", label: "Tổng quan", icon: LayoutDashboard },
     { href: "/teacher/sgk", label: "Khóa học", icon: BookMarked, match: ["/teacher/courses", "/curriculum", "/explore", "/bai-hoc"] },
     { href: "/teacher/classes", label: "Lớp của tôi", icon: Users, match: ["/teacher/results"] },
     { href: "/teacher/assignments", label: "Bài tập & Kiểm tra", icon: ClipboardCheck, badge: "pending", match: ["/teacher/assessment", "/teacher/bank", "/teacher/activity-builder", "/teacher/analytics"] },
     { href: "/teacher/sims", label: "Thư viện", icon: Library, match: ["/teacher/kho", "/teacher/library", "/teacher/resources", "/teacher/labs", "/teacher/saved", "/labs", "/thuat-toan"] },
+    { href: "/teacher/phieu-luu", label: "Phiêu lưu Nova", icon: Gamepad2, match: ["/phieu-luu-nova"] },
     { href: "/teacher/lesson-planner", label: "Trợ lý KHBD AI", icon: NotebookPen },
     { href: "/teacher/notifications", label: "Thông báo", icon: Bell, group: "Cá nhân", badge: "notifs" },
     { href: "/teacher/settings", label: "Hồ sơ & Cài đặt", icon: UserCog, group: "Cá nhân" },
@@ -49,6 +51,7 @@ export const NAV: Record<Role, NavItem[]> = {
     { href: "/student/practice", label: "Luyện tập", icon: Dumbbell, match: ["/student/code", "/student/projects"] },
     { href: "/student/games", label: "Mô phỏng", icon: FlaskConical, match: ["/labs"] },
     { href: "/student/kho", label: "Mô phỏng đời sống", icon: Sparkles, match: ["/thuat-toan"] },
+    { href: "/student/phieu-luu", label: "Phiêu lưu Nova", icon: Gamepad2, match: ["/phieu-luu-nova"] },
     { href: "/student/progress", label: "Tiến độ", icon: BarChart3, match: ["/student/profile", "/student/portfolio"] },
     { href: "/student/tutor", label: "AI Gia sư", icon: Bot },
   ],
