@@ -4,6 +4,7 @@ set -e
 cd "$(dirname "$0")"
 npx vite build --config spa/vite.config.ts --logLevel warn
 python3 spa/package-artifact.py
-# Trò chơi Phiêu lưu Nova: một tệp tự chạy, xuất bản cạnh trang demo (files: nova/index.html, nova/dem-truoc-ky-thi/index.html)
+# Trò chơi Phiêu lưu Nova: một tệp tự chạy, xuất bản cạnh trang demo (files: nova/index.html, nova/dem-truoc-ky-thi/index.html, nova/tram-nova-7/index.html)
 node tools/nova/build.mjs
-mkdir -p spa/artifact/nova/dem-truoc-ky-thi && cp public/nova/index.html spa/artifact/nova/index.html && cp public/nova/dem-truoc-ky-thi/index.html spa/artifact/nova/dem-truoc-ky-thi/index.html
+for d in dem-truoc-ky-thi tram-nova-7; do mkdir -p spa/artifact/nova/$d && cp public/nova/$d/index.html spa/artifact/nova/$d/index.html; done
+cp public/nova/index.html spa/artifact/nova/index.html

@@ -3,7 +3,7 @@
  * thay thư viện three r128 và bộ biểu tượng Tabler lấy từ CDN bằng bản đặt sẵn trong tools/nova/vendor,
  * để trò chơi chạy cả khi không ra được mạng ngoài (bản demo một tệp, trường chặn CDN),
  * và chèn các gói: đồ họa (visual-pack.js), âm thanh + toàn màn hình (audio-pack.js), cỡ chữ + sửa lỗi kẹt (read-pack.js),
- * phong cách THPT + độ khó (pro-pack.js).
+ * phong cách THPT + độ khó (pro-pack.js). Kịch bản 2, 3 thêm bộ dụng cụ chung (kit-pack.js) và gói nội dung riêng.
  * Chạy: node tools/nova/build.mjs
  */
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
@@ -57,10 +57,10 @@ function buildGame({ out, extra = "", edits = [] }) {
 // Kịch bản 1 · Sự cố ở Ngôi nhà Nova
 buildGame({ out: "public/nova/index.html" });
 
-// Kịch bản 2 · Đêm trước kỳ thi: cùng lõi, thay 6 chương (s2-pack.js), lưu tiến độ riêng.
+// Kịch bản 2 · Đêm trước kỳ thi: cùng lõi, bộ dụng cụ chung (kit-pack.js) + 6 chương mới (s2-pack.js), lưu tiến độ riêng.
 buildGame({
   out: "public/nova/dem-truoc-ky-thi/index.html",
-  extra: read("s2-pack.js"),
+  extra: read("kit-pack.js") + "\n" + read("s2-pack.js"),
   edits: [
     ["<title>Sự cố ở Ngôi nhà Nova · EduNova</title>", "<title>Đêm trước kỳ thi · EduNova</title>"],
     ['<div style="font-size:22px;font-weight:500;margin:2px 0 4px">Sự cố ở Ngôi nhà Nova</div>', '<div style="font-size:22px;font-weight:500;margin:2px 0 4px">Đêm trước kỳ thi</div>'],
@@ -72,5 +72,22 @@ buildGame({
     ["Hoàn thành từng phòng để mở khóa phòng tiếp theo. Tiến độ được lưu tự động.", "Hoàn thành từng phòng để mở khóa phòng tiếp theo. Sao tính theo thời gian còn lại. Tiến độ được lưu tự động."],
     ["localStorage.getItem('nova_save')", "localStorage.getItem('nova2_save')"],
     ["localStorage.setItem('nova_save'", "localStorage.setItem('nova2_save'"],
+  ],
+});
+
+// Kịch bản 3 · Mất liên lạc ở Trạm Nova-7: bộ dụng cụ chung + 6 khoang mới (s3-pack.js), lưu tiến độ riêng.
+buildGame({
+  out: "public/nova/tram-nova-7/index.html",
+  extra: read("kit-pack.js") + "\n" + read("s3-pack.js"),
+  edits: [
+    ["<title>Sự cố ở Ngôi nhà Nova · EduNova</title>", "<title>Mất liên lạc ở Trạm Nova-7 · EduNova</title>"],
+    ['<div style="font-size:22px;font-weight:500;margin:2px 0 4px">Sự cố ở Ngôi nhà Nova</div>', '<div style="font-size:22px;font-weight:500;margin:2px 0 4px">Mất liên lạc ở Trạm Nova-7</div>'],
+    ["Mã độc Glitch đã chiếm ngôi nhà thông minh. Hãy khôi phục 5 hệ thống và giải cứu quản gia NOVA.", "Sau bão Mặt Trời, AI bảo trì ECHO của trạm nghiên cứu trên sao Hỏa bị lỗi và khóa mọi khoang. Khôi phục từng khoang trước khi oxy dự phòng cạn."],
+    ["ti-home-bolt", "ti-radar-2"],
+    ['Kỹ thuật viên <span id="mname"></span>', 'Kỹ thuật viên trực ca · <span id="mname"></span>'],
+    ["Bản đồ Ngôi nhà Nova", "Bản đồ Trạm Nova-7"],
+    ["Hoàn thành từng phòng để mở khóa phòng tiếp theo. Tiến độ được lưu tự động.", "Hoàn thành từng khoang để mở khóa khoang tiếp theo. Sao tính theo oxy còn lại. Tiến độ được lưu tự động."],
+    ["localStorage.getItem('nova_save')", "localStorage.getItem('nova3_save')"],
+    ["localStorage.setItem('nova_save'", "localStorage.setItem('nova3_save'"],
   ],
 });

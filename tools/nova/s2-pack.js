@@ -1,98 +1,22 @@
 /* ===== Kịch bản 2 · "Đêm trước kỳ thi" =====
  * Dùng lại lõi trò chơi của kịch bản 1 cùng các gói đồ họa, âm thanh, cỡ chữ, phong cách THPT; thay toàn bộ 6 chương.
- * Chèn sau pro-pack.js, chỉ khi đóng gói kịch bản 2 (tools/nova/build.mjs).
- * Cơ chế riêng: đồng hồ đếm ngược tới 6:00 sáng thay cho sao; mỗi lần chọn sai mất 10 phút; hết giờ chơi lại chương.
+ * Chèn sau kit-pack.js, chỉ khi đóng gói kịch bản 2 (tools/nova/build.mjs).
+ * Cơ chế riêng: đồng hồ đếm ngược tới 6:00 sáng thay cho sao (thanh đo của kit-pack.js); chọn sai mất 5 phút; hết giờ chơi lại phòng.
  * Nội dung: biểu diễn thông tin (Tin 10), CSDL và SQL (Tin 11), tìm kiếm và sắp xếp (Tin 10–11), Python (Tin 10),
  * HTML/CSS và đường link (Tin 12), an ninh mạng và pháp luật (Tin 10, 12). Câu đố và lời thoại viết mới.
  */
 WHO.GLITCH = ['KHÓA ĐEN', '#e11d48', 'ti-lock', '#9f1239'];
 WHO.CO = ['Cô Hạnh · GV Tin học', '#8b5cf6', 'ti-school', '#6d28d9'];
-const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-const shuf = (a) => shuffleArr(a.slice());
-const fbErr = (t) => `<span style="color:#be123c">${t}</span>`;
 
-/* ---------- Đồng hồ đếm ngược ---------- */
-const S2 = { start: [0, 1320, 1410, 60, 150, 240, 300], budget: [0, 90, 90, 90, 90, 60, 60], left: 90, rate: 5, pen: 10, failed: false };
+// Đồng hồ: phòng 1 bắt đầu 22:00, mỗi phút trong trò chơi bằng 6 giây thật (~9 phút thật mỗi phòng).
+const S2_START = [0, 1320, 1410, 60, 150, 240, 300];
 const hhmm = (m) => { m = ((Math.round(m) % 1440) + 1440) % 1440; return `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`; };
-function hud() {
-  if (stars < 3 && st === 'play') { S2.left -= S2.pen * (3 - stars); stars = 3; toast(`<b style="font-weight:600">Mất ${S2.pen} phút</b> vì chọn sai`, 1600); }
-  $('keys').innerHTML = '<i class="ti ti-key" aria-hidden="true"></i> ' + keyN + '/5';
-  if (!CH) return;
-  const n = CH.n, now = S2.start[n] + (S2.budget[n] - Math.max(0, S2.left)), low = S2.left < 15;
-  $('stars').innerHTML = `<span style="color:${low ? '#fb7185' : '#e2e8f0'};font-variant-numeric:tabular-nums"><i class="ti ti-clock" aria-hidden="true"></i> ${hhmm(now)}</span> <span style="opacity:.6">· còn ${Math.max(0, Math.ceil(S2.left))} phút</span>`;
-}
-// Sao cuối chương tính theo thời gian còn lại (khai báo lại finish).
-function finish() {
-  const r = Math.max(0, S2.left) / S2.budget[CH.n];
-  stars = r >= .5 ? 3 : r >= .25 ? 2 : 1;
-  SAVE.done[CH.n] = Math.max(SAVE.done[CH.n] || 0, stars); save();
-}
-const loadS2 = load;
-load = function (n) { S2.left = S2.budget[n]; S2.failed = false; return loadS2(n); };
-setInterval(() => {
-  if (!CH || st !== 'play' || inDlg || S2.failed || CH.won || document.hidden) return;
-  if (!$('clr').classList.contains('hidden') || !$('map').classList.contains('hidden')) return;
-  S2.left -= .25 / S2.rate; hud();
-  if (S2.left <= 0) {
-    S2.failed = true; beep(220, .5, .06, 'sawtooth');
-    mg(`<div style="text-align:center"><div class="hard-tag">Hết giờ</div><div style="font-size:18px;font-weight:600;margin:4px 0">Đã quá hạn của phòng này</div><div style="font-size:13px;color:#475569;margin:6px 0 14px;line-height:1.55">KHÓA ĐEN kịp mã hóa thêm dữ liệu. Chơi lại phòng này; đọc kỹ đề trước khi chọn để không mất thời gian.</div><button class="bt" id="re2">Chơi lại phòng</button></div>`);
-    $('re2').onclick = () => { mgClose(); load(CH.n); };
-  }
-}, 250);
-
-/* ---------- Đồ vật dùng chung ---------- */
-function screenTex(lines, bg, fg) {
-  return tex(512, 288, (g, w, h) => {
-    g.fillStyle = bg || '#0b1525'; g.fillRect(0, 0, w, h);
-    g.fillStyle = fg || '#67e8f9'; g.font = '600 30px "Consolas",monospace';
-    lines.forEach((l, i) => g.fillText(l, 22, 52 + i * 42));
-  });
-}
-function desk(x, z, w, opt) {
-  opt = opt || {};
-  const top = mat(opt.wood ? 0x6b4a32 : 0x2f3640, opt.wood ? 0 : .3, .5), leg = mat(0x1f242b, .7, .35);
-  add(rbox(w, .07, .8, .02), top, x, .78, z);
-  [[-w / 2 + .08, -.32], [w / 2 - .08, -.32], [-w / 2 + .08, .32], [w / 2 - .08, .32]].forEach(([dx, dz]) => add(rbox(.05, .76, .05, .015), leg, x + dx, .38, z + dz));
-  const scr = [];
-  (opt.pcs || [0]).forEach((dx) => {
-    add(rbox(.62, .38, .04, .02), mat(0x0d1117, .5, .3), x + dx, 1.12, z - .22);
-    const sm = new THREE.MeshBasicMaterial({ map: opt.tex || screenTex(['>_'], '#0b1525', '#38bdf8') }); keepMat(sm);
-    add(new THREE.PlaneGeometry(.58, .33), sm, x + dx, 1.12, z - .195); scr.push(sm);
-    add(rbox(.06, .14, .06, .02), leg, x + dx, .9, z - .24);
-    add(rbox(.42, .02, .14, .01), mat(0x2a2f37, .2, .6), x + dx, .82, z + .05);
-  });
-  if (!opt.free) box(x - w / 2, x + w / 2, z - .4, z + .4);
-  return scr;
-}
-function shelf(x, z, w, rot) {
-  const g = new THREE.Group(); g.position.set(x, 0, z); g.rotation.y = rot || 0; W.add(g);
-  const wood = mat(0x4a3424, 0, .65);
-  add(rbox(w, 2.2, .45, .03), mat(0x2b1f16, 0, .8), 0, 1.1, -.02, g);
-  const cols = [0x7f1d1d, 0x1e3a8a, 0x14532d, 0x78350f, 0x4c1d95, 0x334155, 0x9a3412, 0x155e75];
-  [.32, .82, 1.32, 1.82].forEach((y) => {
-    add(rbox(w - .06, .04, .42, .01), wood, 0, y - .06, .02, g);
-    let cx = -w / 2 + .1;
-    while (cx < w / 2 - .14) { const bw = .06 + Math.random() * .06, bh = .3 + Math.random() * .12; add(new THREE.BoxGeometry(bw, bh, .3), mat(cols[Math.floor(Math.random() * cols.length)], 0, .7), cx + bw / 2, y - .04 + bh / 2, .04, g); cx += bw + .01; }
-  });
-  const hw = rot ? .3 : w / 2, hd = rot ? w / 2 : .3;
-  box(x - hw, x + hw, z - hd, z + hd);
-}
-function rack(x, z, leds) {
-  add(rbox(.9, 2.2, 1, .04), mat(0x0b0f14, .6, .35), x, 1.1, z);
-  const face = x < 0 ? .46 : -.46;
-  for (let j = 0; j < 10; j++) { const m = new THREE.MeshStandardMaterial({ color: 0x111111, emissive: 0x22c55e, emissiveIntensity: 1.2 }); leds.push(add(new THREE.SphereGeometry(.025, 8, 6), m, x + face, .35 + j * .18, z - .3 + (j % 3) * .25)); }
-  box(x - .45, x + .45, z - .5, z + .5);
-}
-function codeBlock(lines, mark) {
-  return `<div class="term" style="white-space:normal;padding:8px 6px">${lines.map((l, i) => `<button class="cb" data-line="${i}" style="width:100%;margin:2px 0;border:1px solid transparent;cursor:${mark ? 'pointer' : 'default'};text-align:left;justify-content:flex-start;white-space:pre"><span style="opacity:.45;width:20px;display:inline-block">${i + 1}</span>${esc(l)}</button>`).join('')}</div>`;
-}
-const tag = (t) => `<div class="hard-tag">${t}</div>`;
-const h2 = (t) => `<div style="font-size:17px;font-weight:600;margin-bottom:4px;line-height:1.4">${t}</div>`;
-const desc = (t) => `<div style="font-size:13px;color:#475569;margin-bottom:10px;line-height:1.55">${t}</div>`;
-const fbBox = '<div id="fb" style="font-size:13px;min-height:20px;margin-top:10px;line-height:1.55"></div>';
-const runBtn = (id, t) => `<div style="text-align:right;margin-top:8px"><button class="bt" id="${id}">${t}</button></div>`;
-const doneStep = (lines, then) => setTimeout(() => { mgClose(); jingle(); talk(lines, then || adv); }, 1500);
-const toKey = (x, z) => () => { keyAt(x, 1.2, z); adv(); };
+meterSetup({
+  budget: [0, 90, 90, 90, 90, 60, 60], rate: 6, pen: 5, penText: (p) => `Mất ${p} phút`,
+  show: (n, left, used, low) => `<span style="color:${low ? '#fb7185' : '#e2e8f0'};font-variant-numeric:tabular-nums"><i class="ti ti-clock" aria-hidden="true"></i> ${hhmm(S2_START[n] + used)}</span> <span style="opacity:.6">· còn ${Math.ceil(left)} phút</span>`,
+  failTag: 'Hết giờ', failTitle: 'Đã quá hạn của phòng này',
+  failText: 'KHÓA ĐEN kịp mã hóa thêm dữ liệu. Chơi lại phòng này; đọc kỹ đề trước khi chọn để không mất thời gian.',
+});
 
 /* =================== Chương 1 · Phòng máy: biểu diễn thông tin =================== */
 CHS[1] = {
@@ -121,16 +45,19 @@ CHS[1] = {
     { o: 'Nhặt mảnh mã khóa', key: 1 }],
 };
 function s2Ascii() {
-  const bytes = ['00110001', '00110111', '00110011'], ans = ['1', '7', '3'];
-  const sel = (i) => `<select id="as${i}"><option value="">?</option>${'0123456789'.split('').map((d) => `<option>${d}</option>`).join('')}</select>`;
-  mg(`${tag('Thử thách 1 · Mã ASCII')}${h2('Ghi chú nhị phân của cô Hạnh')}${desc('Mỗi nhóm 8 bit là mã ASCII của một ký tự. Đổi từng byte sang thập phân rồi tra bảng: "0" = 48, "1" = 49, … "9" = 57.')}
-${bytes.map((b, i) => `<div class="cb" style="justify-content:space-between"><span>Byte ${i + 1}: <b style="letter-spacing:.12em">${b}</b></span><span>ký tự ${sel(i)}</span></div>`).join('')}${fbBox}${runBtn('chk', 'Kiểm tra')}`);
+  const bytes = ['00110001', '00110111', '00110011'], ans = ['1', '7', '3'], W8 = [128, 64, 32, 16, 8, 4, 2, 1];
+  // Mỗi byte kèm hàng trọng số: bit 1 sáng lên, cộng các trọng số đó là ra số thập phân.
+  const row = (b) => `<div style="display:grid;grid-template-columns:repeat(8,1fr);gap:2px;text-align:center;font-family:var(--font-mono)">${b.split('').map((x, i) => `<div style="padding:2px 0;border-radius:4px;${x === '1' ? 'background:rgba(34,211,238,.25);color:#e2e8f0' : 'opacity:.45'}"><b>${x}</b><div style="font-size:10.5px">${W8[i]}</div></div>`).join('')}</div>`;
+  const opts = (k) => shuf([ans[k], ...shuf('0123456789'.split('').filter((d) => d !== ans[k])).slice(0, 3)]);
+  const sel = (i) => `<select id="as${i}"><option value="">?</option>${opts(i).map((d) => `<option>${d}</option>`).join('')}</select>`;
+  mg(`${tag('Thử thách 1 · Mã ASCII')}${h2('Ghi chú nhị phân của cô Hạnh')}${desc('Mỗi byte là mã ASCII của một chữ số. Cộng trọng số của các bit 1 (ô sáng) để ra số thập phân, rồi tra bảng: "0" = 48, "1" = 49, "2" = 50, … "9" = 57.')}
+${bytes.map((b, i) => `<div class="cb" style="flex-direction:column;align-items:stretch;gap:6px"><div style="display:flex;justify-content:space-between;align-items:center"><span>Byte ${i + 1}: <b style="letter-spacing:.12em">${b}</b></span><span>ký tự ${sel(i)}</span></div>${row(b)}</div>`).join('')}${fbBox}${runBtn('chk', 'Kiểm tra')}`);
   $('chk').onclick = () => {
     const v = ans.map((_, i) => $('as' + i).value);
     if (v.some((x) => !x)) { $('fb').innerHTML = fbErr('Chọn ký tự cho cả ba byte.'); return; }
     const k = v.findIndex((x, i) => x !== ans[i]);
-    if (k >= 0) { bad(); const d = parseInt(bytes[k], 2); $('fb').innerHTML = fbErr(`Byte ${k + 1} chưa đúng. Gợi ý: ${bytes[k]} = ${d} trong hệ thập phân; lấy ${d} − 48.`); return; }
-    good(); $('fb').textContent = 'Ba byte là các ký tự "1", "7", "3": mã cửa là 173. Lưu ý: chữ số trên màn hình cũng là ký tự, có mã riêng.';
+    if (k >= 0) { bad(); const d = parseInt(bytes[k], 2), parts = bytes[k].split('').map((x, i) => (x === '1' ? W8[i] : 0)).filter(Boolean); $('fb').innerHTML = fbErr(`Byte ${k + 1} chưa đúng: ${parts.join(' + ')} = ${d}. Mã ${d} là ký tự "${d - 48}" (vì ${d} − 48 = ${d - 48}).`); return; }
+    good(); $('fb').textContent = 'Ba byte là các ký tự "1", "7", "3": mã cửa là 173. Chữ số hiện trên màn hình cũng là ký tự, có mã riêng.';
     doneStep([['NOVA', 'Mã cửa là 173. Bảng điều khiển cửa chỉ nhận 8 công tắc bit, cần đổi 173 sang nhị phân.']]);
   };
 }
@@ -138,9 +65,9 @@ function s2Bits() {
   const W8 = [128, 64, 32, 16, 8, 4, 2, 1], on = W8.map(() => 0);
   const draw = (msg) => {
     const v = W8.reduce((a, w, i) => a + (on[i] ? w : 0), 0);
-    mg(`${tag('Thử thách 2 · Số nhị phân')}${h2('Bật đúng các công tắc để tạo số 173')}${desc('Mỗi công tắc là một bit, bit bên trái có trọng số lớn nhất. Tổng trọng số các bit đang bật chính là giá trị của byte.')}
+    mg(`${tag('Thử thách 2 · Số nhị phân')}${h2('Bật đúng các công tắc để tạo số 173')}${desc('Mỗi công tắc là một bit, số nhỏ bên dưới là trọng số. Cách làm: bật bit lớn nhất không vượt quá số còn thiếu, rồi lặp lại (173 → bật 128, còn thiếu 45 → bật 32, …).')}
 <div style="display:grid;grid-template-columns:repeat(8,1fr);gap:6px">${W8.map((w, i) => `<button class="op" data-b="${i}" style="flex-direction:column;align-items:center;justify-content:center;padding:8px 2px;${on[i] ? 'border-color:#22d3ee;background:rgba(8,145,178,.25)' : ''}"><b style="font-size:20px">${on[i]}</b><span style="font-size:11px;opacity:.7">${w}</span></button>`).join('')}</div>
-<div class="term" style="min-height:0;margin-top:10px">${on.join('')} (2) = ${v} (10)</div><div id="fb" style="font-size:13px;min-height:20px;margin-top:10px;line-height:1.55">${msg || ''}</div>${runBtn('unl', 'Mở khóa')}`);
+<div class="term" style="min-height:0;margin-top:10px">${on.join('')} (2) = ${v} (10) · ${v === 173 ? 'đủ 173 rồi' : v < 173 ? `còn thiếu ${173 - v}` : `thừa ${v - 173}, tắt bớt một bit`}</div><div id="fb" style="font-size:13px;min-height:20px;margin-top:10px;line-height:1.55">${msg || ''}</div>${runBtn('unl', 'Mở khóa')}`);
     document.querySelectorAll('#mgb [data-b]').forEach((b) => (b.onclick = () => { on[+b.dataset.b] ^= 1; beep(600 + +b.dataset.b * 40, .05, .03); draw(); }));
     $('unl').onclick = () => {
       if (v !== 173) { bad(); draw(fbErr(`Byte hiện là ${v}, chưa phải 173. Cách nhanh: lấy 173 trừ dần trọng số lớn nhất còn trừ được (173 − 128 = 45, 45 − 32 = 13, …).`)); return; }
@@ -309,24 +236,6 @@ CHS[4] = {
     { o: 'Nhặt mảnh mã khóa', key: 1 }],
   tick(dt) { this.leds.forEach((l, i) => { const r = Math.sin(tm * 4 + i * 1.3); l.material.emissive.setHex(si < 3 && r > .6 ? 0xe11d48 : 0x22c55e); l.material.emissiveIntensity = r > -.5 ? 1.4 : .15; }); },
 };
-function codeFix(cfg, done) {
-  let picked = null;
-  const draw = (msg) => {
-    mg(`${tag(cfg.tag)}${h2(cfg.title)}${desc(cfg.desc)}${codeBlock(cfg.code, 1)}
-${picked === null ? '<div style="font-size:12.5px;color:#64748b;margin-top:8px">Bước 1: bấm vào dòng code bị sai.</div>' : `<div style="font-size:12.5px;color:#64748b;margin:8px 0 6px">Bước 2: chọn cách sửa dòng ${picked + 1}.</div><div style="display:grid;gap:6px">${cfg.fixOrder.map((o, j) => `<button class="op" data-f="${j}" style="font-family:var(--font-mono);font-size:12.5px">${esc(o.t)}</button>`).join('')}</div>`}
-<div id="fb" style="font-size:13px;min-height:20px;margin-top:8px;line-height:1.55">${msg || ''}</div>`);
-    document.querySelectorAll('#mgb [data-line]').forEach((b) => {
-      if (+b.dataset.line === picked) b.style.borderColor = '#22d3ee';
-      b.onclick = () => { const i = +b.dataset.line; if (i === cfg.bug) { picked = i; beep(700, .06, .03); draw(); } else { bad(); draw(fbErr(cfg.lineHint(i))); } };
-    });
-    document.querySelectorAll('#mgb [data-f]').forEach((b) => (b.onclick = () => {
-      const o = cfg.fixOrder[+b.dataset.f];
-      if (!o.ok) { bad(); draw(fbErr(o.e)); return; }
-      good(); draw(o.e); done();
-    }));
-  };
-  cfg.fixOrder = shuf(cfg.fixes); draw();
-}
 function s2Rooms() {
   codeFix({
     tag: 'Thử thách 1 · Gỡ lỗi Python', title: 'Có 65 thí sinh, mỗi phòng 24 chỗ, nhưng chương trình chỉ xếp được 48 em',
@@ -456,27 +365,20 @@ CHS[6] = {
     room(grid('#0b1220', '#1e293b', 6), 0x111827, 2.8);
     this.leds = [];
     for (let i = 0; i < 4; i++) { rack(-5.6, -3.6 + i * 2.1, this.leds); rack(5.6, -3.6 + i * 2.1, this.leds); }
-    add(new THREE.CylinderGeometry(.8, 1, .5, 32), mat(0x334155, .6, .35), 0, .25, 1.2); box(-1, 1, .3, 2.1);
-    spr('Máy giải mã', '#0e7490', .7).position.set(0, 1.3, 1.2);
-    this.crys = []; for (let i = 0; i < 5; i++) { const c = new THREE.Mesh(new THREE.OctahedronGeometry(.18, 0), kmat); c.scale.y = 1.5; c.visible = false; W.add(c); this.crys.push(c); }
-    GL.scale.setScalar(2.4);
+    coreBuild(this, 'Máy giải mã');
   },
   start: [['GLITCH', '5 giờ sáng rồi. Các ngươi có 5 mảnh khóa, nhưng ta vẫn còn trong mạng của trường.'], ['NOVA', '{n}, nạp 5 mảnh mã khóa vào máy giải mã. Sau đó xử lý sự cố: mỗi tình huống chọn Làm hoặc Không làm.']],
   steps: [
-    { o: 'Nạp 5 mảnh mã khóa vào máy giải mã', at: [0, 2.4], t: 'Nạp mảnh mã khóa', f() { CH.ins = 0; CH.busy = 1; CH.crys.forEach((c) => (c.visible = true)); beep(500, .4, .05, 'triangle'); } },
+    { o: 'Nạp 5 mảnh mã khóa vào máy giải mã', at: [0, 2.4], t: 'Nạp mảnh mã khóa', f() { coreStart(CH); } },
     { o: 'Xử lý sự cố cùng NOVA', at: [0, 2.4], t: 'Bắt đầu xử lý sự cố', f() { s2Boss(); } }],
   tick(dt) {
     this.leds.forEach((l, i) => { const r = Math.sin(tm * 5 + i * 1.7); l.material.emissive.setHex(si < 1 || this.won ? 0x22c55e : r > .4 ? 0xe11d48 : 0x22c55e); l.material.emissiveIntensity = r > -.4 ? 1.4 : .1; });
-    if (this.ins !== undefined && this.ins < 1) {
-      this.ins += dt * .45;
-      this.crys.forEach((c, i) => { const a = i / 5 * Math.PI * 2 + tm * 2, r = 1.6 * (1 - this.ins); c.position.set(Math.cos(a) * r, 1 + this.ins * .6, 1.2 + Math.sin(a) * r); c.rotation.y += dt * 3; });
-      if (this.ins >= 1) { this.busy = 0; this.crys.forEach((c) => (c.visible = false)); NOVA.scale.setScalar(1.8); jingle(); talk([['NOVA', 'Đề thi và bảng điểm đã giải mã xong. Giờ chặn KHÓA ĐEN lại.'], ['GLITCH', 'Thử xem các ngươi xử lý sự cố có bài bản không.']], adv); }
-    }
-    if (this.won && GL.visible) { glBurst += dt; GL.children.forEach((c) => { c.position.addScaledVector(c.userData.v, dt); c.userData.v.y -= 6 * dt; }); if (glBurst > 2) GL.visible = false; }
+    coreTick(this, dt, () => talk([['NOVA', 'Đề thi và bảng điểm đã giải mã xong. Giờ chặn KHÓA ĐEN lại.'], ['GLITCH', 'Thử xem các ngươi xử lý sự cố có bài bản không.']], adv));
   },
 };
 function s2Boss() {
-  const C = shuf([
+  rapidRound({
+    enemy: 'KHÓA ĐEN', icon: 'ti-lock', yes: 'Làm', no: 'Không làm', secs: 15, items: [
     ['Ngắt máy tính bị nhiễm khỏi mạng nội bộ ngay', 1, 'Cách ly máy nhiễm để mã độc không lây sang máy khác là bước đầu tiên khi xử lý sự cố.'],
     ['Chuyển tiền chuộc để KHÓA ĐEN gửi khóa giải mã', 0, 'Trả tiền không bảo đảm lấy lại dữ liệu và tiếp tay cho tội phạm; nhà trường đã có bản sao lưu.'],
     ['Khôi phục dữ liệu từ bản sao lưu ngoại tuyến (không cắm vào mạng)', 1, 'Quy tắc 3-2-1: 3 bản sao, 2 loại thiết bị, 1 bản để ngoài. Bản ngoại tuyến không bị mã hóa theo.'],
@@ -485,50 +387,27 @@ function s2Boss() {
     ['Đăng danh sách học sinh bị lộ thông tin lên mạng xã hội để cảnh báo', 0, 'Công khai dữ liệu cá nhân của học sinh là vi phạm quy định bảo vệ dữ liệu cá nhân; thông báo riêng cho người liên quan.'],
     ['Báo cáo sự cố cho ban giám hiệu và cơ quan chức năng, giữ nguyên nhật ký hệ thống', 1, 'Nhật ký là chứng cứ để điều tra; báo cáo đúng kênh là trách nhiệm của nhà trường.'],
     ['Dùng phần mềm giải mã "crack" tải trên mạng cho nhanh', 0, 'Phần mềm bẻ khóa vi phạm bản quyền và thường cài kèm mã độc.'],
-  ]);
-  let i = 0, hp = 100, hearts = 3, tl = 12, tmr = null;
-  const draw = () => {
-    const c = C[i];
-    mg(`<div style="display:flex;gap:12px;align-items:center;margin-bottom:10px"><div style="flex:1"><div style="font-size:12px;color:#fb7185"><i class="ti ti-lock" aria-hidden="true"></i> KHÓA ĐEN</div><div class="hp"><div style="width:${hp}%;background:#e11d48"></div></div></div><div style="font-size:18px;color:#e11d48" aria-label="Năng lượng NOVA">${'<i class="ti ti-heart" aria-hidden="true"></i>'.repeat(hearts)}</div></div>
-<div style="font-size:12px;color:#64748b">Tình huống ${i + 1}/${C.length} · còn <b id="tl" style="font-weight:500">${tl}</b> giây</div><div style="font-size:16px;font-weight:500;margin:8px 0 14px;line-height:1.5;min-height:48px">${c[0]}</div>
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><button class="bt" id="do1" style="background:#0f766e">Làm</button><button class="bt" id="do0" style="background:#9f1239">Không làm</button></div><div id="fb" style="font-size:13px;min-height:38px;margin-top:10px;line-height:1.5"></div>`);
-    $('do1').onclick = () => ans(1); $('do0').onclick = () => ans(0);
-    clearInterval(tmr); tl = 12; tmr = setInterval(() => { tl--; if ($('tl')) $('tl').textContent = tl; if (tl <= 0) { clearInterval(tmr); ans(-1); } }, 1000);
-  };
-  const ans = (a) => {
-    clearInterval(tmr); const c = C[i]; $('do1').disabled = $('do0').disabled = true;
-    if (a === c[1]) { hp = Math.max(0, hp - 100 / C.length); good(); $('fb').innerHTML = '<span style="color:#6ee7b7">Đúng.</span> ' + c[2]; }
-    else { hearts--; bad(); $('fb').innerHTML = fbErr((a < 0 ? 'Hết giờ. ' : 'Chưa đúng. ') + c[2]); }
-    setTimeout(() => {
-      i++;
-      if (hearts <= 0) { mg(`<div style="text-align:center"><div style="font-size:17px;font-weight:600">NOVA cạn năng lượng</div><div style="font-size:13px;color:#475569;margin:6px 0 14px">Đọc kỹ từng tình huống rồi thử lại.</div><button class="bt" id="re">Thử lại</button></div>`); $('re').onclick = () => { i = 0; hp = 100; hearts = 3; draw(); }; return; }
-      if (i >= C.length) { mgClose(); CH.won = 1; glBurst = 0; jingle(); setTimeout(() => beep(200, .6, .06, 'sawtooth'), 300); talk([['GLITCH', 'Sao lưu ngoại tuyến… xác thực hai bước… Không còn chỗ nào để ta bám vào.'], ['CO', '5 giờ 58. Đề thi, bảng điểm và trang thông báo đều đã về. Cảm ơn em, {n}!'], ['NOVA', 'Kỳ thi sẽ diễn ra đúng giờ. Đội Tin học hoàn thành nhiệm vụ.']], () => { finish(); cert(); }); return; }
-      draw();
-    }, 2600);
-  };
-  draw();
+    ],
+    onWin: () => talk([['GLITCH', 'Sao lưu ngoại tuyến… xác thực hai bước… Không còn chỗ nào để ta bám vào.'], ['CO', '5 giờ 58. Đề thi, bảng điểm và trang thông báo đều đã về. Cảm ơn em, {n}!'], ['NOVA', 'Kỳ thi sẽ diễn ra đúng giờ. Đội Tin học hoàn thành nhiệm vụ.']], () => { finish(); cert(); }),
+  });
 }
 function cert() {
-  const d = new Date();
-  $('clrb').innerHTML = `<div style="width:56px;height:56px;border-radius:50%;background:rgba(34,211,238,.15);color:#22d3ee;display:flex;align-items:center;justify-content:center;font-size:30px;margin:0 auto 8px"><i class="ti ti-certificate" aria-hidden="true"></i></div><div style="font-size:12px;color:#64748b;letter-spacing:1px">Chứng nhận</div><div style="font-size:19px;font-weight:600;margin:2px 0">Đội Tin học Trường THPT Nova</div><div style="font-size:13px;color:#475569">trao cho</div><div style="font-size:22px;font-weight:600;color:#22d3ee;margin:4px 0">${esc(name)}</div><div style="font-size:13px;color:#b45309;margin:4px 0"><i class="ti ti-star" aria-hidden="true"></i> ${sumStars()} / 18 sao</div>
-<div style="font-size:12.5px;color:#475569;line-height:1.6;margin:8px 0">Đã giải mã dữ liệu nhị phân, khôi phục cơ sở dữ liệu điểm, tìm và sắp xếp hồ sơ, gỡ lỗi Python, sửa trang web và xử lý sự cố mã độc tống tiền trước giờ thi.</div><div style="font-size:12px;color:#64748b">Ngày ${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()} · EduNova</div><button class="bt" id="tomap2" style="margin-top:12px"><i class="ti ti-map" aria-hidden="true"></i> Về bản đồ</button>`;
-  $('clr').classList.remove('hidden'); $('tomap2').onclick = () => { $('clr').classList.add('hidden'); showMap(); };
+  certCard('Đội Tin học Trường THPT Nova', 'Đã giải mã dữ liệu nhị phân, khôi phục cơ sở dữ liệu điểm, tìm và sắp xếp hồ sơ, gỡ lỗi Python, sửa trang web và xử lý sự cố mã độc tống tiền trước giờ thi.');
 }
 
 /* ---------- Bài kiểm tra kỹ thuật trước khi nhặt mảnh mã khóa (thay bộ câu của kịch bản 1) ---------- */
-Object.keys(HARD).forEach((k) => delete HARD[k]);
-Object.assign(HARD, {
+setHard({
   1: [
-    { q: 'Chữ "ế" (U+1EBF) lưu bằng UTF-8 chiếm bao nhiêu byte?', ops: [
-      { t: '3 byte', ok: 1, e: 'Mã U+0800 đến U+FFFF dùng 3 byte trong UTF-8; U+1EBF nằm trong khoảng này.' },
-      { t: '1 byte', e: '1 byte chỉ đủ cho 128 ký tự ASCII, không có chữ có dấu.' },
-      { t: '2 byte', e: '2 byte dành cho U+0080 đến U+07FF (như chữ "é" U+00E9); "ế" có mã lớn hơn.' },
-      { t: '4 byte', e: '4 byte dành cho ký tự từ U+10000 trở lên, như nhiều biểu tượng cảm xúc.' }] },
-    { q: 'Số nhị phân 1011 0110 viết trong hệ 16 là gì?', ops: [
-      { t: 'B6', ok: 1, e: 'Tách thành hai nhóm 4 bit: 1011 = B, 0110 = 6.' },
-      { t: '6B', e: 'Đảo thứ tự hai nhóm: nhóm 4 bit bên trái là chữ số hàng cao.' },
-      { t: '182', e: '182 là giá trị thập phân của số này, không phải cách viết hệ 16.' },
-      { t: 'A6', e: '1011 là 11, tức B; A là 1010.' }] },
+    { q: 'Một byte gồm 8 bit. Một byte biểu diễn được bao nhiêu giá trị khác nhau?', ops: [
+      { t: '256 giá trị (từ 0 đến 255)', ok: 1, e: 'Mỗi bit có 2 trạng thái, 8 bit có 2 × 2 × … × 2 = 2^8 = 256 tổ hợp.' },
+      { t: '8 giá trị', e: '8 là số bit; số tổ hợp của 8 bit là 2^8.' },
+      { t: '16 giá trị', e: '16 = 2^4 là số giá trị của 4 bit (nửa byte).' },
+      { t: '255 giá trị', e: '255 là giá trị lớn nhất; tính cả số 0 thì có 256 giá trị.' }] },
+    { q: 'Số nhị phân 1010 bằng bao nhiêu trong hệ thập phân?', ops: [
+      { t: '10', ok: 1, e: 'Các bit 1 ở trọng số 8 và 2: 8 + 2 = 10.' },
+      { t: '1010', e: 'Đó là cách viết nhị phân; cần đổi sang thập phân bằng trọng số 8, 4, 2, 1.' },
+      { t: '5', e: '5 là 0101; ở đây bit 1 nằm ở trọng số 8 và 2.' },
+      { t: '12', e: '12 là 1100 (8 + 4).' }] },
   ],
   2: [
     { q: 'Bảng DIEM có khóa chính (SBD, Mon) và đã có dòng (A01, Toán, 7). Lệnh INSERT dòng (A01, Toán, 8) sẽ ra sao?', ops: [

@@ -1,7 +1,8 @@
 /**
  * Phiêu lưu Nova — bộ kịch bản trò chơi 3D ôn Tin học (mỗi kịch bản là một tệp tự chạy trong public/, sinh từ tools/).
- * Kịch bản 1 "Sự cố ở Ngôi nhà Nova" (public/nova/index.html) và kịch bản 2 "Đêm trước kỳ thi"
- * (public/nova/dem-truoc-ky-thi/index.html), cùng sinh từ tools/nova. Mỗi chương là một thử thách Tin học thực hành;
+ * Kịch bản 1 "Sự cố ở Ngôi nhà Nova" (public/nova/index.html), kịch bản 2 "Đêm trước kỳ thi"
+ * (public/nova/dem-truoc-ky-thi/index.html) và kịch bản 3 "Mất liên lạc ở Trạm Nova-7" (public/nova/tram-nova-7/index.html),
+ * cùng sinh từ tools/nova. Mỗi chương là một thử thách Tin học thực hành;
  * các mô phỏng cùng chủ đề của kịch bản 1 trỏ về chương tương ứng.
  */
 
@@ -39,6 +40,16 @@ export const NOVA2_CHAPTERS: NovaChapter[] = [
   { n: 4, room: "Phòng máy chủ", title: "Ba chương trình lỗi", learn: "Đọc và gỡ lỗi Python: chia làm tròn lên, range(), chia cho 0", slugs: ["debug-detective"] },
   { n: 5, room: "Phòng truyền thông", title: "Trang thông báo bị chiếm", learn: "Sửa thẻ HTML, bộ chọn và thuộc tính CSS, nhận ra đường link giả", slugs: ["web-creator"] },
   { n: 6, room: "Trung tâm dữ liệu", title: "Đối đầu KHÓA ĐEN", learn: "Xử lý mã độc tống tiền: cách ly, sao lưu 3-2-1, xác thực hai bước, pháp luật", slugs: ["encryption", "digital-safety", "password", "digital-citizen"] },
+];
+
+/** Kịch bản 3 "Mất liên lạc ở Trạm Nova-7": hệ điều hành, ảnh số, truyền thông, cảm biến, bảng tính, AI có giám sát. */
+export const NOVA3_CHAPTERS: NovaChapter[] = [
+  { n: 1, room: "Phòng điều khiển", title: "Nhật ký và tiến trình", learn: "Cây thư mục, đường dẫn, dừng tiến trình lạ, tệp tạm", slugs: ["os-explorer"] },
+  { n: 2, room: "Phòng ảnh vệ tinh", title: "Màu sai lệch", learn: "Pha màu RGB, dung lượng ảnh thô, PNG và JPEG", slugs: ["rgb-pixel", "image-compress"] },
+  { n: 3, room: "Phòng liên lạc", title: "Tin nhắn mã hóa", learn: "Mã Caesar, ghép gói tin theo số thứ tự, Mbps và MB", slugs: ["encryption", "download-time", "network-journey"] },
+  { n: 4, room: "Nhà kính", title: "Chương trình tưới cây", learn: "Vòng lặp while, if – else với cảm biến, lệnh chờ", slugs: ["smart-garden"] },
+  { n: 5, room: "Phòng dữ liệu", title: "Số liệu bị giấu", learn: "AVERAGE, COUNTIF và chọn loại biểu đồ", slugs: [] },
+  { n: 6, room: "Lõi ECHO", title: "Đối thoại với ECHO", learn: "Kiểm chứng nhận định của AI, con người giám sát quyết định quan trọng", slugs: ["ai-discovery", "digital-citizen"] },
 ];
 
 export const chapterLabel = (c: NovaChapter) => (c.n < 6 ? `Chương ${c.n}` : "Chương cuối");
@@ -86,6 +97,17 @@ export const ADVENTURES: Adventure[] = [
     minutes: 45,
     chapters: NOVA2_CHAPTERS,
     cover: "from-[#0b1120] via-[#3b0a1a] to-[#9f1239]",
+  },
+  {
+    slug: "tram-nova-7",
+    no: 3,
+    title: "Mất liên lạc ở Trạm Nova-7",
+    tagline: "Giành lại trạm nghiên cứu trên sao Hỏa từ AI bảo trì ECHO",
+    summary: "Tìm nhật ký trong cây thư mục, pha màu ảnh vệ tinh, giải mã Caesar, ghép gói tin, sắp xếp chương trình tưới cây, dùng COUNTIF vạch ra số liệu bị giấu rồi kiểm chứng các nhận định của ECHO. Thanh oxy thay cho sao.",
+    src: NOVA_GAME_SRC.replace(/index\.html$/, "tram-nova-7/index.html"),
+    minutes: 40,
+    chapters: NOVA3_CHAPTERS,
+    cover: "from-[#1c0f0a] via-[#7c2d12] to-[#ea580c]",
   },
 ];
 
