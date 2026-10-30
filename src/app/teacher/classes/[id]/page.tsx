@@ -4,7 +4,7 @@ import { ClassHistory } from "@/components/teacher/class-history";
 import Link from "next/link";
 import { Suspense, useState } from "react";
 import { useParams, usePathname, useRouter, useSearchParams } from "next/navigation";
-import { ArrowLeft, CheckCircle2, Lock, LockOpen, Copy, FlaskConical, MonitorPlay, Pencil, RefreshCw, Send, Trash2, UserMinus, UserPlus, Users } from "lucide-react";
+import { ArrowLeft, BookOpen, CheckCircle2, ListChecks, Lock, LockOpen, Copy, FlaskConical, MonitorPlay, Pencil, RefreshCw, Send, Trash2, UserMinus, UserPlus, Users } from "lucide-react";
 import { toast } from "sonner";
 import { classNotes } from "@/lib/analytics/class-notes";
 import { objectiveMastery } from "@/lib/analytics/compute";
@@ -13,7 +13,7 @@ import { bookEntry, bookLessons, lessonSimSlugs } from "@/lib/sgk/book";
 import { fmtScore, labSummary } from "@/lib/sim/lab-score";
 import { classStudents, teacherClasses } from "@/lib/store/scoped";
 import { useSessionData } from "@/lib/store/use-role";
-import { CELL_LABEL, cellStatus, refForObjective, studentProfile, teachingProgress, type CellStatus } from "@/lib/teacher/class-view";
+import { CELL_LABEL, cellStatus, refForObjective, studentProfile, type CellStatus } from "@/lib/teacher/class-view";
 import { nextLesson } from "@/lib/teacher/today";
 import { cn, formatDate } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -89,8 +89,17 @@ function ClassDetail() {
 
   const students = classStudents(d, cls.id);
   const asg = d.assignments.filter((a) => a.classId === cls.id && a.status !== "draft").sort((a, b) => b.publishedAt.localeCompare(a.publishedAt));
-  const progress = teachingProgress(d, user.id, cls);
   const next = nextLesson(d, user.id, cls);
+  // Bài để giao hôm nay: bài lớp vừa học (đánh dấu đã dạy gần nhất), chưa dạy bài nào thì bài dạy tiếp.
+  const lastRef = d.taughtLessons.filter((t) => t.teacherId === user.id && t.classId === cls.id).sort((x, y) => y.at.localeCompare(x.at))[0]?.ref;
+  const focus = (lastRef ? bookEntry(lastRef) : undefined) ?? next;
+  const focusTaught = !!focus && focus.ref === lastRef;
+  const focusItems = focus ? lessonAssignables(d, user.id, focus) : [];
+  const focusGiven = focus ? asg.filter((a) => a.sgkRef === focus.ref || (a.task && focusItems.some((i) => i.kind === a.task!.kind && i.ref === a.task!.ref))).length : 0;
+  const open = asg.filter((a) => a.status === "open").map((a) => {
+    const cells = students.map((u) => cellStatus(d, a, u.id).status);
+    return { a, done: cells.filter((x) => x === "done").length, target: cells.filter((x) => x !== "not-assigned" && x !== "not-joined").length };
+  });
   const notes = classNotes(d, user.id).filter((n) => n.className === cls.name);
   const go = (t: Tab) => router.replace(`${pathname}?tab=${t}`, { scroll: false });
   const assignFromLesson = (ref: string, studentIds?: string[]) => { const e = bookEntry(ref); if (e) setAssign({ ref, suggest: lessonAssignables(d, user.id, e), studentIds, title: studentIds ? "Giao bài củng cố" : undefined }); };
@@ -119,7 +128,7 @@ function ClassDetail() {
             <Button size="icon" variant="ghost" aria-label="Tạo mã mới" onClick={() => { d.regenerateInvite(cls.id); toast.success("Đã tạo mã mới, mã cũ hết hiệu lực"); }}><RefreshCw /></Button>
           </div>
           <div className="flex gap-1.5">
-            <Button size="sm" onClick={() => setAssign({})}><Send /> Giao bài</Button>
+            {tab !== "tong-quan" && <Button size="sm" onClick={() => setAssign({})}><Send /> Giao bài</Button>}
             <Button size="sm" variant="secondary" onClick={() => setDialog("edit")}><Pencil /> Sửa lớp</Button>
             <Button size="icon" variant="ghost" aria-label="Xóa lớp" onClick={() => setDialog("delete")}><Trash2 /></Button>
           </div>
@@ -137,30 +146,42 @@ function ClassDetail() {
       {tab === "tong-quan" && (
         <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
           <div className="min-w-0 space-y-6">
-            <section className="rounded-2xl border border-line bg-surface p-5">
-              <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">Bài dạy tiếp</h2>
-              {next ? (
-                <>
-                  <p className="mt-1 text-xl font-bold text-fg">Bài {next.lesson.no}. {next.lesson.title}</p>
-                  <p className="text-sm text-muted">Chủ đề {next.topic.no}. {next.topic.title}{next.content ? ` · ${next.content.periods} tiết` : " · chưa có nội dung"}</p>
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    <Button asChild size="sm"><Link href={`/teacher/sgk/${next.ref}`}><MonitorPlay /> Mở bài, trình chiếu</Link></Button>
-                    <Button size="sm" variant="secondary" onClick={() => assignFromLesson(next.ref)}><Send /> Giao hoạt động của bài</Button>
-                    <Button size="sm" variant="ghost" onClick={() => { d.toggleTaught(user.id, cls.id, next.ref); toast.success(`Đã đánh dấu dạy xong Bài ${next.lesson.no}`); }}><CheckCircle2 /> Đánh dấu đã dạy</Button>
-                  </div>
-                </>
-              ) : <p className="mt-1 text-fg">Lớp đã học hết sách.</p>}
-            </section>
-            <section className="rounded-2xl border border-line bg-surface p-5">
-              <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">Tiến độ theo chủ đề · {progress.taught}/{progress.total} bài</h2>
-              <ul className="mt-3 space-y-2.5">
-                {progress.topics.map((t) => (
-                  <li key={t.topic.no}>
-                    <div className="mb-1 flex justify-between gap-2 text-sm"><span className="min-w-0 truncate text-fg">Chủ đề {t.topic.no}. {t.topic.title}</span><span className="shrink-0 tabular-nums text-muted">{t.taught}/{t.total}</span></div>
-                    <div className="h-1.5 rounded-full bg-surface-2"><div className="h-full rounded-full bg-cyan" style={{ width: `${(t.taught / t.total) * 100}%` }} /></div>
-                  </li>
-                ))}
-              </ul>
+            {focus ? (
+              <section aria-labelledby="giao-h" className="rounded-2xl border-2 border-brand/30 bg-surface p-5">
+                <p className="text-xs font-semibold uppercase tracking-wide text-blue-fg">{focusTaught ? "Bài lớp vừa học" : "Bài dạy tiếp"} · Chủ đề {focus.topic.no}</p>
+                <h2 id="giao-h" className="mt-1 text-xl font-bold text-fg">Bài {focus.lesson.no}. {focus.lesson.title}</h2>
+                <ul className="mt-3 flex flex-wrap gap-2 text-sm" aria-label="Nội dung bài">
+                  <li className="inline-flex items-center gap-1.5 rounded-lg bg-surface-2 px-2.5 py-1 text-fg"><BookOpen className="size-4 text-blue-fg" aria-hidden /> Kiến thức · {focus.content?.sections.length ?? 0} mục</li>
+                  <li className="inline-flex items-center gap-1.5 rounded-lg bg-surface-2 px-2.5 py-1 text-fg"><ListChecks className="size-4 text-blue-fg" aria-hidden /> Luyện tập · {focusItems.filter((i) => i.kind !== "lab").length}</li>
+                  <li className="inline-flex items-center gap-1.5 rounded-lg bg-surface-2 px-2.5 py-1 text-fg"><FlaskConical className="size-4 text-blue-fg" aria-hidden /> Mô phỏng · {focusItems.filter((i) => i.kind === "lab").length}</li>
+                </ul>
+                {focusGiven > 0 && <p className="mt-2 text-sm text-success-fg">Đã giao {focusGiven} nhiệm vụ của bài này cho lớp.</p>}
+                <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2">
+                  <Button onClick={() => assignFromLesson(focus.ref)}><Send /> Giao bài này cho {cls.name}</Button>
+                  <Link href={`/teacher/sgk/${focus.ref}`} className="inline-flex items-center gap-1 text-sm font-medium text-blue-fg hover:underline"><MonitorPlay className="size-4" aria-hidden /> Mở bài, trình chiếu</Link>
+                  {!focusTaught && <button type="button" className="inline-flex items-center gap-1 text-sm font-medium text-muted hover:text-fg" onClick={() => { d.toggleTaught(user.id, cls.id, focus.ref); toast.success(`Đã đánh dấu dạy xong Bài ${focus.lesson.no}`); }}><CheckCircle2 className="size-4" aria-hidden /> Đánh dấu đã dạy</button>}
+                </div>
+                <p className="mt-3 text-xs text-muted">Muốn giao bài khác? Bấm “Giao bài này”, rồi “Đổi bài” trong hộp thoại.</p>
+              </section>
+            ) : <section className="rounded-2xl border border-line bg-surface p-5"><p className="text-fg">Lớp đã học hết sách.</p></section>}
+
+            <section aria-labelledby="dang-giao-h" className="rounded-2xl border border-line bg-surface p-5">
+              <div className="flex items-baseline justify-between gap-2">
+                <h2 id="dang-giao-h" className="text-lg font-bold text-fg">Bài đang giao</h2>
+                {asg.length > 0 && <button type="button" onClick={() => go("nhiem-vu")} className="text-sm font-medium text-blue-fg hover:underline">Tất cả {asg.length} bài</button>}
+              </div>
+              {open.length === 0 ? <p className="mt-2 text-sm text-muted">Chưa có bài nào đang mở. Giao bài ở thẻ phía trên.</p> : (
+                <ul className="mt-3 space-y-3">
+                  {open.slice(0, 5).map(({ a, done, target }) => (
+                    <li key={a.id}>
+                      <Link href={`/teacher/assignments/${a.id}`} className="block rounded-xl p-1 hover:bg-surface-2">
+                        <span className="flex items-baseline justify-between gap-2 text-sm"><b className="min-w-0 truncate text-fg">{a.title}</b><span className="shrink-0 tabular-nums text-muted">{done}/{target} xong · hạn {formatDate(a.dueAt)}</span></span>
+                        <span className="mt-1.5 block h-2 overflow-hidden rounded-full bg-surface-2"><span className="block h-full rounded-full bg-success" style={{ width: `${(done / Math.max(1, target)) * 100}%` }} /></span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </section>
           </div>
           <ClassInsights notes={notes} onRemedy={(objectiveId) => { const ref = refForObjective(objectiveId); if (ref) assignFromLesson(ref); else setAssign({}); }} />
