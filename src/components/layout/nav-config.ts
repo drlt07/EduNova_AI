@@ -34,7 +34,7 @@ export const NAV: Record<Role, NavItem[]> = {
   // Giáo viên: 6 mục "Quản lý giảng dạy" + 2 mục cá nhân. Trang cũ thuộc mục hợp lý qua `match` (không mất chức năng).
   teacher: [
     { href: "/teacher/dashboard", label: "Tổng quan", icon: LayoutDashboard },
-    { href: "/teacher/sgk", label: "Bài học", icon: BookMarked, match: ["/teacher/courses", "/curriculum", "/explore", "/bai-hoc"] },
+    { href: "/teacher/sgk", label: "Khóa học", icon: BookMarked, match: ["/teacher/courses", "/curriculum", "/explore", "/bai-hoc"] },
     { href: "/teacher/classes", label: "Lớp của tôi", icon: Users, match: ["/teacher/results"] },
     { href: "/teacher/assignments", label: "Bài tập & Kiểm tra", icon: ClipboardCheck, badge: "pending", match: ["/teacher/assessment", "/teacher/bank", "/teacher/activity-builder", "/teacher/analytics"] },
     { href: "/teacher/sims", label: "Thư viện", icon: Library, match: ["/teacher/kho", "/teacher/library", "/teacher/resources", "/teacher/labs", "/teacher/saved", "/labs", "/thuat-toan"] },

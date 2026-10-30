@@ -39,6 +39,16 @@ function SectionHeader({ title, subtitle, tabs, actions }: { title: string; subt
   );
 }
 
+/** Khóa học: bài theo sách giáo khoa (có sẵn) và khóa học thầy cô tự dựng. */
+export function CoursesHeader({ subtitle = "Dạy theo sách giáo khoa có sẵn, hoặc dựng khóa học riêng rồi giao cho lớp", actions }: { subtitle?: string; actions?: React.ReactNode }) {
+  return (
+    <SectionHeader title="Khóa học" subtitle={subtitle} actions={actions} tabs={[
+      { href: "/teacher/sgk", label: "Theo sách giáo khoa" },
+      { href: "/teacher/courses", label: "Khóa học của tôi" },
+    ]} />
+  );
+}
+
 /** Lớp của tôi: danh sách lớp (tạo lớp, học sinh, tiến độ, lịch sử) và sổ điểm. */
 export function ClassesHeader({ subtitle = "Tạo lớp, quản lý học sinh, theo dõi tiến độ, điểm số và nhận xét", actions }: { subtitle?: string; actions?: React.ReactNode }) {
   return (

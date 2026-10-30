@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ArrowLeft, ArrowRight, BookMarked, BookOpen, CheckCircle2, ClipboardList, Code2, FileText, FlaskConical, ListChecks, Lock, Play, Send } from "lucide-react";
+import { ArrowLeft, ArrowRight, BookOpen, CheckCircle2, ClipboardList, Code2, FileText, FlaskConical, ListChecks, Lock, Play, Send } from "lucide-react";
 import type { Grade } from "@/lib/domain/types";
 import { ALGO_IDS } from "@/lib/data/hsg";
 import { CODING_EXERCISES } from "@/lib/data/coding-exercises";
@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { AlgoThumb } from "@/components/algo/hsg-catalog";
 import { LabArt } from "@/components/labs/lab-art";
 import { AssignDialog, type AssignPreset } from "@/components/teacher/assign-dialog";
+import { CoursesHeader } from "@/components/teacher/assess-tabs";
 import { lessonAssignables, lessonAssignments } from "./reader";
 import { labKey, lessonKey } from "@/lib/access/unlocks";
 import { useAccess } from "@/lib/access/use-access";
@@ -47,13 +48,12 @@ function Shelf({ role }: { role: Role }) {
   const myGrades = teacher ? [...new Set(teacherClasses(d, user.id).map((c) => c.grade))] : [...new Set(d.classes.filter((c) => d.enrollments.some((e) => e.classId === c.id && e.studentId === user.id)).map((c) => c.grade))];
   return (
     <div>
-      <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-fg">{teacher ? "Bài học" : "Khóa học"}</h1>
-          <p className="mt-1 text-muted">{teacher ? "Chọn lớp → chủ đề → bài. Mỗi bài có kiến thức, mô phỏng, luyện tập và nút giao cho lớp." : "Học từng bài, làm mô phỏng và câu hỏi luyện tập ngay trong bài."}</p>
+      {teacher ? <CoursesHeader subtitle="Chọn lớp → chủ đề → bài. Mỗi bài có kiến thức, mô phỏng, luyện tập và nút giao cho lớp." /> : (
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold tracking-tight text-fg">Khóa học</h1>
+          <p className="mt-1 text-muted">Học từng bài, làm mô phỏng và câu hỏi luyện tập ngay trong bài.</p>
         </div>
-        {teacher && <Button asChild variant="ghost" size="sm"><Link href="/teacher/courses"><BookMarked /> Khóa học tự soạn</Link></Button>}
-      </div>
+      )}
 
       {last?.e && (
         <Link href={`${base(role)}/${last.e.ref}`} className="group mb-8 flex items-center gap-4 rounded-2xl border border-line bg-surface p-4 transition-colors hover:border-brand/40">

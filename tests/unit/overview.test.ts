@@ -39,3 +39,18 @@ describe("Tổng quan giáo viên", () => {
     for (let i = 1; i < h.length; i++) expect(h[i - 1].at >= h[i].at).toBe(true);
   });
 });
+
+describe("thông báo gộp theo bài", () => {
+  it("gộp tên học sinh gọn", async () => {
+    const { people } = await import("@/lib/teacher/overview");
+    expect(people(["An"])).toBe("An");
+    expect(people(["An", "Bình", "An"])).toBe("An và Bình");
+    expect(people(["An", "Bình", "Chi", "Dũng", "Em"])).toBe("An, Bình và 3 em khác");
+  });
+  it("mỗi bài chỉ một thông báo nộp bài, không lặp theo từng em", () => {
+    const d = base();
+    const n = teacherNotifications(d, "t1", now).filter((x) => x.id.startsWith("sub-"));
+    const perAssignment = new Set(n.map((x) => x.href));
+    expect(n.length).toBe(perAssignment.size);
+  });
+});

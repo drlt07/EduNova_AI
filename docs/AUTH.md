@@ -63,6 +63,7 @@ Kiểm chứng: `tests/db/rls.test.ts` chạy chính file migration trên Postgr
    ```
 2. SQL Editor: chạy lần lượt mọi file trong `supabase/migrations/` (theo thứ tự tên), rồi `supabase/seed-test-accounts.sql` để có 3 tài khoản thử (mật khẩu `EduNova@2026`):
    `gv.test@edunova.test` (giáo viên), `hs.test@edunova.test` (học sinh, đã vào lớp 10A1 (thử)), `admin.test@edunova.test` (quản trị).
+   Muốn có lớp đông để thử: chạy thêm `supabase/seed-sample-class.sql` → lớp **10A2 (mẫu)** của `gv.test` với 30 học sinh `hs01…hs30@edunova.test` (cùng mật khẩu), mã mời `MAU10A2`.
 3. URL Configuration: Site URL `http://localhost:3000`, Redirect URLs thêm `http://localhost:3000/auth/callback`.
 4. `npm install && npm run dev` → http://localhost:3000/login
 

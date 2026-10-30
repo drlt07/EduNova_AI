@@ -14,6 +14,7 @@ import { CODING_EXERCISES } from "@/lib/data/coding-exercises";
 import { SCORED_LABS } from "@/lib/sim/lab-score";
 import { SCORING_LABEL, dueFor, fmtDue, type DueChoice, type TaskKind } from "@/lib/teacher/assign";
 import { classStudents, teacherClasses } from "@/lib/store/scoped";
+import { nextLesson } from "@/lib/teacher/today";
 import { useSessionData } from "@/lib/store/use-role";
 import { cn, matchesQuery } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -32,6 +33,17 @@ const KINDS: { id: Kind; label: string; icon: typeof FlaskConical }[] = [
   { id: "code", label: "Bài code", icon: Code2 },
   { id: "activity", label: "Hoạt động tự thiết kế", icon: Wand2 },
 ];
+
+/** Lần giao trước (hạn, số lần làm, cách tính điểm, AI Gia sư): nhớ trên trình duyệt để lần sau khỏi chọn lại. */
+const PREFS_KEY = "edunova-assign-prefs";
+interface AssignPrefs { due: DueChoice; maxAttempts: number; scoring: "best" | "last" | "first"; tutor: boolean }
+function loadPrefs(): Partial<AssignPrefs> {
+  try { return JSON.parse(localStorage.getItem(PREFS_KEY) ?? "{}") as Partial<AssignPrefs>; } catch { return {}; }
+}
+function savePrefs(p: AssignPrefs) {
+  try { localStorage.setItem(PREFS_KEY, JSON.stringify(p)); } catch { /* bộ nhớ trình duyệt bị chặn: bỏ qua */ }
+}
+const KIND_SHORT: Record<Kind, string> = { lab: "Mô phỏng", quiz: "Luyện tập", code: "Lập trình", activity: "Hoạt động" };
 
 const DUE: { id: DueChoice; label: string }[] = [
   { id: "next", label: "Trước tiết sau" },
@@ -73,25 +85,39 @@ function AssignForm({ preset, sgkRef, suggest, classId, studentIds, courseId, on
   type Source = "lesson" | "library" | "new";
   const [source, setSource] = useState<Source>(preset && !sgkRef ? "library" : "lesson");
   const [lessonGrade, setLessonGrade] = useState<Grade>(() => (sgkRef ? findSgk(sgkRef)?.grade : undefined) ?? classes.find((c) => c.id === classId)?.grade ?? classes[0]?.grade ?? 10);
-  const [lessonRef, setLessonRef] = useState<string>(() => sgkRef ?? gradeLessons(lessonGrade)[0]?.ref ?? "");
-  const entry = lessonRef ? bookEntry(lessonRef) : undefined;
+  /** Mặc định: bài lớp vừa học (đã dạy gần nhất), chưa dạy bài nào thì bài dạy tiếp theo. */
+  const [lessonRef, setLessonRef] = useState<string>(() => {
+    if (sgkRef) return sgkRef;
+    const cls = classes.find((c) => c.id === classId) ?? classes.find((c) => c.grade === lessonGrade);
+    const taught = cls && d.taughtLessons.filter((t) => t.teacherId === user.id && t.classId === cls.id).sort((a, b) => b.at.localeCompare(a.at))[0]?.ref;
+    return taught ?? (cls && nextLesson(d, user.id, cls)?.ref) ?? gradeLessons(lessonGrade)[0]?.ref ?? "";
+  });
   /** Hoạt động giao được của bài đang chọn. */
-  const lessonList = entry ? lessonAssignables(d, user.id, entry).flatMap((x) => items.filter((i) => i.kind === x.kind && i.ref === x.ref)) : [];
+  const itemsOf = (ref: string) => { const e = ref ? bookEntry(ref) : undefined; return e ? lessonAssignables(d, user.id, e).flatMap((x) => items.filter((i) => i.kind === x.kind && i.ref === x.ref)) : []; };
+  const lessonList = itemsOf(lessonRef);
   const [kind, setKind] = useState<Kind>(preset?.kind ?? "lab");
-  const [pick, setPick] = useState<Item | undefined>(presetItem);
+  // Mặc định chọn sẵn mọi hoạt động của bài (bỏ bớt nếu không cần) — ít thao tác nhất cho trường hợp phổ biến.
+  const [picks, setPicks] = useState<Item[]>(() => (presetItem ? [presetItem] : source === "lesson" ? lessonList : []));
+  const pick = picks[0];
+  const isOn = (i: Item) => picks.some((p) => p.kind === i.kind && p.ref === i.ref);
+  const toggle = (i: Item) => setPicks(isOn(i) ? picks.filter((p) => !(p.kind === i.kind && p.ref === i.ref)) : [...picks, i]);
   const [q, setQ] = useState("");
+  /** Lớp đang học tới bài này (bài dạy tiếp theo, hoặc vừa đánh dấu đã dạy). */
+  const learning = (ref: string) => classes.filter((c) => nextLesson(d, user.id, c)?.ref === ref || d.taughtLessons.some((t) => t.teacherId === user.id && t.classId === c.id && t.ref === ref)).map((c) => c.id);
   const [classIds, setClassIds] = useState<string[]>(() => {
     if (classId) return [classId];
+    if (sgkRef && learning(sgkRef).length) return learning(sgkRef);
     const g = presetItem?.grades;
     const match = classes.filter((c) => !g || g.includes(c.grade)).map((c) => c.id);
     return match.length ? [match[0]] : classes.slice(0, 1).map((c) => c.id);
   });
-  const [due, setDue] = useState<DueChoice>("next");
+  const [prefs] = useState(loadPrefs);
+  const [due, setDue] = useState<DueChoice>(prefs.due && prefs.due !== "custom" ? prefs.due : "next");
   const [custom, setCustom] = useState("");
   const [note, setNote] = useState("");
-  const [tutor, setTutor] = useState(true);
-  const [maxAttempts, setMaxAttempts] = useState(0);
-  const [scoring, setScoring] = useState<"best" | "last" | "first">("best");
+  const [tutor, setTutor] = useState(prefs.tutor ?? true);
+  const [maxAttempts, setMaxAttempts] = useState(prefs.maxAttempts ?? 0);
+  const [scoring, setScoring] = useState<"best" | "last" | "first">(prefs.scoring ?? "best");
   /** undefined = cả lớp; mảng = chỉ các em được chọn (khi giao cho đúng một lớp). */
   const [only, setOnly] = useState<string[] | undefined>(studentIds);
   const [now] = useState(() => new Date());
@@ -102,32 +128,37 @@ function AssignForm({ preset, sgkRef, suggest, classId, studentIds, courseId, on
   const dueOf = (c: (typeof classes)[number]) => (due === "custom" ? (custom ? new Date(custom) : undefined) : dueFor(due, c, now));
 
   function submit(draft = false) {
-    if (!pick) return toast.error("Chọn nội dung cần giao");
+    if (!picks.length) return toast.error("Chọn nội dung cần giao");
     if (!chosen.length) return toast.error("Chọn ít nhất một lớp");
     const missingDue = chosen.find((c) => { const t = dueOf(c); return !t || Number.isNaN(t.getTime()) || t.getTime() < Date.now() + 3_600_000; });
     if (missingDue) return toast.error("Hạn nộp phải sau hiện tại ít nhất 1 giờ");
+    savePrefs({ due, maxAttempts, scoring, tutor });
     let made = 0;
-    for (const c of chosen) {
-      const dup = !(chosen.length === 1 && only?.length) && d.assignments.some((a) => a.classId === c.id && a.status === "open" && !a.studentIds && (pick.kind === "activity" ? a.activityId === pick.ref : a.task?.kind === pick.kind && a.task.ref === pick.ref));
-      if (dup) { toast.warning(`${c.name} đã có nhiệm vụ này đang mở, bỏ qua`); continue; }
-      const target = chosen.length === 1 && only?.length ? { studentIds: only } : {};
-      const effSgk = source === "lesson" ? lessonRef : sgkRef;
-      const base = { ownerId: user.id, ...(effSgk ? { sgkRef: effSgk } : {}), ...(courseId ? { courseId } : {}), ...(pick.kind !== "activity" && maxAttempts ? { maxAttempts } : {}), ...(pick.kind !== "activity" && scoring !== "best" ? { scoring } : {}), ...target, classId: c.id, title: pick.title, dueAt: dueOf(c)!.toISOString(), hintMode: (tutor ? "guided" : "off") as HintMode, ...(note.trim() ? { note: note.trim() } : {}) };
-      if (pick.kind === "activity") {
-        const act = activities.find((a) => a.id === pick.ref);
-        const cfg = act && d.labConfigs.find((x) => x.id === act.labConfigId);
-        const id = d.createAssignment({ ...base, activityId: pick.ref, hintMode: cfg?.mode === "assessment" ? "off" : base.hintMode });
+    for (const it of picks) {
+      for (const c of chosen) {
+        const dup = !(chosen.length === 1 && only?.length) && d.assignments.some((a) => a.classId === c.id && a.status === "open" && !a.studentIds && (it.kind === "activity" ? a.activityId === it.ref : a.task?.kind === it.kind && a.task.ref === it.ref));
+        if (dup) { toast.warning(`${c.name} đã có “${it.title}” đang mở, bỏ qua`); continue; }
+        const target = chosen.length === 1 && only?.length ? { studentIds: only } : {};
+        const effSgk = source === "lesson" ? lessonRef : sgkRef;
+        const base = { ownerId: user.id, ...(effSgk ? { sgkRef: effSgk } : {}), ...(courseId ? { courseId } : {}), ...(it.kind !== "activity" && maxAttempts ? { maxAttempts } : {}), ...(it.kind !== "activity" && scoring !== "best" ? { scoring } : {}), ...target, classId: c.id, title: it.title, dueAt: dueOf(c)!.toISOString(), hintMode: (tutor ? "guided" : "off") as HintMode, ...(note.trim() ? { note: note.trim() } : {}) };
+        let id: string;
+        if (it.kind === "activity") {
+          const act = activities.find((a) => a.id === it.ref);
+          const cfg = act && d.labConfigs.find((x) => x.id === act.labConfigId);
+          id = d.createAssignment({ ...base, activityId: it.ref, hintMode: cfg?.mode === "assessment" ? "off" : base.hintMode });
+        } else {
+          id = d.createAssignment({ ...base, activityId: "", task: { kind: it.kind, ref: it.ref } } satisfies Omit<Assignment, "id" | "publishedAt" | "status">);
+        }
         if (draft) d.updateAssignment(id, { status: "draft" });
-      } else {
-        const id = d.createAssignment({ ...base, activityId: "", task: { kind: pick.kind, ref: pick.ref } } satisfies Omit<Assignment, "id" | "publishedAt" | "status">);
-        if (draft) d.updateAssignment(id, { status: "draft" });
+        made++;
       }
-      made++;
+      const tq = it.kind === "quiz" && d.teacherQuizzes.find((x) => x.id === it.ref);
+      if (tq && !draft) d.saveTeacherQuiz({ ...tq, status: "published", classIds: [...new Set([...tq.classIds, ...classIds])] });
     }
-    const tq = pick.kind === "quiz" && d.teacherQuizzes.find((x) => x.id === pick.ref);
-    if (tq && made && !draft) d.saveTeacherQuiz({ ...tq, status: "published", classIds: [...new Set([...tq.classIds, ...classIds])] });
-    if (made && draft) { toast.success("Đã lưu nháp. Học sinh chưa thấy cho đến khi thầy cô bấm Giao."); onDone(); return; }
-    if (made) { toast.success(chosen.length === 1 && only?.length ? `Đã giao “${pick.title}” cho ${only.length} em` : `Đã giao “${pick.title}” cho ${made} lớp`); onDone(); }
+    if (!made) return;
+    if (draft) toast.success("Đã lưu nháp. Học sinh chưa thấy cho đến khi thầy cô bấm Giao.");
+    else toast.success(chosen.length === 1 && only?.length ? `Đã giao ${picks.length} mục cho ${only.length} em` : `Đã giao ${picks.length} mục cho ${chosen.length} lớp (${made} nhiệm vụ)`);
+    onDone();
   }
 
   const firstDue = chosen[0] && dueOf(chosen[0]);
@@ -138,7 +169,7 @@ function AssignForm({ preset, sgkRef, suggest, classId, studentIds, courseId, on
           <h3 className="mb-2 text-sm font-semibold text-fg">1. Chọn nguồn bài tập</h3>
           <div className="mb-3 grid grid-cols-3 gap-1 rounded-xl border border-line bg-surface-2/50 p-1" role="tablist" aria-label="Nguồn bài tập">
             {([["lesson", "Từ bài học"], ["library", "Từ thư viện"], ["new", "Tạo bài mới"]] as const).map(([id, l]) => (
-              <button key={id} type="button" role="tab" aria-selected={source === id} onClick={() => { setSource(id); setPick(undefined); }} className={cn("rounded-lg px-2 py-1.5 text-sm font-semibold", source === id ? "bg-surface text-fg shadow-sm" : "text-muted hover:text-fg")}>{l}</button>
+              <button key={id} type="button" role="tab" aria-selected={source === id} onClick={() => { setSource(id); setPicks(id === "lesson" ? lessonList : []); }} className={cn("rounded-lg px-2 py-1.5 text-sm font-semibold", source === id ? "bg-surface text-fg shadow-sm" : "text-muted hover:text-fg")}>{l}</button>
             ))}
           </div>
           {source === "new" && (
@@ -150,18 +181,24 @@ function AssignForm({ preset, sgkRef, suggest, classId, studentIds, courseId, on
           {source === "lesson" && (
             <div className="space-y-2">
               <div className="grid gap-2 sm:grid-cols-[120px_1fr]">
-                <select aria-label="Khối lớp" className="h-10 rounded-xl border border-line bg-surface px-3 text-sm text-fg" value={lessonGrade} onChange={(e) => { const g = Number(e.target.value) as Grade; setLessonGrade(g); setLessonRef(gradeLessons(g)[0]?.ref ?? ""); setPick(undefined); }}>
+                <select aria-label="Khối lớp" className="h-10 rounded-xl border border-line bg-surface px-3 text-sm text-fg" value={lessonGrade} onChange={(e) => { const g = Number(e.target.value) as Grade; setLessonGrade(g); const r = gradeLessons(g)[0]?.ref ?? ""; setLessonRef(r); setPicks(itemsOf(r)); }}>
                   {[10, 11, 12].map((g) => <option key={g} value={g}>Tin học {g}</option>)}
                 </select>
-                <select aria-label="Bài học" className="h-10 min-w-0 rounded-xl border border-line bg-surface px-3 text-sm text-fg" value={lessonRef} onChange={(e) => { setLessonRef(e.target.value); setPick(undefined); }}>
+                <select aria-label="Bài học" className="h-10 min-w-0 rounded-xl border border-line bg-surface px-3 text-sm text-fg" value={lessonRef} onChange={(e) => { setLessonRef(e.target.value); setPicks(itemsOf(e.target.value)); const sug = learning(e.target.value); if (sug.length && !classId) setClassIds(sug); }}>
                   {gradeLessons(lessonGrade).map((x) => <option key={x.ref} value={x.ref}>Bài {x.lesson.no}. {x.lesson.title}</option>)}
                 </select>
               </div>
-              <ul className="max-h-64 space-y-1 overflow-y-auto pr-1" role="radiogroup" aria-label="Hoạt động của bài">
+              {lessonList.length > 1 && (
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-muted">Chọn một hay nhiều mục — mỗi mục thành một nhiệm vụ.</span>
+                  <button type="button" className="font-semibold text-blue-fg hover:underline" onClick={() => setPicks(lessonList.every(isOn) ? [] : lessonList)}>{lessonList.every(isOn) ? "Bỏ chọn" : `Chọn cả bài (${lessonList.length})`}</button>
+                </div>
+              )}
+              <ul className="max-h-64 space-y-1 overflow-y-auto pr-1" aria-label="Hoạt động của bài">
                 {lessonList.length === 0 && <li className="rounded-lg border border-dashed border-line p-3 text-sm text-muted">Bài này chưa có mô phỏng hay bài luyện tập để giao. Gắn thêm ở tab Mô phỏng của bài, hoặc chọn từ thư viện.</li>}
                 {lessonList.map((it) => {
-                  const on = pick?.kind === it.kind && pick.ref === it.ref;
-                  return <li key={`${it.kind}:${it.ref}`}><button type="button" role="radio" aria-checked={on} onClick={() => setPick(it)} className={cn("flex w-full items-center gap-2 rounded-lg border px-3 py-2 text-left text-sm", on ? "border-cyan bg-cyan/10" : "border-line hover:border-cyan/40")}><span className="w-20 shrink-0 text-xs font-semibold text-muted">{it.kind === "lab" ? "Mô phỏng" : it.kind === "quiz" ? "Luyện tập" : "Lập trình"}</span><span className="min-w-0 flex-1 truncate font-medium text-fg">{it.title}</span><span className="hidden shrink-0 text-xs text-muted sm:inline">{it.meta}</span></button></li>;
+                  const on = isOn(it);
+                  return <li key={`${it.kind}:${it.ref}`}><button type="button" role="checkbox" aria-checked={on} onClick={() => toggle(it)} className={cn("flex w-full items-center gap-2 rounded-lg border px-3 py-2 text-left text-sm", on ? "border-cyan bg-cyan/10" : "border-line hover:border-cyan/40")}><span aria-hidden className={cn("grid size-4 shrink-0 place-items-center rounded border text-[10px] font-bold", on ? "border-cyan bg-cyan text-white" : "border-line")}>{on ? "✓" : ""}</span><span className="w-20 shrink-0 text-xs font-semibold text-muted">{KIND_SHORT[it.kind]}</span><span className="min-w-0 flex-1 truncate font-medium text-fg">{it.title}</span><span className="hidden shrink-0 text-xs text-muted sm:inline">{it.meta}</span></button></li>;
                 })}
               </ul>
             </div>
@@ -179,7 +216,7 @@ function AssignForm({ preset, sgkRef, suggest, classId, studentIds, courseId, on
               <p className="mb-1.5 text-xs font-semibold text-cyan-fg">Có trong bài này</p>
               <div className="flex flex-wrap gap-1.5">
                 {suggested.map((i) => (
-                  <button key={`${i.kind}:${i.ref}`} type="button" onClick={() => { setKind(i.kind); setPick(i); }} aria-pressed={pick?.kind === i.kind && pick.ref === i.ref} className={cn("rounded-lg border px-2.5 py-1 text-xs font-medium", pick?.kind === i.kind && pick.ref === i.ref ? "border-cyan bg-cyan/15 text-fg" : "border-line bg-surface text-fg hover:border-cyan/40")}>
+                  <button key={`${i.kind}:${i.ref}`} type="button" onClick={() => { setKind(i.kind); toggle(i); }} aria-pressed={isOn(i)} className={cn("rounded-lg border px-2.5 py-1 text-xs font-medium", isOn(i) ? "border-cyan bg-cyan/15 text-fg" : "border-line bg-surface text-fg hover:border-cyan/40")}>
                     {KINDS.find((k) => k.id === i.kind)?.label}: {i.title}
                   </button>
                 ))}
@@ -191,17 +228,17 @@ function AssignForm({ preset, sgkRef, suggest, classId, studentIds, courseId, on
             <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted" aria-hidden />
             <Input className="pl-9" placeholder={grades.length ? `Tìm trong nội dung Tin ${grades.join(", ")}…` : "Tìm…"} value={q} onChange={(e) => setQ(e.target.value)} />
           </label>
-          <ul className="mt-2 max-h-64 space-y-1 overflow-y-auto pr-1" role="radiogroup" aria-label="Nội dung">
+          <ul className="mt-2 max-h-64 space-y-1 overflow-y-auto pr-1" aria-label="Nội dung">
             {shown.length === 0 && (
               <li className="rounded-lg border border-dashed border-line p-3 text-sm text-muted">
                 {kind === "activity" ? <>Chưa có hoạt động tự thiết kế. <Link href="/teacher/activity-builder" className="font-medium text-cyan-fg hover:underline">Thiết kế hoạt động</Link></> : kind === "quiz" ? "Chưa có bộ câu hỏi cho khối lớp này. Tạo ở Thư viện bài tập." : "Không có nội dung phù hợp với khối lớp đã chọn."}
               </li>
             )}
             {shown.map((i) => {
-              const on = pick?.kind === i.kind && pick.ref === i.ref;
+              const on = isOn(i);
               return (
                 <li key={`${i.kind}:${i.ref}`}>
-                  <button type="button" role="radio" aria-checked={on} onClick={() => setPick(i)} className={cn("flex w-full items-center gap-3 rounded-xl border px-3 py-2 text-left transition-colors", on ? "border-cyan bg-cyan/10" : "border-line hover:border-cyan/40")}>
+                  <button type="button" role="checkbox" aria-checked={on} onClick={() => toggle(i)} className={cn("flex w-full items-center gap-3 rounded-xl border px-3 py-2 text-left transition-colors", on ? "border-cyan bg-cyan/10" : "border-line hover:border-cyan/40")}>
                     {i.kind === "lab" ? <LabArt slug={i.ref} className="h-9 w-14 shrink-0 rounded-md" /> : <span className="grid h-9 w-14 shrink-0 place-items-center rounded-md bg-surface-2 text-muted">{i.kind === "quiz" ? <ListChecks className="size-4" aria-hidden /> : i.kind === "code" ? <Code2 className="size-4" aria-hidden /> : <Wand2 className="size-4" aria-hidden />}</span>}
                     <span className="min-w-0 flex-1">
                       <span className="block truncate text-sm font-medium text-fg">{i.title}</span>
@@ -221,6 +258,8 @@ function AssignForm({ preset, sgkRef, suggest, classId, studentIds, courseId, on
             {classes.map((c) => (
               <label key={c.id} className={cn("flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-1.5 text-sm", classIds.includes(c.id) ? "border-cyan bg-cyan/10 text-fg" : "border-line text-muted")}>
                 <input type="checkbox" checked={classIds.includes(c.id)} onChange={(e) => { setClassIds(e.target.checked ? [...classIds, c.id] : classIds.filter((x) => x !== c.id)); setOnly(undefined); }} /> {c.name}
+                <span className="text-xs text-muted">{classStudents(d, c.id).length} em</span>
+                {lessonRef && source === "lesson" && learning(lessonRef).includes(c.id) && <span className="rounded-full bg-success/15 px-1.5 text-[11px] font-semibold text-success-fg">đang học bài này</span>}
               </label>
             ))}
           </div>
@@ -257,7 +296,7 @@ function AssignForm({ preset, sgkRef, suggest, classId, studentIds, courseId, on
           )}
         </section>
 
-        {pick && pick.kind !== "activity" && (
+        {picks.some((p) => p.kind !== "activity") && (
           <section>
             <h3 className="mb-2 text-sm font-semibold text-fg">4. Số lần làm và cách tính điểm</h3>
             <div className="grid gap-2 sm:grid-cols-2">
@@ -283,13 +322,15 @@ function AssignForm({ preset, sgkRef, suggest, classId, studentIds, courseId, on
         <div className="rounded-2xl border border-line bg-surface p-4 shadow-sm">
           {pick?.kind === "lab" && <LabArt slug={pick.ref} className="mb-3 aspect-[16/8] w-full rounded-lg" />}
           <p className="font-semibold text-fg">{pick?.title ?? "Chưa chọn nội dung"}</p>
+          {picks.length > 1 && <p className="mt-1 text-xs text-muted">và {picks.length - 1} mục khác: {picks.slice(1).map((p) => p.title).join(", ")}</p>}
           {note.trim() && <p className="mt-1 text-sm text-fg">“{note.trim()}”</p>}
           <p className="mt-2 flex items-center gap-1 text-xs text-muted"><UserRound className="size-3.5" aria-hidden /> {user.name}</p>
           {firstDue && !Number.isNaN(firstDue.getTime()) && <p className="mt-1 flex items-center gap-1 text-xs text-muted"><CalendarClock className="size-3.5" aria-hidden /> Hạn {fmtDue(firstDue)}</p>}
-          {pick && <p className="mt-2 text-xs text-muted">{pick.auto ? "Làm xong là có kết quả ngay, thầy cô không cần chấm." : "Nộp bài để thầy cô chấm theo tiêu chí."}{tutor ? "" : " Không dùng AI Gia sư."}</p>}
+          {pick && <p className="mt-2 text-xs text-muted">{picks.every((p) => p.auto) ? "Làm xong là có kết quả ngay, thầy cô không cần chấm." : "Nộp bài để thầy cô chấm theo tiêu chí."}{tutor ? "" : " Không dùng AI Gia sư."}</p>}
         </div>
-        <Button className="w-full" onClick={() => submit()} disabled={!pick || !chosen.length || (chosen.length === 1 && !!only && only.length === 0)}><Send /> {chosen.length === 1 && only?.length ? `Giao cho ${only.length} em` : `Giao cho ${chosen.length || ""} lớp`}</Button>
-        <Button className="w-full" variant="ghost" onClick={() => submit(true)} disabled={!pick || !chosen.length}>Lưu nháp, giao sau</Button>
+        {picks.length > 0 && chosen.length > 0 && <p className="text-xs text-muted">Sẽ giao <b className="text-fg">{picks.length} mục</b> cho <b className="text-fg">{chosen.length === 1 && only?.length ? `${only.length} em` : `${chosen.length} lớp · ${chosen.reduce((n, c) => n + classStudents(d, c.id).length, 0)} em`}</b>.</p>}
+        <Button className="w-full" onClick={() => submit()} disabled={!picks.length || !chosen.length || (chosen.length === 1 && !!only && only.length === 0)}><Send /> {chosen.length === 1 && only?.length ? `Giao cho ${only.length} em` : `Giao cho ${chosen.length || ""} lớp`}</Button>
+        <Button className="w-full" variant="ghost" onClick={() => submit(true)} disabled={!picks.length || !chosen.length}>Lưu nháp, giao sau</Button>
       </aside>
     </div>
   );

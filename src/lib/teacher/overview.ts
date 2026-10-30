@@ -97,21 +97,27 @@ export function teacherNotifications(d: OverviewData, teacherId: string, now = D
   const byId = new Map(asg.map((a) => [a.id, a]));
   const name = (id: string) => d.users.find((u) => u.id === id)?.name ?? "Học sinh";
   const clsName = (id: string) => d.classes.find((c) => c.id === id)?.name ?? "";
-  for (const s of d.submissions) {
-    const a = byId.get(s.assignmentId);
-    if (!a || now - new Date(s.submittedAt).getTime() > 14 * DAY_MS) continue;
-    out.push({ id: `sub-${s.id}`, text: `${name(s.studentId)} đã nộp “${a.title}”`, detail: `${clsName(a.classId)} · ${s.status === "submitted" ? "chờ chấm" : "đã chấm"}`, at: s.submittedAt, href: s.status === "submitted" ? `/teacher/assessment?assignment=${a.id}` : `/teacher/assignments/${a.id}`, tone: s.status === "submitted" ? "warning" : "info" });
+  // Gộp theo bài: một thông báo cho mỗi bài (không báo từng em). id gắn với lượt mới nhất → có em nộp thêm thì thông báo lại thành chưa đọc.
+  const recentSubs = d.submissions.filter((s) => byId.has(s.assignmentId) && now - new Date(s.submittedAt).getTime() <= 14 * DAY_MS);
+  for (const [aid, subs] of groupBy(recentSubs, (s) => s.assignmentId)) {
+    const a = byId.get(aid)!;
+    const latest = subs.reduce((x, y) => (y.submittedAt > x.submittedAt ? y : x));
+    const waiting = subs.filter((s) => s.status === "submitted").length;
+    out.push({ id: `sub-${aid}-${latest.id}`, text: `${people(subs.map((s) => name(s.studentId)))} đã nộp “${a.title}”`, detail: `${clsName(a.classId)} · ${waiting ? `${waiting} bài chờ chấm` : "đã chấm hết"}`, at: latest.submittedAt, href: waiting ? `/teacher/assessment?assignment=${aid}` : `/teacher/assignments/${aid}`, tone: waiting ? "warning" : "info" });
   }
   for (const a of asg.filter((x) => x.task && x.status !== "draft")) {
-    for (const u of assignedStudents(d, a)) {
-      const o = taskOutcome(d, u.id, a);
-      if (!o.done || !o.at || now - new Date(o.at).getTime() > 7 * DAY_MS) continue;
-      out.push({ id: `done-${a.id}-${u.id}`, text: `${u.name} đã hoàn thành “${a.title}”`, detail: `${clsName(a.classId)}${o.text ? ` · ${o.text}` : ""}`, at: o.at, href: `/teacher/assignments/${a.id}`, tone: "success" });
-    }
+    const done = assignedStudents(d, a).map((u) => ({ u, o: taskOutcome(d, u.id, a) })).filter(({ o }) => o.done && o.at && now - new Date(o.at).getTime() <= 7 * DAY_MS);
+    if (!done.length) continue;
+    const latest = done.reduce((x, y) => (y.o.at! > x.o.at! ? y : x));
+    const s = assignmentStats(d, a);
+    out.push({ id: `done-${a.id}-${latest.u.id}-${latest.o.at}`, text: `${people(done.map((x) => x.u.name))} đã hoàn thành “${a.title}”`, detail: `${clsName(a.classId)} · ${s.done}/${s.target} em xong`, at: latest.o.at!, href: `/teacher/assignments/${a.id}`, tone: "success" });
   }
   const students = new Set(teacherClasses(d, teacherId).flatMap((c) => classStudents(d, c.id).map((u) => u.id)));
-  for (const r of d.labResults.filter((x) => x.grade?.needsReview && !x.review && students.has(x.studentId)))
-    out.push({ id: `lab-${r.id}`, text: `Cần duyệt điểm mô phỏng của ${name(r.studentId)}`, detail: "AI chưa chắc chắn ở phần giải thích", at: r.finishedAt, href: "/teacher/assignments#duyet-mo-phong", tone: "warning" });
+  const review = d.labResults.filter((x) => x.grade?.needsReview && !x.review && students.has(x.studentId));
+  if (review.length) {
+    const latest = review.reduce((x, y) => (y.finishedAt > x.finishedAt ? y : x));
+    out.push({ id: `lab-${latest.id}-${review.length}`, text: `Cần duyệt điểm mô phỏng của ${people(review.map((r) => name(r.studentId)))}`, detail: "AI chưa chắc chắn ở phần giải thích", at: latest.finishedAt, href: "/teacher/assignments#duyet-mo-phong", tone: "warning" });
+  }
   for (const a of asg.filter((x) => x.status === "open")) {
     const left = new Date(a.dueAt).getTime() - now;
     if (left <= 0 || left > 2 * DAY_MS) continue;
@@ -155,4 +161,17 @@ export function classHistory(d: OverviewData, classId: string): ClassEvent[] {
     out.push({ id: `q-${q.id}`, at: q.at, kind: "question", text: `${name(q.authorId)} đặt câu hỏi: “${q.text.slice(0, 80)}”`, href: `/teacher/sgk/${q.ref}?tab=hoi-dap` });
   }
   return out.sort((a, b) => b.at.localeCompare(a.at));
+}
+
+function groupBy<T>(list: T[], key: (x: T) => string): Map<string, T[]> {
+  const m = new Map<string, T[]>();
+  for (const x of list) m.set(key(x), [...(m.get(key(x)) ?? []), x]);
+  return m;
+}
+
+/** "An" · "An và Bình" · "An, Bình và 3 em khác" (bỏ tên trùng). */
+export function people(names: string[]): string {
+  const u = [...new Set(names)];
+  if (u.length <= 2) return u.join(" và ");
+  return `${u.slice(0, 2).join(", ")} và ${u.length - 2} em khác`;
 }

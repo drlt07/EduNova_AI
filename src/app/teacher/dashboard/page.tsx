@@ -111,7 +111,7 @@ export default function TeacherToday() {
         <section aria-labelledby="bh-h" className="min-w-0 rounded-2xl border border-line bg-surface p-5">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div><h2 id="bh-h" className="text-lg font-bold text-fg">Bài học của tôi</h2><p className="text-sm text-muted">Bài đang dạy, vừa mở, đã lưu và hoạt động cần giao.</p></div>
-            <Button asChild size="sm" variant="ghost"><Link href="/teacher/sgk">Tất cả bài học <ArrowRight /></Link></Button>
+            <Button asChild size="sm" variant="ghost"><Link href="/teacher/sgk">Mở Khóa học <ArrowRight /></Link></Button>
           </div>
           <div role="tablist" aria-label="Nhóm bài học" className="mt-3 flex flex-wrap gap-1 rounded-xl bg-surface-2 p-1 text-sm">
             {LESSON_TABS.map(([k, l]) => { const n = k === "toAssign" ? lessons.toAssign.length : lessons[k].length; return <button key={k} type="button" role="tab" aria-selected={lessonTab === k} onClick={() => setLessonTab(k)} className={cn("flex-1 rounded-lg px-2.5 py-1.5 font-medium", lessonTab === k ? "bg-surface text-fg shadow-sm" : "text-muted hover:text-fg")}>{l} <span className="tabular-nums text-muted">{n}</span></button>; })}

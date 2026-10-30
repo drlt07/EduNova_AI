@@ -87,7 +87,7 @@ describe("Cấu hình giao bài: số lần làm và cách tính điểm", () =>
 
 describe("Điều hướng", () => {
   it("giáo viên: 6 mục Quản lý giảng dạy + 2 mục cá nhân", () => {
-    expect(NAV.teacher.map((i) => i.label)).toEqual(["Tổng quan", "Bài học", "Lớp của tôi", "Bài tập & Kiểm tra", "Thư viện", "Trợ lý KHBD AI", "Thông báo", "Hồ sơ & Cài đặt"]);
+    expect(NAV.teacher.map((i) => i.label)).toEqual(["Tổng quan", "Khóa học", "Lớp của tôi", "Bài tập & Kiểm tra", "Thư viện", "Trợ lý KHBD AI", "Thông báo", "Hồ sơ & Cài đặt"]);
   });
   it("Mô phỏng đời sống: nằm trong Thư viện của GV, mục riêng của HS và QTV", () => {
     expect(NAV.teacher.find((i) => i.label === "Thư viện")?.match).toContain("/teacher/kho");
