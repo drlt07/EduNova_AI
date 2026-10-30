@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { SectionHead } from "@/components/layout/section-head";
 import { LifeArt } from "@/components/life/life-registry";
 import { GROUP_THEME, fmtPlays } from "@/components/life/kho";
+import { HsgBanner } from "@/components/algo/hsg-banner";
 
 export default function AdminKhoPage() {
   const kho = useApp((s) => s.kho);
@@ -21,6 +22,7 @@ export default function AdminKhoPage() {
   return (
     <>
       <SectionHead icon={FlaskConical} title="Mô phỏng đời sống" subtitle="Kho công khai cho khách, học sinh và giáo viên. Ẩn mô phỏng chưa phù hợp, chọn mô phỏng nổi bật hiện trên trang kho và trang chủ." actions={<Button asChild variant="secondary"><Link href="/kho">Xem kho như khách</Link></Button>} />
+      <HsgBanner className="mb-6" />
       <div className="mb-5 grid gap-2 sm:grid-cols-4">
         {[
           { label: "Mô phỏng trong kho", value: LIFE_LABS.length },

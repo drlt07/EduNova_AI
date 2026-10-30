@@ -47,8 +47,8 @@ export const NAV: Record<Role, NavItem[]> = {
     { href: "/student/missions", label: "Bài của tôi", icon: ClipboardCheck, match: ["/student/dashboard"] },
     { href: "/student/sgk", label: "Khóa học", icon: BookMarked, match: ["/student/courses", "/student/learning", "/curriculum", "/explore", "/bai-hoc"] },
     { href: "/student/practice", label: "Luyện tập", icon: Dumbbell, match: ["/student/code", "/student/projects"] },
-    { href: "/student/games", label: "Mô phỏng", icon: FlaskConical, match: ["/labs", "/thuat-toan"] },
-    { href: "/student/kho", label: "Mô phỏng đời sống", icon: Sparkles },
+    { href: "/student/games", label: "Mô phỏng", icon: FlaskConical, match: ["/labs"] },
+    { href: "/student/kho", label: "Mô phỏng đời sống", icon: Sparkles, match: ["/thuat-toan"] },
     { href: "/student/progress", label: "Tiến độ", icon: BarChart3, match: ["/student/profile", "/student/portfolio"] },
     { href: "/student/tutor", label: "AI Gia sư", icon: Bot },
   ],
@@ -57,7 +57,7 @@ export const NAV: Record<Role, NavItem[]> = {
     { href: "/admin", label: "Quản trị", icon: Shield },
     { href: "/curriculum", label: "Chương trình", icon: BookOpenCheck },
     { href: "/admin/sims", label: "Mô phỏng theo bài", icon: FlaskConical },
-    { href: "/admin/kho", label: "Mô phỏng đời sống", icon: Sparkles, match: ["/kho"] },
+    { href: "/admin/kho", label: "Mô phỏng đời sống", icon: Sparkles, match: ["/kho", "/thuat-toan"] },
   ],
 };
 

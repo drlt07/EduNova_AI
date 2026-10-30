@@ -1,7 +1,6 @@
 "use client";
 import Link from "next/link";
 import { Suspense, useMemo } from "react";
-import { Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { LabTemplate } from "@/lib/domain/types";
 import { GAMES } from "@/lib/data/games";
@@ -12,8 +11,6 @@ import { SimLibrary } from "@/components/labs/sim-library";
 import { labKey } from "@/lib/access/unlocks";
 import { useAccess } from "@/lib/access/use-access";
 import { PageSkeleton } from "@/components/ui/feedback";
-import { AlgoThumb } from "@/components/algo/hsg-catalog";
-import { ALGO_IDS, HSG_TOPICS } from "@/lib/data/hsg";
 
 export default function GamesPage() {
   return <Suspense fallback={<PageSkeleton />}><Games /></Suspense>;
@@ -40,14 +37,6 @@ function Games() {
         <Button asChild variant="secondary"><Link href="/student/kho">Mô phỏng đời sống</Link></Button>
       </div>
       <SimLibrary hrefFor={hrefFor} progressOf={progressOf} filter={assigned} emptyText="Thầy cô chưa giao mô phỏng nào ở khối này. Muốn thử thêm, em mở Mô phỏng đời sống." />
-      <Link href="/thuat-toan" className="group mb-6 mt-12 flex flex-wrap items-center gap-4 rounded-2xl border border-warning/40 bg-gradient-to-r from-warning/20 via-warning/5 to-transparent p-4 transition-all hover:-translate-y-0.5 sm:p-5">
-        <span className="hidden gap-2 sm:flex" aria-hidden>{(["bubble", "bfs", "dijkstra"] as const).map((id) => <AlgoThumb key={id} id={id} className="h-10 w-16 rounded-lg bg-surface" />)}</span>
-        <span className="min-w-0 flex-1 basis-60">
-          <span className="flex items-center gap-2 text-lg font-bold text-fg"><Trophy className="size-5 text-warning-fg" aria-hidden /> Chuyên đề HSG: mô phỏng thuật toán</span>
-          <span className="block text-sm text-muted">{ALGO_IDS.length} thuật toán trong {HSG_TOPICS.length} chuyên đề: sắp xếp, tìm kiếm, loang BFS/DFS, Dijkstra, quy hoạch động, sàng nguyên tố. Chạy từng bước và đoán bước tiếp theo.</span>
-        </span>
-        <span className="rounded-xl bg-fg px-3 py-2 text-sm font-semibold text-bg group-hover:opacity-90">Mở chuyên đề</span>
-      </Link>
     </>
   );
 }

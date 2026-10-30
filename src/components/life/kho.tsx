@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { ErrorState } from "@/components/ui/feedback";
 import { LIFE_COMPONENTS, LifeArt } from "./life-registry";
 import { SaveToggle } from "@/components/teacher/save-toggle";
+import { HsgBanner } from "@/components/algo/hsg-banner";
 
 export const GROUP_THEME: Record<LifeLab["group"], { chip: string; text: string; glow: string; bar: string; soft: string }> = {
   "may-tinh": { chip: "bg-indigo-100 text-indigo-800 dark:bg-indigo-500/20 dark:text-indigo-200", text: "text-indigo-700 dark:text-indigo-300", glow: "hover:shadow-indigo-500/25", bar: "from-indigo-400 to-violet-400", soft: "from-indigo-100 via-white to-violet-50 dark:from-indigo-500/15 dark:via-surface dark:to-violet-500/10" },
@@ -128,6 +129,7 @@ export function KhoGallery({ base }: { base: string }) {
   return (
     <div className="space-y-10">
       <Spotlight list={featured} base={base} plays={kho.plays} />
+      <HsgBanner />
 
       <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4" aria-label="Bạn có biết?">
         {FACTS.map((f) => <li key={f.text} className="flex items-start gap-3 rounded-2xl border border-line bg-surface p-4 shadow-sm"><span className="text-2xl" aria-hidden>{f.emoji}</span><p className="text-sm text-fg"><b className="block text-xs uppercase tracking-wide text-muted">Bạn có biết?</b>{f.text}</p></li>)}
