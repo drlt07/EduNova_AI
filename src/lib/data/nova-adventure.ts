@@ -1,7 +1,8 @@
 /**
  * Phiêu lưu Nova — bộ kịch bản trò chơi 3D ôn Tin học (mỗi kịch bản là một tệp tự chạy trong public/, sinh từ tools/).
- * Kịch bản 1 "Sự cố ở Ngôi nhà Nova" (public/nova/index.html, tools/nova). Mỗi chương là một thử thách Tin học
- * thực hành; các mô phỏng cùng chủ đề trỏ về chương tương ứng.
+ * Kịch bản 1 "Sự cố ở Ngôi nhà Nova" (public/nova/index.html) và kịch bản 2 "Đêm trước kỳ thi"
+ * (public/nova/dem-truoc-ky-thi/index.html), cùng sinh từ tools/nova. Mỗi chương là một thử thách Tin học thực hành;
+ * các mô phỏng cùng chủ đề của kịch bản 1 trỏ về chương tương ứng.
  */
 
 /** Trang công khai của bộ kịch bản (danh sách); mỗi kịch bản ở `${NOVA_PATH}/${slug}`. */
@@ -28,6 +29,16 @@ export const NOVA_CHAPTERS: NovaChapter[] = [
   { n: 4, room: "Cổng nhà", title: "Đèn tín hiệu trước cổng", learn: "Luật NẾU – THÌ, đèn vàng và thứ tự ưu tiên", slugs: ["smart-coding-city"] },
   { n: 5, room: "Gác mái", title: "Gác mái AI", learn: "Dữ liệu có nhãn, nhãn sai khiến AI học sai", slugs: ["ai-discovery", "spam-filter", "recommender"] },
   { n: 6, room: "Phòng máy chủ", title: "Trận cuối với Glitch", learn: "Lừa đảo trực tuyến, mật khẩu, OTP, tệp lạ", slugs: ["digital-safety", "password", "digital-citizen"] },
+];
+
+/** Kịch bản 2 "Đêm trước kỳ thi": nội dung Tin 10–12 mà kịch bản 1 chưa có. */
+export const NOVA2_CHAPTERS: NovaChapter[] = [
+  { n: 1, room: "Phòng máy", title: "Mật khẩu nhị phân", learn: "Mã ASCII, đổi nhị phân sang thập phân, bảng mã UTF-8", slugs: ["binary-logic", "rgb-pixel"] },
+  { n: 2, room: "Phòng giáo vụ", title: "Bảng điểm bị sửa", learn: "SELECT … WHERE, UPDATE có điều kiện, khóa chính và CHECK", slugs: ["database-city", "sql-detective"] },
+  { n: 3, room: "Thư viện", title: "10.000 hồ sơ", learn: "Tìm kiếm nhị phân, sắp xếp nổi bọt, số lần so sánh", slugs: [] },
+  { n: 4, room: "Phòng máy chủ", title: "Ba chương trình lỗi", learn: "Đọc và gỡ lỗi Python: chia làm tròn lên, range(), chia cho 0", slugs: ["debug-detective"] },
+  { n: 5, room: "Phòng truyền thông", title: "Trang thông báo bị chiếm", learn: "Sửa thẻ HTML, bộ chọn và thuộc tính CSS, nhận ra đường link giả", slugs: ["web-creator"] },
+  { n: 6, room: "Trung tâm dữ liệu", title: "Đối đầu KHÓA ĐEN", learn: "Xử lý mã độc tống tiền: cách ly, sao lưu 3-2-1, xác thực hai bước, pháp luật", slugs: ["encryption", "digital-safety", "password", "digital-citizen"] },
 ];
 
 export const chapterLabel = (c: NovaChapter) => (c.n < 6 ? `Chương ${c.n}` : "Chương cuối");
@@ -64,6 +75,17 @@ export const ADVENTURES: Adventure[] = [
     minutes: 40,
     chapters: NOVA_CHAPTERS,
     cover: "from-[#1e1b4b] via-[#312e81] to-[#0e7490]",
+  },
+  {
+    slug: "dem-truoc-ky-thi",
+    no: 2,
+    title: "Đêm trước kỳ thi",
+    tagline: "Cứu đề thi khỏi mã độc tống tiền KHÓA ĐEN trước 6 giờ sáng",
+    summary: "Giải mã mật khẩu nhị phân, truy vấn SQL tìm điểm bị sửa, tìm và sắp xếp hồ sơ, gỡ lỗi Python, sửa trang web rồi xử lý sự cố mã độc. Đồng hồ đếm ngược, chọn sai mất 10 phút.",
+    src: NOVA_GAME_SRC.replace(/index\.html$/, "dem-truoc-ky-thi/index.html"),
+    minutes: 45,
+    chapters: NOVA2_CHAPTERS,
+    cover: "from-[#0b1120] via-[#3b0a1a] to-[#9f1239]",
   },
 ];
 
