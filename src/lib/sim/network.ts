@@ -114,10 +114,10 @@ export function checkHop(task: PathTask, chosen: DeviceId[], pick: DeviceId): { 
   if (pick === expected) return { ok: true, done: chosen.length + 1 === task.hops.length, message: chosen.length === 0 ? `Gói tin xuất phát từ ${getDevice(pick).name}.` : (task.why[pick] ?? "") };
   if (chosen.length === 0) return { ok: false, done: false, message: `Gói tin xuất phát từ máy gửi: ${getDevice(task.from).name}.` };
   const last = chosen[chosen.length - 1];
-  if (pick === "router" && task.id === "print") return { ok: false, done: false, message: "Máy in cùng mạng 192.168.1.x nên không cần đi qua router." };
-  if (last !== "switch" && getDevice(last).kind === "pc") return { ok: false, done: false, message: "Mọi máy trong phòng đều nối vào switch; gói tin rời máy tính sẽ tới switch trước." };
-  if (pick === "internet" && last === "switch") return { ok: false, done: false, message: "Switch không nối ra Internet; muốn ra ngoài phải qua router." };
-  return { ok: false, done: false, message: "Chưa đúng chặng tiếp theo. Xem lại IP đích có cùng mạng 192.168.1.x không." };
+  if (pick === "router" && task.id === "print") return { ok: false, done: false, message: "Máy in (192.168.1.50) có cùng mạng 192.168.1.x với máy gửi không? Cùng một mạng thì gói tin có cần ra router không?" };
+  if (last !== "switch" && getDevice(last).kind === "pc") return { ok: false, done: false, message: "Trên sơ đồ, dây từ máy tính nối tới thiết bị nào trước tiên?" };
+  if (pick === "internet" && last === "switch") return { ok: false, done: false, message: "Switch có dây nối thẳng ra Internet không? Thiết bị nào là cửa ra mạng khác?" };
+  return { ok: false, done: false, message: "Chưa đúng chặng tiếp theo. IP đích có cùng mạng 192.168.1.x với máy gửi không?" };
 }
 
 /** Bảng MAC của switch sau khi chuyển các gói tin: học MAC nguồn theo cổng (mức khái niệm). */

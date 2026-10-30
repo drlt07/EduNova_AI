@@ -36,10 +36,10 @@ describe("đường đi gói tin", () => {
   it("in trong LAN không qua router; vào web phải qua router rồi Internet", () => {
     const print = run("print", ["pc1", "switch", "router"]);
     expect(print.results[2]).toMatchObject({ ok: false });
-    expect(print.results[2].message).toMatch(/không cần đi qua router/);
+    expect(print.results[2].message).toMatch(/cùng mạng 192\.168\.1\.x.*có cần ra router không\?/);
     expect(run("print", ["pc1", "switch", "printer"]).results.at(-1)).toMatchObject({ ok: true, done: true });
     const web = run("web", ["pc2", "switch", "internet"]);
-    expect(web.results[2].message).toMatch(/qua router/);
+    expect(web.results[2].message).toMatch(/cửa ra mạng khác\?/);
     expect(run("web", ["pc2", "switch", "router", "internet", "server"]).results.at(-1)).toMatchObject({ ok: true, done: true });
   });
 

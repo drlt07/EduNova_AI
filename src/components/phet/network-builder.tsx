@@ -4,6 +4,8 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ChallengeFrame, Panel, ResetAll, SimShell, Stage, useChallenge } from "./kit";
+import { useTutorActivity } from "@/components/tutor/tutor-provider";
+import { buildLadder } from "@/lib/ai/sim-hints";
 
 export type Gear = "switch" | "router" | "ap" | "modem";
 const GEAR: Record<Gear, { label: string; color: string; info: string }> = {
@@ -106,13 +108,18 @@ function Report({ n }: { n: Net }) {
 
 function Builder({ n, setN, test, setTest }: { n: Net; setN: (f: (n: Net) => Net) => void; test: boolean; setTest: (v: boolean) => void }) {
   const [sel, setSel] = useState<SlotId>("lab");
+  const touch = useTutorActivity("simulation", () => {
+    const a = analyse(n);
+    const placed = SLOTS.map((x) => `${x.label}: ${n[x.id] ? GEAR[n[x.id]!].label : "trống"}`).join("; ");
+    return { kind: "simulation", sim: "Xây dựng mạng trường học", summary: `Sơ đồ hiện tại — ${placed}.${test ? ` Kết quả kiểm tra: ${(["lab", "lib", "office"] as const).map((r) => `${SLOTS.find((x) => x.id === r)!.label} ${a.net(r) ? "ra được Internet" : a.lan(r) ? "chỉ mạng nội bộ" : "chưa vào mạng"}`).join(", ")}.` : ""}`, problems: [], facts: { da_kiem_tra: test }, ladder: buildLadder(n) };
+  }, { title: "Xây dựng mạng trường học · Tin 12", topic: "general", level: "guided" });
   return (
     <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_240px]">
-      <Stage className="p-2"><Plan n={n} sel={sel} onSlot={(s) => { setSel(s); setTest(false); }} test={test} /></Stage>
+      <Stage className="p-2"><Plan n={n} sel={sel} onSlot={(s) => { setSel(s); setTest(false); touch(); }} test={test} /></Stage>
       <div className="space-y-3">
-        <Panel title={`Đặt vào: ${SLOTS.find((s) => s.id === sel)!.label}`}><Palette current={n[sel]} onPick={(g) => { setN((x) => ({ ...x, [sel]: g })); setTest(false); }} /></Panel>
+        <Panel title={`Đặt vào: ${SLOTS.find((s) => s.id === sel)!.label}`}><Palette current={n[sel]} onPick={(g) => { setN((x) => ({ ...x, [sel]: g })); setTest(false); touch(); }} /></Panel>
         {n[sel] && <Panel title={GEAR[n[sel]!].label}><p className="text-xs">{GEAR[n[sel]!].info}</p></Panel>}
-        <Button className="w-full" variant={test ? "secondary" : "primary"} onClick={() => setTest(!test)}>{test ? "Ẩn kết quả kiểm tra" : "Kiểm tra mạng (ping)"}</Button>
+        <Button className="w-full" variant={test ? "secondary" : "primary"} onClick={() => { setTest(!test); touch(); }}>{test ? "Ẩn kết quả kiểm tra" : "Kiểm tra mạng (ping)"}</Button>
       </div>
     </div>
   );

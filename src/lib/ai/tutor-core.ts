@@ -35,7 +35,11 @@ export interface TutorTest {
 
 export type TutorState =
   | { kind: "code"; task?: string; exerciseId?: string; code: string; runError?: { type: string; line: number; explain: string }; tests?: TutorTest[] }
-  | { kind: "simulation"; sim: string; summary: string; problems: string[]; facts: Record<string, string | number | boolean> }
+  | {
+      kind: "simulation"; sim: string; summary: string; problems: string[]; facts: Record<string, string | number | boolean>;
+      /** Câu hỏi gợi mở theo bậc, tính từ trạng thái mô phỏng (src/lib/ai/sim-hints.ts). Không chứa đáp án. */
+      ladder?: string[];
+    }
   | { kind: "quiz"; question: string; answer?: string; correct?: boolean }
   | { kind: "lesson"; section?: string };
 
@@ -218,6 +222,11 @@ export function ruleTutor(req: TutorRequest): TutorReply {
         return { ...base, reply: `Trường hợp “${f.name}” (dữ liệu vào: ${f.stdin.join(", ") || "không có"}) mong đợi “${f.expected}” nhưng chương trình in “${f.actual || f.error || "(không in gì)"}”.\n\n${L.hints[step]}`, hintStep: step + 1 };
       }
       if (s?.kind === "simulation") {
+        // Có thang câu hỏi: hỏi gợi mở đúng chỗ em đang làm, không nói đáp án; mỗi lần hỏi thêm thì cụ thể hơn một bậc.
+        if (s.ladder?.length) {
+          const i = Math.min(req.hintCount, s.ladder.length - 1);
+          return { ...base, reply: `${i === 0 ? "Cô đang nhìn mô phỏng của em. " : ""}${s.ladder[i]}`, hintStep: req.hintCount + 1 };
+        }
         if (!s.problems.length) return { ...base, reply: `Cô đã xem ${s.sim}: ${s.summary} Chưa thấy vấn đề nào. Em muốn thử tình huống nào tiếp theo?`, hintStep: 0 };
         return { ...base, reply: `Cô thấy trong ${s.sim}: ${s.problems[0]}\n\n${L.socratic[req.hintCount % L.socratic.length]}`, hintStep: step + 1 };
       }

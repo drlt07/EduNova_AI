@@ -11,6 +11,9 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { checkHop, DEVICES, GATEWAY, getDevice, ipConfig, macTable, NET_FAULTS, PATH_TASKS, ping, type DeviceId, type FaultKind } from "@/lib/sim/network";
 import { ChallengeFrame, Panel, Readout, ResetAll, Segmented, SimLayout, SimShell, SimToggle, Stage, useChallenge } from "./kit";
+import { useTutorActivity } from "@/components/tutor/tutor-provider";
+import { faultLadder, pathLadder, type PingRun } from "@/lib/ai/sim-hints";
+import type { TutorState } from "@/lib/ai/tutor-core";
 
 const LINKS: [DeviceId, DeviceId][] = [["pc1", "switch"], ["pc2", "switch"], ["printer", "switch"], ["switch", "router"], ["router", "internet"], ["internet", "server"]];
 const ICON: Record<string, string> = { pc: "💻", printer: "🖨️", switch: "🔀", router: "📡", internet: "🌐", server: "🗄️" };
@@ -125,16 +128,24 @@ function Game() {
   const [miss, setMiss] = useState(0);
   const [ans, setAns] = useState<number | null>(null);
   const [log, setLog] = useState<string[]>([]);
+  const [runs, setRuns] = useState<PingRun[]>([]);
+  const [wrong, setWrong] = useState<DeviceId | undefined>(undefined);
   const key = `${c.run}-${c.idx}`;
   const [seen, setSeen] = useState(key);
-  if (seen !== key) { setSeen(key); setHops([]); setNote(null); setMiss(0); setAns(null); setLog([]); }
+  if (seen !== key) { setSeen(key); setHops([]); setNote(null); setMiss(0); setAns(null); setLog([]); setRuns([]); setWrong(undefined); }
   const task = t.kind === "path" ? PATH_TASKS[t.i] : undefined;
   const fc = t.kind === "fault" ? NET_FAULTS[t.i] : undefined;
+  // Gia sư đọc đúng những gì em đã làm (chặng đã chọn, lệnh đã chạy, đáp án đang chọn) — không gửi đáp án đúng.
+  const touch = useTutorActivity("simulation", (): TutorState | undefined => task
+    ? { kind: "simulation", sim: "Hành trình gói tin", summary: `${task.title}. Đường em đã chọn: ${hops.map((h) => getDevice(h).name).join(" → ") || "chưa chọn chặng nào"}.`, problems: [], facts: { chang_da_chon: hops.length, chon_sai: miss }, ladder: pathLadder(task, hops, wrong) }
+    : fc && { kind: "simulation", sim: "Hành trình gói tin", summary: `Sự cố: ${fc.symptom} Lệnh em đã chạy: ${log.length ? log.join(" | ") : "chưa chạy lệnh nào"}.${ans !== null ? ` Em đang chọn: “${fc.options[ans]}”.` : ""}`, problems: [], facts: { so_lenh: runs.length }, ladder: faultLadder(fc, runs, ans ?? undefined) },
+  { title: "Hành trình gói tin · Tin 12", topic: "general", level: "guided" });
   const pick = (d: DeviceId) => {
     if (!task || hops.length === task.hops.length) return;
     const r = checkHop(task, hops, d);
     setNote(r.message);
-    if (r.ok) setHops([...hops, d]); else setMiss((m) => m + 1);
+    touch();
+    if (r.ok) { setHops([...hops, d]); setWrong(undefined); } else { setMiss((m) => m + 1); setWrong(d); }
   };
   const check = () => {
     if (task) { const ok = hops.length === task.hops.length; return c.check(ok && miss === 0, ok ? (miss ? `Tới nơi, nhưng em chọn sai ${miss} chặng. Làm lại câu cho chắc nhé.` : "Đúng cả đường đi!") : "Bấm lần lượt các thiết bị gói tin đi qua, bắt đầu từ máy gửi."); }
@@ -148,10 +159,10 @@ function Game() {
         {fc && (
           <div className="grid gap-3 p-2 md:grid-cols-[minmax(0,1fr)_260px]">
             <div className="space-y-2">
-              <div className="flex flex-wrap gap-2">{(["printer", "pc1", "pc2", "server"] as DeviceId[]).filter((d) => d !== fc.from).map((d) => <Button key={d} size="sm" variant="secondary" onClick={() => setLog((l) => [...l, `${getDevice(fc.from).name}> ping ${getDevice(d).ip}\n${ping({ fault: fc.fault }, fc.from, d).output}`])}>ping {getDevice(d).name}</Button>)}<Button size="sm" variant="ghost" onClick={() => { const g = ipConfig({ fault: fc.fault }, fc.from); setLog((l) => [...l, `${getDevice(fc.from).name}> ipconfig\nIP: ${g.ip}  Gateway: ${g.gateway}`]); }}>ipconfig</Button></div>
+              <div className="flex flex-wrap gap-2">{(["printer", "pc1", "pc2", "server"] as DeviceId[]).filter((d) => d !== fc.from).map((d) => <Button key={d} size="sm" variant="secondary" onClick={() => { const r = ping({ fault: fc.fault }, fc.from, d); touch(); setRuns((x) => [...x, { target: d, ok: r.ok }]); setLog((l) => [...l, `${getDevice(fc.from).name}> ping ${getDevice(d).ip}\n${r.output}`]); }}>ping {getDevice(d).name}</Button>)}<Button size="sm" variant="ghost" onClick={() => { const g = ipConfig({ fault: fc.fault }, fc.from); touch(); setRuns((x) => [...x, { target: "ipconfig", ok: true }]); setLog((l) => [...l, `${getDevice(fc.from).name}> ipconfig\nIP: ${g.ip}  Gateway: ${g.gateway}`]); }}>ipconfig</Button></div>
               <pre className="min-h-32 whitespace-pre-wrap rounded-xl bg-slate-900 p-3 font-mono text-xs text-emerald-300">{log.join("\n\n") || "Chạy ping hoặc ipconfig để tìm manh mối."}</pre>
             </div>
-            <div className="space-y-2">{fc.options.map((o, i) => <button key={o} type="button" aria-pressed={ans === i} onClick={() => setAns(i)} className={cn("block w-full rounded-xl border-2 px-3 py-2 text-left text-sm", ans === i ? "border-brand bg-brand/10" : "border-line bg-surface")}>{o}</button>)}</div>
+            <div className="space-y-2">{fc.options.map((o, i) => <button key={o} type="button" aria-pressed={ans === i} onClick={() => { setAns(i); touch(); }} className={cn("block w-full rounded-xl border-2 px-3 py-2 text-left text-sm", ans === i ? "border-brand bg-brand/10" : "border-line bg-surface")}>{o}</button>)}</div>
           </div>
         )}
       </Stage>
