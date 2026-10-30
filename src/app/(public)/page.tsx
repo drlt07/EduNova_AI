@@ -27,6 +27,7 @@ import { LAB_TEMPLATES } from "@/lib/data/labs";
 import { LESSONS } from "@/lib/data/curriculum";
 import { cn } from "@/lib/utils";
 import { KhoShowcase } from "@/components/life/kho";
+import { NOVA_CHAPTERS, NOVA_PATH } from "@/lib/data/nova-adventure";
 
 const GRADES = [
   { g: 10, title: "Dữ liệu và lập trình", text: "Thông tin và dữ liệu, hệ nhị phân, an toàn số, lập trình Python: biến, rẽ nhánh, vòng lặp, hàm.", tone: "from-cyan/25 via-cyan/5" },
@@ -157,6 +158,32 @@ export default function HomePage() {
               </div>
             ))}
           </dl>
+        </div>
+      </section>
+
+      {/* 02b · PHIÊU LƯU NOVA — tính năng nổi bật: trò chơi 3D ôn Tin học */}
+      <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6" aria-labelledby="nova-h">
+        <div className="relative overflow-hidden rounded-[32px] bg-gradient-to-br from-[#1e1b4b] via-[#312e81] to-[#0e7490] p-6 text-white shadow-2xl sm:p-10">
+          <div aria-hidden className="pointer-events-none absolute -right-16 -top-16 size-72 rounded-full bg-cyan-400/20 blur-3xl" />
+          <div className="relative grid items-center gap-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
+            <div>
+              <p className="flex items-center gap-2 text-sm font-semibold text-cyan-200"><span className="rounded-full bg-rose-500 px-2 py-0.5 text-xs font-bold text-white">Mới</span> Trò chơi 3D · Phiêu lưu Nova</p>
+              <h2 id="nova-h" className="mt-3 text-3xl font-extrabold tracking-tight sm:text-4xl">Sự cố ở Ngôi nhà Nova</h2>
+              <p className="mt-3 max-w-xl text-indigo-100">Mã độc Glitch chiếm ngôi nhà thông minh. Lắp lại máy tính, sửa mạng Wi-Fi, vạch mặt mã QR giả, lập trình đèn giao thông, dạy lại AI — rồi đánh bại Glitch ở phòng máy chủ.</p>
+              <div className="mt-6 flex flex-wrap gap-3">
+                <Button asChild size="lg" className="bg-white text-indigo-900 hover:bg-indigo-50"><Link href={NOVA_PATH}><Play /> Chơi ngay</Link></Button>
+                <span className="self-center text-sm text-indigo-200">Không cần tài khoản · tiến độ tự lưu</span>
+              </div>
+            </div>
+            <ol className="grid grid-cols-2 gap-2.5 sm:grid-cols-3" aria-label="Các chương">
+              {NOVA_CHAPTERS.map((c) => (
+                <li key={c.n} className="rounded-2xl bg-white/10 p-3 ring-1 ring-white/15 backdrop-blur">
+                  <p className="text-[11px] font-bold uppercase tracking-wide text-cyan-200">{c.n < 6 ? `Chương ${c.n}` : "Chương cuối"}</p>
+                  <p className="mt-0.5 text-sm font-semibold leading-snug">{c.title}</p>
+                </li>
+              ))}
+            </ol>
+          </div>
         </div>
       </section>
 

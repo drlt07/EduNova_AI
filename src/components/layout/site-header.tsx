@@ -9,12 +9,17 @@ import { cn } from "@/lib/utils";
 import { Logo } from "./logo";
 import { ROLE_HOME } from "./nav-config";
 import { ThemeToggle } from "./theme-toggle";
+import { NOVA_PATH, isNovaNew } from "@/lib/data/nova-adventure";
+
+/** Nhãn "Mới" của Phiêu lưu Nova trong vài tuần đầu (chỉ hiện sau khi trang chạy ở trình duyệt, tránh lệch với HTML dựng sẵn). */
+const NOVA_NEW = isNovaNew(Date.now());
 
 /** `featured`: mục đặc trưng của EduNova, luôn nổi bật hơn các mục còn lại. */
-const NAV = [
+const NAV: { href: string; label: string; featured?: boolean; isNew?: boolean; also?: string[] }[] = [
   { href: "/", label: "Trang chủ" },
   { href: "/curriculum", label: "Chương trình học", also: ["/explore", "/bai-hoc"] },
   { href: "/kho", label: "Kho mô phỏng", featured: true },
+  { href: NOVA_PATH, label: "Phiêu lưu Nova", isNew: true },
   { href: "/about", label: "Giới thiệu" },
   { href: "/huong-dan", label: "Hướng dẫn" },
 ];
@@ -44,8 +49,9 @@ export function SiteHeader() {
                 <Gamepad2 className="size-4" aria-hidden /> {n.label}
               </Link>
             ) : (
-              <Link key={n.href} href={n.href} aria-current={active ? "page" : undefined} className={cn("rounded-lg px-3 py-2 text-sm font-medium text-muted hover:text-fg", active && "text-fg")}>
+              <Link key={n.href} href={n.href} aria-current={active ? "page" : undefined} className={cn("inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-muted hover:text-fg", active && "text-fg")}>
                 {n.label}
+                {n.isNew && hydrated && NOVA_NEW && <NewBadge />}
               </Link>
             );
           })}
@@ -65,6 +71,7 @@ export function SiteHeader() {
           {NAV.map((n) => (
             <Link key={n.href} href={n.href} onClick={() => setOpen(false)} aria-current={isActive(pathname, n) ? "page" : undefined} className={cn("flex items-center gap-2 rounded-lg px-3 py-3 text-sm font-medium hover:bg-surface-2", n.featured ? "text-blue-fg" : "text-fg")}>
               {n.featured && <Gamepad2 className="size-4" aria-hidden />} {n.label}
+              {n.isNew && hydrated && NOVA_NEW && <NewBadge />}
             </Link>
           ))}
           <Button asChild className="mt-2 w-full">
@@ -74,4 +81,8 @@ export function SiteHeader() {
       )}
     </header>
   );
+}
+
+function NewBadge() {
+  return <span className="rounded-full bg-rose-500 px-1.5 py-px text-[10px] font-bold uppercase leading-4 text-white">Mới</span>;
 }

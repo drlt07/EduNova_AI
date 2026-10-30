@@ -12,6 +12,7 @@ import { StatusBadge } from "@/components/ui/status-badge";
 import { ACCENT, LabIcon } from "@/components/labs/lab-card";
 import { LabPreview } from "@/components/labs/lab-preview";
 import { cn } from "@/lib/utils";
+import { NovaChapterNote } from "@/components/nova/nova-link";
 
 export function generateStaticParams() {
   return LAB_TEMPLATES.map((l) => ({ slug: l.slug }));
@@ -43,6 +44,7 @@ export default async function LabDetailPage({ params }: PageProps<"/labs/[slug]"
           </div>
           <p className="mt-1 text-lg text-muted">{lab.tagline}</p>
           <p className="mt-3 max-w-3xl text-sm leading-relaxed text-muted">{lab.description}</p>
+          <NovaChapterNote slug={lab.slug} className="mt-3" />
           <div className="mt-3 flex flex-wrap gap-1.5">
             {lab.grades.map((g) => <Badge key={g} tone="blue">Tin {g}</Badge>)}
             {lab.pathways.map((p) => <Badge key={p} tone="violet">{p === "chung" ? "Nội dung chung" : p}</Badge>)}

@@ -25,6 +25,7 @@ export default defineConfig({
       { find: /^@\//, replacement: path.resolve(__dirname, "../src") + "/" },
     ],
   },
-  define: { "process.env.NODE_ENV": JSON.stringify("production") },
+  // Trò chơi Phiêu lưu Nova được xuất bản cạnh trang (tệp nova/index.html), không ở gốc tên miền như bản Next.js.
+  define: { "process.env.NODE_ENV": JSON.stringify("production"), "process.env.NEXT_PUBLIC_NOVA_SRC": JSON.stringify("nova/index.html") },
   build: { outDir: path.resolve(__dirname, "dist"), emptyOutDir: true, chunkSizeWarningLimit: 5000, modulePreload: false, target: "es2020", rollupOptions: { output: { format: "iife", inlineDynamicImports: true } } },
 });

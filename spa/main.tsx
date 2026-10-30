@@ -13,6 +13,7 @@ import Curriculum from "@/app/(public)/curriculum/page";
 import Labs from "@/app/(public)/labs/page";
 import LabDetailPage from "@/app/(public)/labs/[slug]/page";
 import KhoSim from "@/app/(public)/kho/[slug]/page";
+import NovaAdventure from "@/app/(public)/phieu-luu-nova/page";
 import Hsg from "@/app/(public)/thuat-toan/page";
 import TSgk from "@/app/teacher/sgk/page";
 import TClass from "@/app/teacher/classes/[id]/page";
@@ -126,6 +127,7 @@ const ROUTES: Route[] = [
   r("/labs", "public", C(Labs)),
   r("/labs/:slug", "public", (p) => <LabDetail slug={p.slug} />),
   r("/kho", "public", C(Labs)),
+  r("/phieu-luu-nova", "public", C(NovaAdventure)),
   r("/kho/:slug", "public", C(KhoSim)),
   r("/thuat-toan", "public", C(Hsg)),
   r("/thuat-toan/:id", "public", (p) => <AlgoPage key={p.id} id={p.id} />),

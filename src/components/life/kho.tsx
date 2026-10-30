@@ -15,6 +15,7 @@ import { ErrorState } from "@/components/ui/feedback";
 import { LIFE_COMPONENTS, LifeArt } from "./life-registry";
 import { SaveToggle } from "@/components/teacher/save-toggle";
 import { HsgBanner } from "@/components/algo/hsg-banner";
+import { NovaChapterNote } from "@/components/nova/nova-link";
 
 export const GROUP_THEME: Record<LifeLab["group"], { chip: string; text: string; glow: string; bar: string; soft: string }> = {
   "may-tinh": { chip: "bg-indigo-100 text-indigo-800 dark:bg-indigo-500/20 dark:text-indigo-200", text: "text-indigo-700 dark:text-indigo-300", glow: "hover:shadow-indigo-500/25", bar: "from-indigo-400 to-violet-400", soft: "from-indigo-100 via-white to-violet-50 dark:from-indigo-500/15 dark:via-surface dark:to-violet-500/10" },
@@ -113,6 +114,7 @@ export function KhoCard({ l, base, plays, featured }: { l: LifeLab; base: string
         <h3 className="text-lg font-bold leading-snug text-fg">{l.title}</h3>
         <p className={cn("mt-1 text-sm font-semibold", th.text)}>{l.tagline}</p>
         <p className="mt-2 line-clamp-2 text-sm text-muted">{l.description}</p>
+        <NovaChapterNote slug={l.slug} asText className="mt-3 self-start" />
         <div className="mt-auto flex flex-wrap gap-1.5 pt-4">{l.tags.map((t) => <span key={t} className="rounded-full bg-surface-2 px-2.5 py-0.5 text-xs text-muted">#{t}</span>)}</div>
       </div>
       <div aria-hidden className={cn("h-1.5 bg-gradient-to-r", th.bar)} />
@@ -189,6 +191,7 @@ export function KhoSim({ slug, base }: { slug: string; base: string }) {
           <span className="inline-flex items-center gap-1.5 rounded-lg bg-surface/80 px-2.5 py-1 font-semibold text-fg"><GraduationCap className="size-3.5" aria-hidden /> Liên hệ bài học: {lab.links}</span>
           <span className="inline-flex items-center gap-1.5 rounded-lg bg-surface/80 px-2.5 py-1 text-muted"><Clock className="size-3.5" aria-hidden /> {lab.minutes} phút</span>
           <span className="inline-flex items-center gap-1.5 rounded-lg bg-surface/80 px-2.5 py-1 text-muted"><Eye className="size-3.5" aria-hidden /> {fmtPlays(kho.plays[slug] ?? 0)} lượt thử</span>
+          <NovaChapterNote slug={slug} />
         </div>
       </div>
       <Sim />
