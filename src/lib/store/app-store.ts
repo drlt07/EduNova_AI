@@ -40,7 +40,7 @@ import type {
   SavedItem,
   UserProfile,
 } from "@/lib/domain/types";
-import { buildSeed, type DemoData } from "@/lib/data/seed";
+import { buildSeed, emptyData, type DemoData } from "@/lib/data/seed";
 import { uid } from "@/lib/utils";
 import { scaffoldTopics } from "@/lib/courses/course";
 
@@ -117,6 +117,8 @@ interface Actions {
   regenerateInvite: (id: string) => void;
   addStudentToClass: (classId: string, name: string) => void;
   removeEnrollment: (enrollmentId: string) => void;
+  /** Bản dùng thử: học sinh vào lớp bằng mã mời; trả về id lớp hoặc null nếu mã sai. Bản thật dùng joinClassCloud. */
+  joinClassLocal: (studentId: string, code: string) => string | null;
   // Assignments
   createAssignment: (a: Omit<Assignment, "id" | "publishedAt" | "status">) => string;
   updateAssignment: (id: string, patch: Partial<Assignment>) => void;
@@ -195,6 +197,13 @@ export type AppState = DemoData & Session & Actions;
 const now = () => new Date().toISOString();
 export const DEFAULT_PREFS: UserPrefs = { fontScale: 1, highContrast: false };
 
+/** Bản thật (Supabase): không dùng dữ liệu mẫu; lớp học và ghi danh ghi lên máy chủ (src/lib/cloud/sync.ts). */
+const CLOUD = AUTH_MODE === "supabase";
+const initialData = () => (CLOUD ? emptyData() : buildSeed());
+/** Ghi lên Supabase sau khi đổi kho (nạp muộn để tránh vòng import với cloud/sync). */
+const toCloud = (fn: (c: typeof import("@/lib/cloud/sync").cloud) => Promise<unknown>) => { if (CLOUD) void import("@/lib/cloud/sync").then((m) => fn(m.cloud)); };
+const newId = (prefix: string) => (CLOUD ? crypto.randomUUID() : uid(prefix));
+
 export const useApp = create<AppState>()(
   persist(
     (set, get) => {
@@ -202,7 +211,7 @@ export const useApp = create<AppState>()(
         set((s) => ({ auditLog: [{ id: uid("au"), actorId, action, entity, entityId, summary, at: now() }, ...s.auditLog].slice(0, 200) }));
 
       return {
-        ...buildSeed(),
+        ...initialData(),
         userId: null,
         credentials: {},
         profiles: {},
@@ -230,10 +239,15 @@ export const useApp = create<AppState>()(
           }));
           return { id, classId: cls?.id };
         },
-        logout: () => set({ userId: null }),
+        // bản thật: đăng xuất thì xóa người dùng/lớp tải từ máy chủ khỏi trình duyệt
+        logout: () => set(CLOUD ? { userId: null, users: [], classes: [], enrollments: [] } : { userId: null }),
         signInAs: (user) => set((s) => ({ users: [...s.users.filter((u) => u.id !== user.id), user], userId: user.id })),
         // Giữ tài khoản tự đăng ký khi làm mới dữ liệu mẫu
-        resetDemo: () => set((s) => { const seed = buildSeed(); return { ...seed, users: [...seed.users, ...s.users.filter((u) => s.credentials[u.id])], userId: s.userId }; }),
+        resetDemo: () => set((s) => {
+          if (CLOUD) return { ...emptyData(), users: s.users, classes: s.classes, enrollments: s.enrollments, userId: s.userId };
+          const seed = buildSeed();
+          return { ...seed, users: [...seed.users, ...s.users.filter((u) => s.credentials[u.id])], userId: s.userId };
+        }),
 
         createLessonPlan: (p) => {
           const id = uid("lp");
@@ -321,18 +335,30 @@ export const useApp = create<AppState>()(
         },
 
         createClass: (c) => {
-          const id = uid("c");
-          set((s) => ({ classes: [...s.classes, { ...c, id, inviteCode: makeInvite(c.name) }] }));
+          const id = newId("c");
+          const cls = { ...c, id, inviteCode: makeInvite(c.name) };
+          set((s) => ({ classes: [...s.classes, cls] }));
+          toCloud((x) => x.createClass(cls));
           audit(c.teacherId, "create", "Class", id, `Tạo lớp ${c.name}`);
           return id;
         },
-        updateClass: (id, patch) => set((s) => ({ classes: s.classes.map((c) => (c.id === id ? { ...c, ...patch } : c)) })),
+        updateClass: (id, patch) => {
+          set((s) => ({ classes: s.classes.map((c) => (c.id === id ? { ...c, ...patch } : c)) }));
+          toCloud((x) => x.updateClass(id, patch));
+        },
         deleteClass: (id) => {
           if (get().assignments.some((a) => a.classId === id)) return false;
           set((s) => ({ classes: s.classes.filter((c) => c.id !== id), enrollments: s.enrollments.filter((e) => e.classId !== id) }));
+          toCloud((x) => x.deleteClass(id));
           return true;
         },
-        regenerateInvite: (id) => set((s) => ({ classes: s.classes.map((c) => (c.id === id ? { ...c, inviteCode: makeInvite(c.name) } : c)) })),
+        regenerateInvite: (id) => {
+          const cls = get().classes.find((c) => c.id === id);
+          if (!cls) return;
+          const inviteCode = makeInvite(cls.name);
+          set((s) => ({ classes: s.classes.map((c) => (c.id === id ? { ...c, inviteCode } : c)) }));
+          toCloud((x) => x.updateClass(id, { inviteCode }));
+        },
         addStudentToClass: (classId, name) => {
           const studentId = uid("s");
           set((s) => ({
@@ -340,7 +366,17 @@ export const useApp = create<AppState>()(
             enrollments: [...s.enrollments, { id: uid("en"), classId, studentId, status: "invited" }],
           }));
         },
-        removeEnrollment: (enrollmentId) => set((s) => ({ enrollments: s.enrollments.filter((e) => e.id !== enrollmentId) })),
+        removeEnrollment: (enrollmentId) => {
+          set((s) => ({ enrollments: s.enrollments.filter((e) => e.id !== enrollmentId) }));
+          toCloud((x) => x.removeEnrollment(enrollmentId));
+        },
+        joinClassLocal: (studentId, code) => {
+          const cls = get().classes.find((c) => c.inviteCode.toUpperCase() === code.trim().toUpperCase());
+          if (!cls) return null;
+          if (!get().enrollments.some((e) => e.classId === cls.id && e.studentId === studentId))
+            set((s) => ({ enrollments: [...s.enrollments.filter((e) => !(e.classId === cls.id && e.studentId === studentId)), { id: uid("en"), classId: cls.id, studentId }] }));
+          return cls.id;
+        },
 
         createAssignment: (a) => {
           const id = uid("as");
@@ -577,13 +613,14 @@ export const useApp = create<AppState>()(
       } as AppState;
     },
     {
-      name: "edunova-v3",
+      // bản thật lưu riêng, không lẫn dữ liệu mẫu của bản dùng thử trên cùng trình duyệt
+      name: CLOUD ? "edunova-cloud-v1" : "edunova-v3",
       version: 6,
       // v2: thêm lịch sử luyện tập/mô phỏng mẫu 6 tuần; v3: khóa học mẫu theo chương → bài → hoạt động + bài kiểm tra cuối bài,
       // bài giao mẫu cho lớp 10A2. Giữ dữ liệu cũ của người dùng, chỉ bổ sung (hoặc làm mới khóa học mẫu) bản ghi mẫu.
       migrate: (persisted, version) => {
         const p = (persisted ?? {}) as Partial<AppState>;
-        if (version >= 6) return p as AppState;
+        if (CLOUD || version >= 6) return p as AppState;
         const seed = buildSeed();
         const add = <T extends { id: string }>(cur: T[] | undefined, extra: T[]) => { const have = new Set((cur ?? []).map((x) => x.id)); return [...(cur ?? []), ...extra.filter((x) => !have.has(x.id))]; };
         const out: Partial<AppState> = { ...p };

@@ -1,4 +1,5 @@
 "use client";
+import { AUTH_MODE } from "@/lib/supabase/config";
 import { ClassHistory } from "@/components/teacher/class-history";
 import Link from "next/link";
 import { Suspense, useState } from "react";
@@ -233,9 +234,11 @@ function ClassDetail() {
             <ul className="flex flex-wrap gap-2 text-xs" aria-label="Chú thích">
               {(["done", "working", "todo", "late", "not-joined", "not-assigned"] as CellStatus[]).map((s) => <li key={s} className={cn("rounded px-1.5 py-0.5", CELL_STYLE[s])}>{CELL_LABEL[s]}</li>)}
             </ul>
-            <Button size="sm" variant="secondary" onClick={() => { setName(""); setDialog("student"); }}><UserPlus /> Thêm học sinh</Button>
+            {AUTH_MODE === "demo"
+              ? <Button size="sm" variant="secondary" onClick={() => { setName(""); setDialog("student"); }}><UserPlus /> Thêm học sinh</Button>
+              : <p className="text-sm text-muted">Học sinh tự vào lớp bằng mã mời <code className="font-mono font-semibold text-cyan-fg">{cls.inviteCode}</code> (khi đăng ký hoặc ở Trang cá nhân).</p>}
           </div>
-          {students.length === 0 ? <EmptyState title="Lớp chưa có học sinh" description="Chia sẻ mã mời hoặc thêm học sinh." /> : (
+          {students.length === 0 ? <EmptyState title="Lớp chưa có học sinh" description={AUTH_MODE === "demo" ? "Chia sẻ mã mời hoặc thêm học sinh." : `Gửi mã mời ${cls.inviteCode} cho học sinh để các em tự vào lớp.`} /> : (
             <div className="overflow-x-auto rounded-2xl border border-line bg-surface" tabIndex={0}>
               <table className="w-full min-w-[640px] text-left text-sm">
                 <caption className="sr-only">Tình trạng từng học sinh lớp {cls.name} với từng nhiệm vụ</caption>

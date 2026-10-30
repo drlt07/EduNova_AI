@@ -1,4 +1,5 @@
 "use client";
+import { AUTH_MODE } from "@/lib/supabase/config";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Bell, Menu, Settings, ShieldAlert, UserRound, X } from "lucide-react";
@@ -101,10 +102,12 @@ export function AppShell({ role, children, bleed = false }: { role: Role; childr
           <Logo href={ROLE_HOME[role]} />
         </div>
         <SidebarNav role={role} />
-        <div className="mt-auto rounded-xl border border-line bg-surface-2/60 p-3 text-xs text-muted">
-          <p className="font-medium text-fg">Bản dùng thử</p>
-          Dữ liệu lưu trên trình duyệt này.
-        </div>
+        {AUTH_MODE === "demo" && (
+          <div className="mt-auto rounded-xl border border-line bg-surface-2/60 p-3 text-xs text-muted">
+            <p className="font-medium text-fg">Bản dùng thử</p>
+            Dữ liệu lưu trên trình duyệt này.
+          </div>
+        )}
       </aside>
 
       {open && (

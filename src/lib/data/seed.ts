@@ -513,3 +513,11 @@ export function buildSeed(now: Date = new Date()): DemoData {
     notifRead: {},
   };
 }
+
+/** Dữ liệu trống cho bản chạy với Supabase: không có người dùng, lớp hay bài mẫu; kho mô phỏng giữ cấu hình mặc định. */
+export function emptyData(): DemoData {
+  const seed = buildSeed();
+  const out = {} as Record<string, unknown>;
+  for (const [k, v] of Object.entries(seed)) out[k] = Array.isArray(v) ? [] : v && typeof v === "object" ? {} : v;
+  return { ...(out as unknown as DemoData), kho: { ...seed.kho, plays: {} } };
+}

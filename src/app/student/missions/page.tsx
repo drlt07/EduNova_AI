@@ -18,6 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/feedback";
 import { PageHeader } from "@/components/ui/misc";
+import { JoinClass } from "@/components/student/join-class";
 import { FilterGroup } from "@/components/ui/tabs";
 
 const TASK_LABEL = { lab: "Mô phỏng", quiz: "Bộ câu hỏi", code: "Bài code" } as const;
@@ -60,6 +61,7 @@ export default function MissionsPage() {
   return (
     <>
       <PageHeader title="Bài của tôi" description="Bài thầy cô giao: hạn nộp, số lần làm và kết quả. Mỗi bài cũng có ngay trong bài học tương ứng." />
+      {!d.enrollments.some((e) => e.studentId === user.id) && <JoinClass studentId={user.id} className="mb-5 max-w-xl" />}
       <div role="group" aria-label="Nguồn nhiệm vụ" className="mb-4 inline-flex gap-1 rounded-xl border border-line bg-surface-2 p-1">
         {[["teacher", `Giáo viên giao (${all.length})`], ["self", `Em tự chọn (${self.length})`]].map(([v, l]) => (
           <button key={v} type="button" aria-pressed={source === v} onClick={() => setSource(v)} className={source === v ? "rounded-lg bg-surface px-3 py-1.5 text-sm font-medium text-fg shadow-sm" : "rounded-lg px-3 py-1.5 text-sm font-medium text-muted"}>{l}</button>

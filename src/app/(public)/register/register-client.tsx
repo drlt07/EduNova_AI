@@ -67,7 +67,7 @@ export function RegisterClient() {
     const { error: e } = await sb.auth.signUp({
       email: v.email,
       password: v.password,
-      options: { data: { full_name: v.name, school: v.school }, emailRedirectTo: `${window.location.origin}/auth/callback?next=/login` },
+      options: { data: { full_name: v.name, school: v.school, ...(v.role === "student" && v.inviteCode?.trim() ? { invite_code: v.inviteCode.trim() } : {}) }, emailRedirectTo: `${window.location.origin}/auth/callback?next=/login` },
     });
     if (e) return setError(authErrorVi(e.message));
     setSent(v.email);
@@ -104,7 +104,7 @@ export function RegisterClient() {
           </Field>
         )}
         <Field label="Trường" htmlFor="school" error={errors.school?.message}><Input id="school" {...register("school")} {...err("school")} /></Field>
-        {!real && role === "student" && (
+        {role === "student" && (
           <Field label="Mã lớp (không bắt buộc)" htmlFor="inviteCode" hint="Thầy cô gửi mã mời, ví dụ TIN10A1-7KQ"><Input id="inviteCode" autoComplete="off" className="font-mono uppercase" {...register("inviteCode")} /></Field>
         )}
         <Field label="Mật khẩu" htmlFor="password" error={errors.password?.message} hint="≥ 8 ký tự, có chữ số"><PasswordInput id="password" autoComplete="new-password" {...register("password")} {...err("password")} /></Field>

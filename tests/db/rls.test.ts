@@ -2,12 +2,14 @@
  * Kiểm thử phân quyền thật trên PostgreSQL (PGlite): chạy migration Supabase với bản giả lập auth.users / auth.uid()
  * và các vai trò anon / authenticated như Supabase, rồi đóng vai từng người dùng để thử đọc/ghi.
  */
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { PGlite } from "@electric-sql/pglite";
 import { beforeAll, describe, expect, it } from "vitest";
 
-const MIGRATION = readFileSync(path.resolve(__dirname, "../../supabase/migrations/20261027000000_init.sql"), "utf8");
+const DIR = path.resolve(__dirname, "../../supabase/migrations");
+/** Mọi migration theo thứ tự tên file (như `supabase db push`). */
+const MIGRATIONS = readdirSync(DIR).filter((f) => f.endsWith(".sql")).sort().map((f) => readFileSync(path.join(DIR, f), "utf8"));
 
 /** Phần Supabase có sẵn trước khi chạy migration: schema auth, vai trò, quyền mặc định của schema public. */
 const SUPABASE_STUB = `
@@ -49,10 +51,10 @@ async function as<T = Record<string, unknown>>(uid: string, sql: string, params:
   }
 }
 
-async function signUp(email: string, opts: { confirmed?: boolean; name?: string } = {}) {
+async function signUp(email: string, opts: { confirmed?: boolean; name?: string; inviteCode?: string } = {}) {
   const [u] = await sys<{ id: string }>(
     "insert into auth.users (email, email_confirmed_at, raw_user_meta_data) values ($1, $2, $3) returning id",
-    [email, opts.confirmed === false ? null : new Date().toISOString(), JSON.stringify({ full_name: opts.name ?? email.split("@")[0] })],
+    [email, opts.confirmed === false ? null : new Date().toISOString(), JSON.stringify({ full_name: opts.name ?? email.split("@")[0], ...(opts.inviteCode ? { invite_code: opts.inviteCode } : {}) })],
   );
   return u.id;
 }
@@ -63,7 +65,7 @@ const ids = {} as Record<"admin" | "t1" | "t2" | "s1" | "s2" | "s3" | "c1" | "c2
 beforeAll(async () => {
   db = new PGlite();
   await db.exec(SUPABASE_STUB);
-  await db.exec(MIGRATION);
+  for (const m of MIGRATIONS) await db.exec(m);
 
   await sys("insert into school_domains (domain, school_name) values ('thpt-a.edu.vn', 'THPT A')");
   ids.admin = await signUp("admin@gmail.com");
@@ -74,7 +76,6 @@ beforeAll(async () => {
   ids.s2 = await signUp("binh@gmail.com", { name: "Bình" });
   ids.s3 = await signUp("chi@gmail.com", { name: "Chi" });
 
-  await sys("insert into textbooks values ('kntt', 'Kết nối tri thức', 'NXB GDVN')");
   await sys("insert into topics values ('F', 'F', 'Giải quyết vấn đề')");
   await sys("insert into objectives values ('O10-F-02', 10, 'F', 'chung', 'vận dụng', 'Viết câu lệnh if', false)");
   await sys("insert into lab_templates values ('lab-garden', 'smart-garden', 'Vườn tưới', '2d', 'available', 'REAL', '{}')");
@@ -155,6 +156,31 @@ describe("lớp học", () => {
     const seen = (await as<{ id: string }>(ids.t1, "select id from profiles where role = 'student'")).map((r) => r.id).sort();
     expect(seen).toEqual([ids.s1, ids.s2].sort());
     expect(await as(ids.s1, "select full_name from profiles where id = $1", [ids.t1])).toEqual([{ full_name: "Cô Hà" }]);
+  });
+
+  it("học sinh cùng lớp thấy tên nhau, không thấy học sinh lớp khác", async () => {
+    const seen = (await as<{ id: string }>(ids.s1, "select id from profiles where role = 'student'")).map((r) => r.id).sort();
+    expect(seen).toEqual([ids.s1, ids.s2].sort());
+  });
+
+  it("giáo viên lưu lịch học và bộ sách của lớp", async () => {
+    await as(ids.t1, "update classes set schedule = $1, textbook_id = 'cd' where id = $2", [JSON.stringify([{ weekday: 1, period: "Tiết 2", room: "P. Tin 1" }]), ids.c1]);
+    const [c] = await sys<{ schedule: { room: string }[]; textbook_id: string }>("select schedule, textbook_id from classes where id = $1", [ids.c1]);
+    expect(c.schedule[0].room).toBe("P. Tin 1");
+    expect(c.textbook_id).toBe("cd");
+  });
+
+  it("đăng ký kèm mã lớp thì vào lớp ngay; mã sai hoặc email giáo viên thì không", async () => {
+    const a = await signUp("dung@gmail.com", { inviteCode: " tin10a1 " });
+    const b = await signUp("em@gmail.com", { inviteCode: "SAIMA1" });
+    const t = await signUp("gv@thpt-a.edu.vn", { inviteCode: "TIN10A1" });
+    const n = async (id: string) => (await sys("select 1 from enrollments where student_id = $1", [id])).length;
+    expect([await n(a), await n(b), await n(t)]).toEqual([1, 0, 0]);
+  });
+
+  it("quản trị viên xem được ghi danh của mọi lớp", async () => {
+    const rows = await as<{ class_id: string }>(ids.admin, "select distinct class_id from enrollments");
+    expect(rows.map((r) => r.class_id).sort()).toEqual([ids.c1, ids.c2].sort());
   });
 
   it("học sinh không tự thêm mình hay bạn vào lớp khác bằng cách ghi thẳng bảng", async () => {
@@ -247,7 +273,7 @@ describe("AI Gia sư: giáo viên chỉ xem số liệu tổng hợp", () => {
 
 describe("chương trình và nhật ký", () => {
   it("ai đăng nhập cũng đọc được chương trình; chỉ quản trị viên sửa", async () => {
-    expect(await as(ids.s1, "select id from textbooks")).toEqual([{ id: "kntt" }]);
+    expect((await as<{ id: string }>(ids.s1, "select id from textbooks order by id")).map((r) => r.id)).toEqual(["cd", "ctst", "kntt"]);
     await expect(as(ids.t1, "insert into topics values ('Z', 'Z', 'Z')")).rejects.toThrow(/row-level security/);
     await as(ids.admin, "insert into topics values ('Z', 'Z', 'Z')");
   });

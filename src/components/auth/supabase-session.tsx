@@ -4,8 +4,9 @@ import { supabaseBrowser } from "@/lib/supabase/client";
 import { profileToUser, type ProfileRow } from "@/lib/auth/profile";
 import { setAuthReady } from "@/lib/auth/session-state";
 import { useApp } from "@/lib/store/app-store";
+import { pullCore } from "@/lib/cloud/sync";
 
-/** Đồng bộ phiên Supabase vào giao diện: người dùng, vai trò (từ bảng profiles) và đăng xuất. */
+/** Đồng bộ phiên Supabase vào giao diện: người dùng, vai trò (từ bảng profiles), lớp học/ghi danh và đăng xuất. */
 export function SupabaseSession() {
   const signInAs = useApp((s) => s.signInAs);
   const logout = useApp((s) => s.logout);
@@ -20,7 +21,7 @@ export function SupabaseSession() {
       if (user) {
         const { data } = await sb.from("profiles").select("id, role, full_name, email").eq("id", user.id).single<ProfileRow>();
         if (!alive) return;
-        if (data) signInAs(profileToUser(data));
+        if (data) { signInAs(profileToUser(data)); await pullCore(); }
         else logout();
       } else logout();
       setAuthReady();
@@ -33,8 +34,13 @@ export function SupabaseSession() {
       if (event === "SIGNED_OUT") logout();
       else if (event === "SIGNED_IN" || event === "USER_UPDATED") void sync();
     });
+    // quay lại tab thì tải lại (học sinh mới vào lớp, thầy cô đổi lớp ở máy khác)
+    let last = 0;
+    const onFocus = () => { const t = performance.now(); if (t - last > 30_000 && useApp.getState().userId) { last = t; void pullCore(); } };
+    window.addEventListener("focus", onFocus);
     return () => {
       alive = false;
+      window.removeEventListener("focus", onFocus);
       unsubHydrate();
       sub.subscription.unsubscribe();
     };

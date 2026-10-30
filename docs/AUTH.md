@@ -7,7 +7,7 @@ EduNova chạy ở một trong hai chế độ, tự chọn theo biến môi tr�
 | **Dùng thử** | Không có `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` (kể cả bản demo một file) | Chọn tài khoản mẫu, không mật khẩu | localStorage của trình duyệt |
 | **Thật** | Có đủ hai biến trên | Email + mật khẩu (Supabase Auth) | Supabase PostgreSQL, bảo vệ bằng RLS |
 
-> Giai đoạn hiện tại: đăng nhập, hồ sơ và vai trò đã chạy thật. Các chức năng (khóa học, bài tập…) vẫn đọc/ghi kho dữ liệu trên trình duyệt; bước tiếp theo là chuyển từng phần sang bảng Supabase đã có sẵn trong migration.
+> Giai đoạn hiện tại: đăng nhập, hồ sơ, vai trò, **người dùng, lớp học và ghi danh** đã đọc/ghi Supabase (`src/lib/cloud/sync.ts`); bản thật không dùng dữ liệu mẫu. Bài giao, bài nộp, chấm điểm… vẫn lưu trên trình duyệt; bước tiếp theo là chuyển các phần này.
 
 ## Ba lớp bảo vệ
 
@@ -61,7 +61,7 @@ Kiểm chứng: `tests/db/rls.test.ts` chạy chính file migration trên Postgr
    NEXT_PUBLIC_SUPABASE_URL=https://<project>.supabase.co
    NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
    ```
-2. SQL Editor: chạy migration, rồi `supabase/seed-test-accounts.sql` để có 3 tài khoản thử (mật khẩu `EduNova@2026`):
+2. SQL Editor: chạy lần lượt mọi file trong `supabase/migrations/` (theo thứ tự tên), rồi `supabase/seed-test-accounts.sql` để có 3 tài khoản thử (mật khẩu `EduNova@2026`):
    `gv.test@edunova.test` (giáo viên), `hs.test@edunova.test` (học sinh, đã vào lớp 10A1 (thử)), `admin.test@edunova.test` (quản trị).
 3. URL Configuration: Site URL `http://localhost:3000`, Redirect URLs thêm `http://localhost:3000/auth/callback`.
 4. `npm install && npm run dev` → http://localhost:3000/login

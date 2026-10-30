@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/feedback";
 import { Avatar, PageHeader, StatCard } from "@/components/ui/misc";
+import { JoinClass } from "@/components/student/join-class";
 
 type HistoryItem = { at: string; icon: typeof Target; kind: string; title: string; result: string; href?: string };
 
@@ -56,6 +57,7 @@ export default function StudentProfilePage() {
           <PageHeader title={user.name} description={`Học sinh${data.klass ? ` lớp ${data.klass.name}` : ""} · Trang cá nhân`} />
         </div>
       </div>
+      <JoinClass studentId={user.id} compact className="mb-6 max-w-xl" />
 
       <section aria-labelledby="kq-h" className="space-y-5">
         <h2 id="kq-h" className="text-lg font-semibold text-fg">Kết quả học tập</h2>
