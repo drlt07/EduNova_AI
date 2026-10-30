@@ -30,6 +30,12 @@ swap('<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js
 // Gói đồ họa (visual-pack.js), âm thanh + toàn màn hình (audio-pack.js), cỡ chữ + sửa lỗi kẹt (read-pack.js):
 // chèn ngay trước dòng khởi chạy trò chơi.
 swap("CH=CHS[1];S.background=", `${visual}\n${audio}\n${readable}\nCH=CHS[1];S.background=`);
+// Sửa lỗi bản gốc, chương 4: ô chọn thứ ba trong bảng luật đèn có id="c", trùng với khung vẽ 3D <canvas id="c">,
+// nên $('c').value luôn rỗng và trò chơi mãi báo "Hãy chọn đủ cả ba ô" (không qua được chương 4).
+swap('Trước khi đổi: <select id="c">', 'Trước khi đổi: <select id="r4c">');
+swap("const a=$('a').value,b=$('b').value,c=$('c').value;", "const a=$('a').value,b=$('b').value,c=$('r4c').value;");
+// Chương 4: khung hình đầu tiên có dt = 0 thì vận tốc xe thành NaN và xe biến mất vĩnh viễn.
+swap("c.v=(ns-c.s)/dt;", "c.v=dt>0?(ns-c.s)/dt:c.v;");
 // Nhúng trong trang EduNova (iframe): khung trò chơi lấp đầy iframe, nền trong suốt.
 swap("</style>\n</head>", "html,body{height:100%}body{padding:0;background:transparent}.g{max-width:none;height:100%;border-radius:0}\n</style>\n</head>");
 
