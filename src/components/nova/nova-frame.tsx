@@ -13,7 +13,7 @@ export function NovaFrame({ src, title }: { src: string; title: string }) {
   };
   return (
     <div>
-      <section aria-label="Trò chơi" className="overflow-hidden rounded-3xl border border-line bg-[#d9e4ee] shadow-xl">
+      <section aria-label="Trò chơi" className="overflow-hidden rounded-3xl border border-line bg-[#0a0f18] shadow-xl">
         <iframe ref={ref} src={src} title={title} className="block h-[min(640px,80vh)] w-full" allow="autoplay; fullscreen" allowFullScreen />
       </section>
       <div className="mt-2 flex justify-end">
