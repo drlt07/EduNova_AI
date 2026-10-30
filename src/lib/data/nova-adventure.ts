@@ -61,6 +61,8 @@ export function novaChapterFor(slug: string): NovaChapter | undefined {
 export interface Adventure {
   slug: string;
   no: number;
+  /** Phiên bản giao diện khác của cùng kịch bản (ví dụ "dễ thương"). */
+  variant?: string;
   title: string;
   tagline: string;
   summary: string;
@@ -86,6 +88,18 @@ export const ADVENTURES: Adventure[] = [
     minutes: 40,
     chapters: NOVA_CHAPTERS,
     cover: "from-[#1e1b4b] via-[#312e81] to-[#0e7490]",
+  },
+  {
+    slug: "ngoi-nha-hong",
+    no: 1,
+    variant: "phiên bản dễ thương",
+    title: "Sự cố ở Ngôi nhà Nova",
+    tagline: "Cùng câu chuyện và thử thách, giao diện pastel tông hồng",
+    summary: "Kịch bản 1 với nhân vật chibi đội mũ, căn nhà màu hồng nhẹ và giao diện bo tròn. Nội dung, độ khó và tiến trình chơi giống bản chính; tiến độ lưu riêng.",
+    src: NOVA_GAME_SRC.replace(/index\.html$/, "ngoi-nha-hong/index.html"),
+    minutes: 40,
+    chapters: NOVA_CHAPTERS,
+    cover: "from-[#9d174d] via-[#db2777] to-[#f9a8d4]",
   },
   {
     slug: "dem-truoc-ky-thi",

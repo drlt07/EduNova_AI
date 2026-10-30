@@ -3,7 +3,7 @@
  * thay thư viện three r128 và bộ biểu tượng Tabler lấy từ CDN bằng bản đặt sẵn trong tools/nova/vendor,
  * để trò chơi chạy cả khi không ra được mạng ngoài (bản demo một tệp, trường chặn CDN),
  * và chèn các gói: đồ họa (visual-pack.js), âm thanh + toàn màn hình (audio-pack.js), cỡ chữ + sửa lỗi kẹt (read-pack.js),
- * phong cách THPT + độ khó (pro-pack.js). Kịch bản 2, 3 thêm bộ dụng cụ chung (kit-pack.js) và gói nội dung riêng.
+ * luật chơi + độ khó (pro-pack.js), hình ảnh THPT (look-pack.js) hoặc dễ thương (cute-pack.js). Kịch bản 2, 3 thêm bộ dụng cụ chung (kit-pack.js) và gói nội dung riêng.
  * Chạy: node tools/nova/build.mjs
  */
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
@@ -20,12 +20,14 @@ const visual = read("visual-pack.js");
 const audio = read("audio-pack.js");
 const readable = read("read-pack.js");
 const pro = read("pro-pack.js");
+const look = read("look-pack.js");
 // Hậu kỳ (bloom) của three r128, bản examples/js gắn vào biến THREE toàn cục.
 const post = ["CopyShader", "LuminosityHighPassShader", "EffectComposer", "RenderPass", "ShaderPass", "UnrealBloomPass"].map((f) => read(`vendor/post/${f}.js`)).join("\n");
 if (three.includes("</script")) throw new Error("three.min.js chứa </script>, không nhúng thẳng được");
 
-/** Gói một kịch bản: lõi trò chơi + các gói chung; `extra` là gói nội dung riêng, `edits` đổi chữ hiển thị. */
-function buildGame({ out, extra = "", edits = [] }) {
+/** Gói một kịch bản: lõi trò chơi + các gói chung; `skin` là gói hình ảnh (THPT hoặc dễ thương), `extra` là gói nội dung riêng,
+ * `edits` đổi chữ hiển thị. */
+function buildGame({ out, extra = "", edits = [], skin = look }) {
   let html = read("game.src.html");
   const swap = (from, to) => {
     if (!html.includes(from)) throw new Error(`Không thấy đoạn cần thay: ${from.slice(0, 80)}`);
@@ -35,7 +37,7 @@ function buildGame({ out, extra = "", edits = [] }) {
   swap('<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>', `<script>${three}</script>\n<script>${post}</script>`);
   // Gói đồ họa (visual-pack.js), âm thanh + toàn màn hình (audio-pack.js), cỡ chữ + sửa lỗi kẹt (read-pack.js):
   // chèn ngay trước dòng khởi chạy trò chơi.
-  swap("CH=CHS[1];S.background=", `${visual}\n${audio}\n${readable}\n${pro}\n${extra}\nCH=CHS[1];S.background=`);
+  swap("CH=CHS[1];S.background=", `${visual}\n${audio}\n${readable}\n${pro}\n${skin}\n${extra}\nCH=CHS[1];S.background=`);
   // Sửa lỗi bản gốc, chương 4: ô chọn thứ ba trong bảng luật đèn có id="c", trùng với khung vẽ 3D <canvas id="c">,
   // nên $('c').value luôn rỗng và trò chơi mãi báo "Hãy chọn đủ cả ba ô" (không qua được chương 4).
   swap('Trước khi đổi: <select id="c">', 'Trước khi đổi: <select id="r4c">');
@@ -56,6 +58,18 @@ function buildGame({ out, extra = "", edits = [] }) {
 
 // Kịch bản 1 · Sự cố ở Ngôi nhà Nova
 buildGame({ out: "public/nova/index.html" });
+
+// Kịch bản 1, phiên bản dễ thương: cùng nội dung và luật chơi, giao diện pastel tông hồng (cute-pack.js), lưu tiến độ riêng.
+buildGame({
+  out: "public/nova/ngoi-nha-hong/index.html",
+  skin: read("cute-pack.js"),
+  edits: [
+    ["<title>Sự cố ở Ngôi nhà Nova · EduNova</title>", "<title>Ngôi nhà Nova (phiên bản dễ thương) · EduNova</title>"],
+    ['<div style="font-size:22px;font-weight:500;margin:2px 0 4px">Sự cố ở Ngôi nhà Nova</div>', '<div style="font-size:22px;font-weight:500;margin:2px 0 4px">Sự cố ở Ngôi nhà Nova</div><div style="font-size:12px;color:#db2777;margin-bottom:6px">phiên bản dễ thương</div>'],
+    ["localStorage.getItem('nova_save')", "localStorage.getItem('nova_hong_save')"],
+    ["localStorage.setItem('nova_save'", "localStorage.setItem('nova_hong_save'"],
+  ],
+});
 
 // Kịch bản 2 · Đêm trước kỳ thi: cùng lõi, bộ dụng cụ chung (kit-pack.js) + 6 chương mới (s2-pack.js), lưu tiến độ riêng.
 buildGame({

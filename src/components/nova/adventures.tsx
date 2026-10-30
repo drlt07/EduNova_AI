@@ -30,7 +30,7 @@ export function AdventureHub({ base, intro }: { base: string; intro?: React.Reac
           <li key={a.slug}>
             <Link href={`${base}/${a.slug}`} className="group flex h-full flex-col overflow-hidden rounded-3xl border border-line bg-surface shadow-sm transition-all hover:-translate-y-1 hover:shadow-xl">
               <div className={cn("relative bg-gradient-to-br p-5 text-white", a.cover)}>
-                <p className="text-xs font-bold uppercase tracking-wide text-cyan-200">Kịch bản {a.no}</p>
+                <p className="text-xs font-bold uppercase tracking-wide text-cyan-200">Kịch bản {a.no}{a.variant ? ` · ${a.variant}` : ""}</p>
                 <h2 className="mt-1 text-xl font-extrabold leading-snug">{a.title}</h2>
                 <p className="mt-1 text-sm text-indigo-100">{a.tagline}</p>
                 <ol className="mt-4 flex flex-wrap gap-1.5" aria-label="Các chương">
@@ -73,7 +73,7 @@ export function AdventurePlay({ slug, base, khoBase }: { slug: string; base: str
     <div>
       <Link href={base} className="inline-flex items-center gap-1 text-sm font-medium text-muted hover:text-fg"><ArrowLeft className="size-4" aria-hidden /> Phiêu lưu Nova</Link>
       <header className="mb-4 mt-2">
-        <p className="text-sm font-semibold text-indigo-700 dark:text-indigo-300">Kịch bản {a.no} · {a.chapters.length} chương · khoảng {a.minutes} phút</p>
+        <p className="text-sm font-semibold text-indigo-700 dark:text-indigo-300">Kịch bản {a.no}{a.variant ? ` (${a.variant})` : ""} · {a.chapters.length} chương · khoảng {a.minutes} phút</p>
         <h1 className="mt-1 text-3xl font-extrabold tracking-tight text-fg">{a.title}</h1>
         <p className="mt-1 max-w-3xl text-muted">{a.summary}</p>
       </header>
