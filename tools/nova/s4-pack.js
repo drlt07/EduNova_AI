@@ -8,33 +8,145 @@
  * Cơ chế riêng: thanh "Độ tin cậy dữ liệu" của từng phòng thay cho sao; chọn sai mất 5%; về 0% thì làm lại phòng.
  */
 // Bảng màu chủ đạo theo phòng, tông đèn lễ hội (ui-pack.js đọc biến này).
-const UI_ACC = ['#38bdf8', '#a78bfa', '#facc15', '#34d399', '#f472b6', '#fb923c'];
+const UI_ACC = ['#0ea5e9', '#8b5cf6', '#f59e0b', '#10b981', '#ec4899', '#f97316'];
 WHO.NOVA = ['DORA · trợ lý dữ liệu', '#22d3ee', 'ti-robot', '#0e7490'];
 WHO.GLITCH = ['BOT PHE VÉ', '#e11d48', 'ti-robot', '#9f1239'];
 WHO.CO = ['Chị Vy · Trưởng ban tổ chức', '#f59e0b', 'ti-user', '#b45309'];
 
 meterSetup({
   budget: [0, 100, 100, 100, 100, 100, 100], rate: 4, pen: 5, penText: (p) => `Mất ${p}% độ tin cậy`,
-  show: (n, left, used, low) => `<span style="color:${low ? '#fb7185' : '#e2e8f0'};font-variant-numeric:tabular-nums"><i class="ti ti-database" aria-hidden="true"></i> ${Math.ceil(left)}%</span> <span style="display:inline-block;width:54px;height:6px;border-radius:3px;background:rgba(148,163,184,.25);vertical-align:middle;overflow:hidden"><span style="display:block;height:100%;width:${left}%;background:${low ? '#e11d48' : '#a78bfa'}"></span></span>`,
+  show: (n, left, used, low) => `<span style="color:${low ? '#e11d48' : '#0f172a'};font-variant-numeric:tabular-nums"><i class="ti ti-database" aria-hidden="true"></i> ${Math.ceil(left)}%</span> <span style="display:inline-block;width:54px;height:6px;border-radius:3px;background:rgba(148,163,184,.3);vertical-align:middle;overflow:hidden"><span style="display:block;height:100%;width:${left}%;background:${low ? '#e11d48' : 'var(--acc)'}"></span></span>`,
   failTag: 'Dữ liệu không còn tin cậy', failTitle: 'Độ tin cậy dữ liệu của phòng đã về 0%',
   failText: 'Ban tổ chức tạm dừng bán vé để kiểm tra lại. Vào lại phòng này; đọc kỹ gợi ý trong đề trước khi chọn.',
 });
 
-/* ---------- Đồ vật của Trung tâm Dữ liệu ---------- */
-function screen4(x, z, w, lines, col) { return desk(x, z, w, { tex: screenTex(lines, '#0b1525', col || '#67e8f9') }); }
-function hallRoom(h) { room(grid('#1a2030', '#283246', 6), 0x9aa7c2, h || 2.6); }
-/** Dây đèn lễ hội dọc tường sau; tick() làm đèn nhấp nháy. */
-function lanterns(ch) {
-  ch.lamps = [];
-  const cols = [0xfacc15, 0xf472b6, 0x38bdf8, 0x34d399, 0xfb923c];
-  for (let i = 0; i < 15; i++) {
-    const m = new THREE.MeshStandardMaterial({ color: 0x111111, emissive: cols[i % cols.length], emissiveIntensity: 1.2 });
-    const x = -6.3 + i * .9;
-    ch.lamps.push(add(new THREE.SphereGeometry(.08, 10, 8), m, x, 2.05 + Math.sin(i * 1.3) * .08, -4.75));
+/* ---------- Giao diện sáng: bỏ lớp kính tối của look-pack.js, bảng trắng, điểm nhấn theo màu chương ---------- */
+(function brightUi() {
+  document.querySelectorAll('style').forEach((st) => { if (st.textContent.includes('rgba(9,13,22,.93)')) st.remove(); });
+  const st = document.createElement('style');
+  st.textContent = `
+.g{font-family:"Segoe UI",system-ui,-apple-system,Roboto,sans-serif;background:#e0f2fe}
+.g .pn{background:rgba(255,255,255,.97)!important;color:#0f172a!important;border:1px solid #e2e8f0!important;border-top:4px solid var(--acc)!important;border-radius:18px!important;box-shadow:0 24px 60px rgba(30,41,59,.22)}
+.g .dlg{border:1px solid #e2e8f0!important;border-left:4px solid var(--acc)!important;box-shadow:0 14px 36px rgba(30,41,59,.18)}
+.g .chip{background:rgba(255,255,255,.92);color:#0f172a;border:1px solid rgba(15,23,42,.08);border-radius:12px;box-shadow:0 6px 18px rgba(15,23,42,.12)}
+.g .chip:empty,.g #hudL:has(#cht:empty){display:none}
+.g .toast{border:1px solid #e2e8f0;box-shadow:0 10px 26px rgba(15,23,42,.15)}
+.g .op{background:#f8fafc;border-color:#e2e8f0}
+.g .op:hover{background:#fff}
+.g .cb{background:#f1f5f9;color:#1e293b}
+.g .rm.open{border-color:var(--acc);background:color-mix(in srgb,var(--acc) 10%,white)}
+.g .hard-tag{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;border:1px solid;border-radius:999px;padding:2px 10px;margin-bottom:6px}
+.g #title{background:radial-gradient(ellipse at 50% 35%,rgba(255,255,255,.55),rgba(124,58,237,.28))!important}`;
+  document.head.appendChild(st);
+})();
+if (typeof PX !== 'undefined' && PX.grade) { PX.grade.uniforms.vig.value = .12; PX.bloom.strength = .3; PX.bloom.threshold = .95; }
+/** Phối cảnh ban ngày (khai báo lại hàm của look-pack.js): trời sáng, ánh sáng mạnh, giữ màu tươi của vật liệu. */
+function restyle() {
+  const night = CH && CH.n === 6;
+  S.background = gradTex(night ? 'fest6' : 'fest', night ? [[0, '#312e81'], [.55, '#7c3aed'], [1, '#f5d0fe']] : [[0, '#7dd3fc'], [.5, '#e0f2fe'], [1, '#fff7ed']]);
+  S.fog.color.set(night ? 0x4c3a86 : 0xeef6ff); S.fog.near = 24; S.fog.far = 56;
+  sun.color.set(0xfff1dc); sun.intensity = night ? .75 : 1;
+  hemi.color.set(0xffffff); hemi.groundColor.set(night ? 0x7c3aed : 0xfde7f3); hemi.intensity = night ? .45 : .55;
+  rim.color.set(0xf0abfc); rim.intensity = .45; R.toneMappingExposure = night ? .95 : .82;
+}
+function gradeMat(m) {
+  if (!m || graded.has(m)) return; graded.add(m);
+  if (m.isMeshStandardMaterial && !m.userData.keep) m.envMapIntensity = m.metalness > .5 ? .7 : .45;
+}
+
+/* ---------- Phòng lễ hội: sàn sáng, cờ dây, bóng bay, biển lễ hội, bục thử thách, kim tuyến ---------- */
+const FEST = ['#f43f5e', '#f59e0b', '#facc15', '#22c55e', '#06b6d4', '#6366f1', '#ec4899'];
+const hex = (c) => parseInt(c.slice(1), 16);
+function festRoom(ch, o) {
+  room(grid(o.floor[0], o.floor[1], 6), o.wall, 2.8);
+  ch.fx = { flags: [], balloons: [], sparks: [], si: 0 };
+  // hai dây cờ đuôi nheo vắt ngang phòng
+  const tri = new THREE.Shape(); tri.moveTo(-.16, 0); tri.lineTo(.16, 0); tri.lineTo(0, -.34); tri.lineTo(-.16, 0);
+  const triG = new THREE.ShapeGeometry(tri);
+  [[-4.3, 2.35], [-2.7, 2.5]].forEach(([z, y]) => {
+    add(new THREE.CylinderGeometry(.008, .008, 13.6, 4), mat(0x475569), 0, y + .02, z).rotation.z = Math.PI / 2;
+    for (let i = 0; i < 19; i++) {
+      const x = -6.3 + i * .7, sag = .18 * (1 - Math.pow((x / 6.6), 2));
+      const f = new THREE.Mesh(triG, new THREE.MeshStandardMaterial({ color: hex(FEST[(i + (z > -3 ? 3 : 0)) % FEST.length]), side: THREE.DoubleSide, roughness: .6 }));
+      f.position.set(x, y - sag, z); W.add(f); ch.fx.flags.push(f);
+    }
+  });
+  // chùm bóng bay ở hai góc sau
+  [[-6.1, -4.1], [6.1, -4.1], [-6.1, 3.9], [6.1, 3.9]].forEach(([x, z], k) => {
+    for (let i = 0; i < 3; i++) {
+      const b = add(new THREE.SphereGeometry(.24, 20, 16), new THREE.MeshStandardMaterial({ color: hex(FEST[(k * 3 + i) % FEST.length]), roughness: .25, metalness: .05 }), x + (i - 1) * .26, 1.9 + (i % 2) * .3, z + (i === 1 ? .15 : 0));
+      b.scale.y = 1.18; b.userData.y = b.position.y; b.userData.p = k * 3 + i;
+      add(new THREE.CylinderGeometry(.005, .005, 1.6, 4), mat(0xe2e8f0), b.position.x, b.position.y - 1, b.position.z);
+      ch.fx.balloons.push(b);
+    }
+  });
+  // biển lễ hội trên tường sau
+  const bt = tex(1024, 256, (g, w, h) => {
+    const gr = g.createLinearGradient(0, 0, w, 0); gr.addColorStop(0, '#7c3aed'); gr.addColorStop(.5, '#ec4899'); gr.addColorStop(1, '#f59e0b');
+    g.fillStyle = gr; g.fillRect(0, 0, w, h); g.fillStyle = 'rgba(255,255,255,.18)'; for (let i = 0; i < 40; i++) { g.beginPath(); g.arc(Math.random() * w, Math.random() * h, 2 + Math.random() * 5, 0, 7); g.fill(); }
+    g.fillStyle = '#fff'; g.textAlign = 'center'; g.textBaseline = 'middle'; let fs = 92; do { g.font = `800 ${fs}px "Segoe UI",system-ui,sans-serif`; fs -= 4; } while (g.measureText(o.title).width > w - 80 && fs > 40); g.fillText(o.title, w / 2, h / 2 - 18);
+    g.font = '600 40px "Segoe UI",system-ui,sans-serif'; g.fillText('LỄ HỘI ÁNH SÁNG · 20/12/2026', w / 2, h / 2 + 62);
+  });
+  const bm = keepMat(new THREE.MeshBasicMaterial({ map: bt })); add(new THREE.PlaneGeometry(4.4, 1.1), bm, -2, 1.45, -4.8);
+  // biểu trưng giữa sàn
+  const lg = tex(512, 512, (g, w) => {
+    g.translate(w / 2, w / 2); for (let i = 0; i < 16; i++) { g.fillStyle = FEST[i % FEST.length] + 'bb'; g.beginPath(); g.moveTo(0, 0); g.arc(0, 0, 250, i * Math.PI / 8, (i + .5) * Math.PI / 8); g.fill(); }
+    g.fillStyle = 'rgba(255,255,255,.9)'; g.beginPath(); g.arc(0, 0, 120, 0, 7); g.fill();
+    g.strokeStyle = o.acc; g.lineWidth = 10; g.beginPath(); g.arc(0, 0, 120, 0, 7); g.stroke();
+    g.fillStyle = o.acc; g.font = '800 56px "Segoe UI",system-ui,sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(o.badge, 0, 4);
+  });
+  const lm = keepMat(new THREE.MeshBasicMaterial({ map: lg, transparent: true })); const logo = add(new THREE.PlaneGeometry(2.4, 2.4), lm, 0, .012, .1); logo.rotation.x = -Math.PI / 2;
+  // kim tuyến lấp lánh bay lơ lửng
+  for (let i = 0; i < 26; i++) {
+    const sp = add(new THREE.OctahedronGeometry(.05, 0), keepMat(new THREE.MeshBasicMaterial({ color: hex(FEST[i % FEST.length]) })), -6 + Math.random() * 12, .4 + Math.random() * 2, -4.2 + Math.random() * 8.4);
+    sp.userData.v = .15 + Math.random() * .25; ch.fx.sparks.push(sp);
+  }
+  // pháo giấy khi hoàn thành một thử thách
+  const N = 220, pos = new Float32Array(N * 3), col = new Float32Array(N * 3), c = new THREE.Color();
+  for (let i = 0; i < N; i++) { pos[i * 3 + 1] = -50; c.set(FEST[i % FEST.length]); col.set([c.r, c.g, c.b], i * 3); }
+  const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.BufferAttribute(pos, 3)); geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
+  const pts = new THREE.Points(geo, keepMat(new THREE.PointsMaterial({ size: .11, vertexColors: true }))); pts.frustumCulled = false; W.add(pts);
+  ch.fx.conf = { pts, vel: new Float32Array(N * 3), next: 0, N };
+  const pl = new THREE.PointLight(hex(o.acc), .7, 14, 2); pl.position.set(0, 2.4, 0); W.add(pl); // ánh màu chương
+}
+function confetti(ch, x, y, z, n) {
+  const C = ch.fx && ch.fx.conf; if (!C) return;
+  const p = C.pts.geometry.attributes.position.array;
+  for (let k = 0; k < n; k++) {
+    const i = C.next; C.next = (C.next + 1) % C.N;
+    p[i * 3] = x; p[i * 3 + 1] = y; p[i * 3 + 2] = z;
+    const a = Math.random() * Math.PI * 2, s = 1.5 + Math.random() * 2.5;
+    C.vel[i * 3] = Math.cos(a) * s; C.vel[i * 3 + 1] = 3 + Math.random() * 3.5; C.vel[i * 3 + 2] = Math.sin(a) * s;
   }
 }
-function lampTick(ch) { (ch.lamps || []).forEach((l, i) => { l.material.emissiveIntensity = .5 + .8 * (.5 + .5 * Math.sin(tm * 3 + i * .9)); }); }
-function banner(text, col) { spr(text, col || '#7c3aed', .9).position.set(0, 1.65, -4.6); }
+function festTick(ch, dt) {
+  const F = ch.fx; if (!F) return; dt = Math.min(dt || .016, .05);
+  F.flags.forEach((f, i) => { f.rotation.x = Math.sin(tm * 2.2 + i * .7) * .25; });
+  F.balloons.forEach((b) => { b.position.y = b.userData.y + Math.sin(tm * 1.4 + b.userData.p) * .07; b.rotation.z = Math.sin(tm + b.userData.p) * .08; });
+  F.sparks.forEach((sp) => { sp.position.y += sp.userData.v * dt; sp.rotation.y += dt * 2; if (sp.position.y > 2.6) sp.position.y = .2; });
+  const C = F.conf, p = C.pts.geometry.attributes.position.array;
+  for (let i = 0; i < C.N; i++) {
+    if (p[i * 3 + 1] < -1) continue;
+    C.vel[i * 3 + 1] -= 7 * dt; p[i * 3] += C.vel[i * 3] * dt; p[i * 3 + 1] += C.vel[i * 3 + 1] * dt; p[i * 3 + 2] += C.vel[i * 3 + 2] * dt;
+    if (p[i * 3 + 1] < .02) { p[i * 3 + 1] = .02; C.vel[i * 3] *= .6; C.vel[i * 3 + 2] *= .6; C.vel[i * 3 + 1] = 0; if (Math.random() < .02) p[i * 3 + 1] = -50; }
+  }
+  C.pts.geometry.attributes.position.needsUpdate = true;
+  // mỗi khi qua một thử thách: pháo giấy quanh người chơi
+  if (si > F.si) confetti(ch, P.position.x, 2, P.position.z, 70);
+  F.si = si;
+  if (ch.won && !F.wonFx) { F.wonFx = 1; confetti(ch, 0, 2.4, 0, 200); }
+}
+/** Bục thử thách: chân lục giác trắng, viền phát sáng màu chương, màn hình nghiêng. */
+function podium(x, z, lines, col) {
+  const acc = uiAccentHex(), glow = keepMat(new THREE.MeshStandardMaterial({ color: acc, emissive: acc, emissiveIntensity: 1.1 }));
+  add(new THREE.CylinderGeometry(.6, .7, .9, 6), mat(0x334155, .3, .35), x, .45, z);
+  add(new THREE.CylinderGeometry(.74, .74, .05, 6), glow, x, .03, z);
+  add(new THREE.CylinderGeometry(.63, .63, .04, 6), glow, x, .91, z);
+  const fr = add(rbox(1.22, .74, .05, .02), mat(0x1e293b, .4, .4), x, 1.42, z - .02); fr.rotation.x = -.35;
+  const sm = keepMat(new THREE.MeshBasicMaterial({ map: screenTex(lines, '#0b1525', col || '#67e8f9') }));
+  const sc = add(new THREE.PlaneGeometry(1.12, .64), sm, x, 1.42, z + .01); sc.rotation.x = -.35;
+  box(x - .7, x + .7, z - .65, z + .65);
+}
 
 /* ---------- Bảng thử thách dùng chung của kịch bản ---------- */
 /** Chọn nhiều đáp án: cfg {tag, title, desc, items:[[nhãn, đúng 1/0, giải thích]], ok, done}. */
@@ -99,23 +211,22 @@ CHS[1] = {
   n: 1, t: 'Chương 1 · Phòng hồ sơ', room: 'Phòng hồ sơ', ic: 'ti-file-text', bg: 0x1c2638, gl: [3.8, 2.4, -3.6],
   sum: ['Lưu rời rạc nhiều tệp gây dư thừa và không nhất quán', 'Khó truy xuất dữ liệu theo tiêu chí khi tệp không liên kết', 'Hệ QTCSDL là phần mềm quản lý tập trung việc lưu trữ, cập nhật, truy xuất'],
   build() {
-    hallRoom(); lanterns(this); banner('LỄ HỘI ÁNH SÁNG · 20/12');
-    screen4(-3.2, -2.4, 2.4, ['TepPhongVe.xlsx', 'TepKhanGia.xlsx', 'TepBaoVe.xlsx'], '#fde68a');
-    screen4(3.2, -1.6, 2.2, ['TRÙNG LẶP: 1.240 dòng', 'LỆCH SỐ GHẾ: 87'], '#fda4af');
-    screen4(0, 1.4, 2.2, ['Cần: một phần mềm', 'quản lý chung?'], '#c4b5fd');
-    shelf(-5.9, 1.2, 2.2, Math.PI / 2); shelf(5.9, 1.2, 2.2, -Math.PI / 2);
+    festRoom(this, { floor: ['#e0f2fe', '#7dd3fc'], wall: 0xbae6fd, title: 'PHÒNG HỒ SƠ', badge: 'CH.1', acc: uiAccent(1) });
+    podium(-3.2, -2.4, ['TepPhongVe.xlsx', 'TepKhanGia.xlsx', 'TepBaoVe.xlsx'], '#fde68a');
+    podium(3.2, -1.6, ['TRÙNG LẶP: 1.240 dòng', 'LỆCH SỐ GHẾ: 87'], '#fda4af');
+    podium(0, 1.4, ['Cần: một phần mềm', 'quản lý chung?'], '#c4b5fd');
     plant(-6.2, 4.2); plant(6.2, 4.2);
   },
   start: [['CO', 'Chào {n}, chị là Vy, trưởng ban tổ chức Lễ hội Ánh sáng. 5.000 vé đã bán, nhưng sáng nay hai khán giả cầm vé cùng một ghế.'],
     ['NOVA', 'Tôi là DORA, trợ lý dữ liệu. Tôi chỉ gợi ý, quyết định là của bạn. Dữ liệu vé đang nằm trong ba tệp bảng tính do ba phòng ghi riêng.'],
     ['GLITCH', 'Tệp lộn xộn là thiên đường của tôi. Ghế nào trùng, tôi giữ cả hai rồi bán lại giá gấp đôi.'],
-    ['NOVA', 'Thanh tím ở góc phải là độ tin cậy dữ liệu của phòng; chọn sai sẽ mất 5%. Bắt đầu với ba tệp ở máy bên trái.']],
+    ['NOVA', 'Thanh tím ở góc phải là độ tin cậy dữ liệu của phòng; chọn sai sẽ mất 5%. Bắt đầu với ba tệp ở bục bên trái.']],
   steps: [
-    { o: 'So sánh ba tệp ở máy bên trái', at: [-3.2, -1.3], t: 'Mở ba tệp', f() { s4Conflict(); } },
-    { o: 'Gọi tên vấn đề ở máy bên phải', at: [3.2, -.5], t: 'Xem báo cáo trùng lặp', f() { s4Redundant(); } },
-    { o: 'Liệt kê khó khăn ở máy giữa', at: [0, 2.5], t: 'Viết báo cáo cho ban tổ chức', f() { s4Problems(); } },
+    { o: 'So sánh ba tệp ở bục bên trái', at: [-3.2, -1.3], t: 'Mở ba tệp', f() { s4Conflict(); } },
+    { o: 'Gọi tên vấn đề ở bục bên phải', at: [3.2, -.5], t: 'Xem báo cáo trùng lặp', f() { s4Redundant(); } },
+    { o: 'Liệt kê khó khăn ở bục giữa', at: [0, 2.5], t: 'Viết báo cáo cho ban tổ chức', f() { s4Problems(); } },
     { o: 'Nhặt mảnh mã khóa', key: 1 }],
-  tick() { lampTick(this); },
+  tick(dt) { festTick(this, dt); },
 };
 function s4Conflict() {
   const found = new Set(), odd = REC.v[0].map((_, c) => REC.v.findIndex((r, i) => REC.v.filter((q) => q[c] === r[c]).length === 1));
@@ -130,7 +241,7 @@ ${REC.f.map((f, c) => `<tr><td style="padding:4px;color:#cbd5e1">${f}</td>${REC.
       if (odd[c] !== i) { bad(); draw(fbErr(`Ô "${REC.v[i][c]}" trùng khớp với ít nhất một tệp khác. Tìm ô khác hẳn hai tệp còn lại.`)); return; }
       if (found.has(c)) return;
       found.add(c); beep(700, .06, .03);
-      if (found.size === 3) { good(); draw('Đủ 3 ô mâu thuẫn. Mỗi phòng sửa tệp của mình mà không ai cập nhật tệp kia, nên cùng một khán giả có ba phiên bản khác nhau.'); doneStep([['NOVA', 'Máy bên phải đang thống kê có 1.240 dòng bị ghi lặp. Xem thử vấn đề đó tên là gì.']]); return; }
+      if (found.size === 3) { good(); draw('Đủ 3 ô mâu thuẫn. Mỗi phòng sửa tệp của mình mà không ai cập nhật tệp kia, nên cùng một khán giả có ba phiên bản khác nhau.'); doneStep([['NOVA', 'Bục bên phải đang thống kê có 1.240 dòng bị ghi lặp. Xem thử vấn đề đó tên là gì.']]); return; }
       draw(`Đúng: ${REC.f[c]} ở ${REC.files[i]} bị lệch.`);
     }));
   };
@@ -142,7 +253,7 @@ function s4Redundant() {
     { i: 'ti-database', t: 'Bảo mật dữ liệu, khiến người lạ đọc được tệp', e: 'Vấn đề ở đây là cùng một thông tin bị lưu lặp lại, không phải ai được đọc tệp.' },
     { i: 'ti-database', t: 'Dữ liệu phân tán, giúp truy cập nhanh hơn', e: 'CSDL phân tán là một kiến trúc có chủ đích, có cơ chế đồng bộ; ba tệp ghi tay rời rạc thì không.' },
     { i: 'ti-database', t: 'Sao lưu dữ liệu, giúp chống mất dữ liệu', e: 'Sao lưu là bản sao có kế hoạch để khôi phục; ba tệp do ba phòng tự ghi không phải bản sao lưu.' }],
-    () => { jingle(); talk([['CO', 'Vậy chị cần báo cáo gửi ban giám đốc: dùng tệp rời rạc thì khó khăn ở đâu? Máy giữa đang mở báo cáo.']], adv); });
+    () => { jingle(); talk([['CO', 'Vậy chị cần báo cáo gửi ban giám đốc: dùng tệp rời rạc thì khó khăn ở đâu? Bục giữa đang mở báo cáo.']], adv); });
 }
 function s4Problems() {
   s4Multi({
@@ -164,21 +275,20 @@ CHS[2] = {
   n: 2, t: 'Chương 2 · Phòng Bản thiết kế', room: 'Phòng Bản thiết kế', ic: 'ti-database', bg: 0x1c2638, gl: [-3.8, 2.4, -3.6],
   sum: ['Định nghĩa dữ liệu: khai báo CSDL, tạo và sửa cấu trúc bảng', 'Ràng buộc toàn vẹn giúp chặn dữ liệu sai ngay khi nhập', 'Một hệ QTCSDL có thể quản trị nhiều CSDL'],
   build() {
-    hallRoom(); lanterns(this); banner('BẢN THIẾT KẾ CSDL', '#4c1d95');
-    screen4(-3.2, -2.4, 2.4, ['CREATE ?', 'CSDL: ________'], '#86efac');
-    screen4(3.2, -1.6, 2.2, ['Bảng Ve', 'MaVe | Tuoi | ...'], '#c4b5fd');
-    screen4(0, 1.4, 2.2, ['NHẬP THỬ: 4 bản ghi', 'chấp nhận? từ chối?'], '#fde68a');
-    add(rbox(2.6, .05, 1.4, .02), mat(0x1e3a8a, .2, .6), 5.2, .8, 2.6); box(3.9, 6.5, 1.9, 3.3);
+    festRoom(this, { floor: ['#f3e8ff', '#c084fc'], wall: 0xddd6fe, title: 'BẢN THIẾT KẾ CSDL', badge: 'CH.2', acc: uiAccent(2) });
+    podium(-3.2, -2.4, ['CREATE ?', 'CSDL: ________'], '#86efac');
+    podium(3.2, -1.6, ['Bảng Ve', 'MaVe | Tuoi | ...'], '#c4b5fd');
+    podium(0, 1.4, ['NHẬP THỬ: 4 bản ghi', 'chấp nhận? từ chối?'], '#fde68a');
     plant(-6.2, 4.2); plant(6.2, 4.2);
   },
   start: [['NOVA', 'Muốn dùng hệ QTCSDL, trước hết phải mô tả dữ liệu sẽ được lưu như thế nào: tên CSDL, các bảng, các trường và luật cho từng trường.'],
     ['GLITCH', 'Cứ để trống luật đi. Tôi sẽ nhập vé tuổi âm, số điện thoại 9 số, mã vé trùng… cho vui.']],
   steps: [
-    { o: 'Khởi tạo CSDL ở máy bên trái', at: [-3.2, -1.3], t: 'Bắt đầu thiết kế', f() { s4Create(); } },
-    { o: 'Đặt ràng buộc cho bảng Vé ở máy bên phải', at: [3.2, -.5], t: 'Mở cấu trúc bảng', f() { s4Constraints(); } },
-    { o: 'Nhập thử dữ liệu ở máy giữa', at: [0, 2.5], t: 'Chạy nhập thử', f() { s4Insert(); } },
+    { o: 'Khởi tạo CSDL ở bục bên trái', at: [-3.2, -1.3], t: 'Bắt đầu thiết kế', f() { s4Create(); } },
+    { o: 'Đặt ràng buộc cho bảng Vé ở bục bên phải', at: [3.2, -.5], t: 'Mở cấu trúc bảng', f() { s4Constraints(); } },
+    { o: 'Nhập thử dữ liệu ở bục giữa', at: [0, 2.5], t: 'Chạy nhập thử', f() { s4Insert(); } },
     { o: 'Nhặt mảnh mã khóa', key: 1 }],
-  tick() { lampTick(this); },
+  tick(dt) { festTick(this, dt); },
 };
 function s4Create() {
   quiz('Thử thách 1 · Khai báo CSDL', 'Bắt đầu xây dựng CSDL cho lễ hội bằng hệ QTCSDL, việc nào cần làm TRƯỚC?', 'Chưa có cấu trúc thì dữ liệu chưa có chỗ để lưu.', [
@@ -186,7 +296,7 @@ function s4Create() {
     { i: 'ti-database', t: 'Nhập ngay 5.000 dòng vé từ ba tệp cũ', e: 'Chưa định nghĩa bảng và trường thì hệ QTCSDL chưa biết lưu dữ liệu vào đâu.' },
     { i: 'ti-database', t: 'Phân quyền cho nhân viên bán vé', e: 'Phân quyền thuộc nhóm bảo mật, làm sau khi đã có CSDL.' },
     { i: 'ti-database', t: 'Viết ứng dụng điện thoại để khán giả mua vé', e: 'Ứng dụng cần một CSDL đã được định nghĩa để kết nối tới.' }],
-    () => { jingle(); talk([['NOVA', 'CSDL LeHoiNova đã được khai báo. Bảng Vé đã có các trường; giờ đặt luật cho từng trường ở máy bên phải.']], adv); });
+    () => { jingle(); talk([['NOVA', 'CSDL LeHoiNova đã được khai báo. Bảng Vé đã có các trường; giờ đặt luật cho từng trường ở bục bên phải.']], adv); });
 }
 function s4Constraints() {
   s4Classify({
@@ -198,7 +308,7 @@ function s4Constraints() {
       ['SoDienThoai', 2, 'Số điện thoại di động ở Việt Nam có 10 chữ số.'],
       ['NgayMua (ngày mua vé)', 3, 'Vé chỉ được mua trước hoặc trong ngày diễn ra lễ hội.']],
     ok: 'Lưu cấu trúc bảng', win: 'Đã lưu. Từ giờ hệ QTCSDL tự chặn dữ liệu vi phạm các luật này.',
-    done: () => doneStep([['GLITCH', 'Để xem luật của các người chặn được gì.'], ['NOVA', 'Máy giữa đang có 4 bản ghi chờ nhập. Dự đoán xem bản nào bị từ chối.']]),
+    done: () => doneStep([['GLITCH', 'Để xem luật của các người chặn được gì.'], ['NOVA', 'Bục giữa đang có 4 bản ghi chờ nhập. Dự đoán xem bản nào bị từ chối.']]),
   });
 }
 function s4Insert() {
@@ -221,20 +331,20 @@ CHS[3] = {
   n: 3, t: 'Chương 3 · Quầy vé', room: 'Quầy vé', ic: 'ti-receipt', bg: 0x1c2638, gl: [3.6, 2.4, -3.6],
   sum: ['Cập nhật dữ liệu gồm thêm, sửa, xóa bản ghi', 'Truy xuất là lấy ra dữ liệu thỏa các tiêu chí', 'Truy xuất chỉ đọc, không làm thay đổi dữ liệu'],
   build() {
-    hallRoom(); lanterns(this); banner('QUẦY VÉ', '#a16207');
-    add(rbox(5.2, 1, .7, .05), mat(0x3f2a1d, 0, .6), 0, .5, -1.9); box(-2.6, 2.6, -2.25, -1.55);
-    screen4(-3.6, -3.6, 2, ['YÊU CẦU CỦA KHÁCH', 'thêm | sửa | xóa ?'], '#fde68a');
-    screen4(3.6, -3.6, 2, ['TRUY XUẤT', 'Hạng? Khu? Đã trả?'], '#86efac');
-    screen4(0, 2, 2.2, ['SELECT …', 'dữ liệu có đổi?'], '#93c5fd');
+    festRoom(this, { floor: ['#fef3c7', '#fbbf24'], wall: 0xfde68a, title: 'QUẦY VÉ', badge: 'CH.3', acc: uiAccent(3) });
+    add(rbox(5.2, 1, .7, .05), mat(0xffffff, .05, .4), 0, .5, -1.9); add(rbox(5.22, .12, .72, .03), keepMat(new THREE.MeshStandardMaterial({ color: uiAccentHex(3), emissive: uiAccentHex(3), emissiveIntensity: .9 })), 0, .82, -1.9); box(-2.6, 2.6, -2.25, -1.55);
+    podium(-3.6, -3.6, ['YÊU CẦU CỦA KHÁCH', 'thêm | sửa | xóa ?'], '#fde68a');
+    podium(3.6, -3.6, ['TRUY XUẤT', 'Hạng? Khu? Đã trả?'], '#86efac');
+    podium(0, 2, ['SELECT …', 'dữ liệu có đổi?'], '#93c5fd');
     plant(-6.2, 4.2); plant(6.2, 4.2);
   },
-  start: [['CO', 'Quầy vé mở cửa rồi. Khách xếp hàng đổi thông tin, mua thêm và hủy vé.'], ['NOVA', 'Mọi thay đổi giờ đi qua hệ QTCSDL. Bắt đầu với các yêu cầu ở máy bên trái.']],
+  start: [['CO', 'Quầy vé mở cửa rồi. Khách xếp hàng đổi thông tin, mua thêm và hủy vé.'], ['NOVA', 'Mọi thay đổi giờ đi qua hệ QTCSDL. Bắt đầu với các yêu cầu ở bục bên trái.']],
   steps: [
-    { o: 'Xử lý yêu cầu của khách ở máy bên trái', at: [-3.6, -2.5], t: 'Mở hàng chờ', f() { s4Update(); } },
-    { o: 'Lấy danh sách khán giả ở máy bên phải', at: [3.6, -2.5], t: 'Mở công cụ truy xuất', f() { s4Query(); } },
-    { o: 'Trả lời câu hỏi của chị Vy ở máy giữa', at: [0, 3.1], t: 'Đọc câu hỏi', f() { s4ReadOnly(); } },
+    { o: 'Xử lý yêu cầu của khách ở bục bên trái', at: [-3.6, -2.5], t: 'Mở hàng chờ', f() { s4Update(); } },
+    { o: 'Lấy danh sách khán giả ở bục bên phải', at: [3.6, -2.5], t: 'Mở công cụ truy xuất', f() { s4Query(); } },
+    { o: 'Trả lời câu hỏi của chị Vy ở bục giữa', at: [0, 3.1], t: 'Đọc câu hỏi', f() { s4ReadOnly(); } },
     { o: 'Nhặt mảnh mã khóa', key: 1 }],
-  tick() { lampTick(this); },
+  tick(dt) { festTick(this, dt); },
 };
 function s4Update() {
   s4Classify({
@@ -245,7 +355,7 @@ function s4Update() {
       ['Vé V0098 đã hoàn tiền và hủy', 2, 'Vé không còn hiệu lực nên xóa bản ghi khỏi bảng Vé.'],
       ['Ghế A12 bị nhập nhầm thành A21', 1, 'Sửa giá trị sai trong bản ghi đã có.']],
     win: 'Hàng chờ đã xử lý xong. Mỗi thay đổi chỉ cần làm một lần, ở một nơi duy nhất.',
-    done: () => doneStep([['CO', 'Bộ phận lễ tân cần danh sách khách VIP khu A đã thanh toán để đón tiếp. Máy bên phải.']]),
+    done: () => doneStep([['CO', 'Bộ phận lễ tân cần danh sách khách VIP khu A đã thanh toán để đón tiếp. Bục bên phải.']]),
   });
 }
 function s4Query() {
@@ -262,7 +372,7 @@ function s4Query() {
       const want = [1, 1, 1], k = want.findIndex((w, i) => sel[i] !== w);
       if (k >= 0) { bad(); draw(fbErr(`Tiêu chí "${F[k][0]}" chưa đúng yêu cầu: cần ${F[k][1][want[k]]}.`)); return; }
       good(); draw('3 khách: Nguyễn Hà, Lê Minh An, Hoàng Nam. Truy xuất theo nhiều tiêu chí chỉ mất một giây thay vì cả buổi lọc ba tệp.');
-      doneStep([['CO', 'Nhanh thật. Nhưng chị lo: lấy danh sách như vậy có làm thay đổi dữ liệu vé không? Câu hỏi ở máy giữa.']]);
+      doneStep([['CO', 'Nhanh thật. Nhưng chị lo: lấy danh sách như vậy có làm thay đổi dữ liệu vé không? Câu hỏi ở bục giữa.']]);
     };
   };
   draw();
@@ -281,20 +391,20 @@ CHS[4] = {
   n: 4, t: 'Chương 4 · Phòng An ninh', room: 'Phòng An ninh', ic: 'ti-shield', bg: 0x1c2638, gl: [-3.6, 2.4, -3.6],
   sum: ['Phân quyền: mỗi người chỉ được làm đúng việc của mình', 'Kiểm soát giao dịch đồng thời giữ dữ liệu nhất quán', 'Sao lưu dự phòng để khôi phục khi có sự cố'],
   build() {
-    hallRoom(2.8); lanterns(this); banner('PHÒNG AN NINH', '#065f46');
+    festRoom(this, { floor: ['#dcfce7', '#4ade80'], wall: 0xbbf7d0, title: 'PHÒNG AN NINH', badge: 'CH.4', acc: uiAccent(4) });
     this.leds = []; [-2.4, 2.4].forEach((x) => rack(x, -4.3, this.leds));
-    screen4(-4.4, -1.4, 2.2, ['PHÂN QUYỀN', 'ai được làm gì?'], '#86efac');
-    screen4(4.4, -1.4, 2.2, ['10:00:00', 'A12 ← Hà | A12 ← Tùng'], '#fda4af');
-    screen4(0, 1.6, 2.2, ['CẢNH BÁO BÃO', 'nguy cơ mất điện'], '#fde68a');
+    podium(-4.4, -1.4, ['PHÂN QUYỀN', 'ai được làm gì?'], '#86efac');
+    podium(4.4, -1.4, ['10:00:00', 'A12 ← Hà | A12 ← Tùng'], '#fda4af');
+    podium(0, 1.6, ['CẢNH BÁO BÃO', 'nguy cơ mất điện'], '#fde68a');
     plant(-6.2, 4.2); plant(6.2, 4.2);
   },
   start: [['GLITCH', 'Bảng vé giờ gọn gàng quá. Nhưng ai cũng mở được nó, kể cả tôi.'], ['NOVA', 'Không phải ai cũng được đọc và sửa mọi dữ liệu. Phòng an ninh có ba việc: phân quyền, kiểm soát giao dịch và sao lưu.']],
   steps: [
-    { o: 'Phân quyền truy cập ở máy bên trái', at: [-4.4, -.3], t: 'Mở bảng phân quyền', f() { s4Roles(); } },
-    { o: 'Xử lý hai giao dịch trùng ở máy bên phải', at: [4.4, -.3], t: 'Xem nhật ký giao dịch', f() { s4Concurrent(); } },
-    { o: 'Chuẩn bị cho bão ở máy giữa', at: [0, 2.7], t: 'Mở kế hoạch dự phòng', f() { s4Backup(); } },
+    { o: 'Phân quyền truy cập ở bục bên trái', at: [-4.4, -.3], t: 'Mở bảng phân quyền', f() { s4Roles(); } },
+    { o: 'Xử lý hai giao dịch trùng ở bục bên phải', at: [4.4, -.3], t: 'Xem nhật ký giao dịch', f() { s4Concurrent(); } },
+    { o: 'Chuẩn bị cho bão ở bục giữa', at: [0, 2.7], t: 'Mở kế hoạch dự phòng', f() { s4Backup(); } },
     { o: 'Nhặt mảnh mã khóa', key: 1 }],
-  tick() { lampTick(this); this.leds.forEach((l, i) => { l.material.emissiveIntensity = Math.sin(tm * 4 + i) > -.3 ? 1.3 : .15; }); },
+  tick(dt) { festTick(this, dt); this.leds.forEach((l, i) => { l.material.emissiveIntensity = Math.sin(tm * 4 + i) > -.3 ? 1.3 : .15; }); },
 };
 function s4Roles() {
   s4Classify({
@@ -305,7 +415,7 @@ function s4Roles() {
       ['Quản trị hệ thống', 3, 'Người quản trị chịu trách nhiệm cấu trúc, sao lưu và khôi phục nên có toàn quyền.'],
       ['Khán giả mua vé trên điện thoại', 0, 'Khán giả chỉ dùng ứng dụng; ứng dụng mới là nơi gửi yêu cầu tới CSDL.']],
     win: 'Đã phân quyền. BOT PHE VÉ bị chặn vì không có tài khoản nào được cấp quyền.',
-    done: () => doneStep([['GLITCH', 'Không vào được… Vậy thì tôi mua cùng lúc với người khác.'], ['NOVA', 'Máy bên phải báo hai nhân viên vừa bán cùng một ghế trong cùng một giây.']]),
+    done: () => doneStep([['GLITCH', 'Không vào được… Vậy thì tôi mua cùng lúc với người khác.'], ['NOVA', 'Bục bên phải báo hai nhân viên vừa bán cùng một ghế trong cùng một giây.']]),
   });
 }
 function s4Concurrent() {
@@ -314,7 +424,7 @@ function s4Concurrent() {
     { i: 'ti-lock', t: 'Cho cả hai thành công, đến cổng thì bảo vệ xử lý', e: 'Đây chính là lỗi trùng ghế ban đầu; CSDL sẽ mất tính nhất quán.' },
     { i: 'ti-lock', t: 'Hủy cả hai giao dịch cho công bằng', e: 'Không cần hủy cả hai; giao dịch đến trước hoàn toàn hợp lệ.' },
     { i: 'ti-lock', t: 'Ưu tiên người bấm sau vì thông tin mới hơn', e: 'Ghi đè giao dịch đã hoàn tất làm khách đầu tiên mất vé mà không biết.' }],
-    () => { jingle(); talk([['NOVA', 'Ghế A12 thuộc khách của chị Hà; khách của anh Tùng được mời chọn ghế khác.'], ['CO', 'Đài khí tượng vừa báo bão đêm nay, có thể mất điện. Máy giữa đang mở kế hoạch dự phòng.']], adv); });
+    () => { jingle(); talk([['NOVA', 'Ghế A12 thuộc khách của chị Hà; khách của anh Tùng được mời chọn ghế khác.'], ['CO', 'Đài khí tượng vừa báo bão đêm nay, có thể mất điện. Bục giữa đang mở kế hoạch dự phòng.']], adv); });
 }
 function s4Backup() {
   quiz('Thử thách 3 · Sao lưu', 'Nếu ổ cứng máy chủ hỏng vì mất điện đột ngột, việc nào giúp khôi phục toàn bộ dữ liệu vé?', 'Cần một bản sao nằm ở nơi khác.', [
@@ -333,20 +443,19 @@ CHS[5] = {
   n: 5, t: 'Chương 5 · Cổng Ứng dụng', room: 'Cổng Ứng dụng', ic: 'ti-world-www', bg: 0x1c2638, gl: [3.6, 2.4, -3.6],
   sum: ['Ứng dụng gửi yêu cầu tới hệ QTCSDL qua API', 'Hệ CSDL gồm CSDL, hệ QTCSDL và các phần mềm ứng dụng', 'Chọn hệ QTCSDL theo quy mô: MySQL, PostgreSQL… hay SQLite'],
   build() {
-    hallRoom(); lanterns(this); banner('CỔNG ỨNG DỤNG', '#9d174d');
-    screen4(-3.4, -1.6, 2.2, ['App Vé Nova', '→ API → ?'], '#f9a8d4');
-    screen4(3.4, -1.6, 2.2, ['HỆ CSDL =', '? + ? + ?'], '#c4b5fd');
-    screen4(0, 1.5, 2.2, ['MySQL  PostgreSQL', 'SQLite  Access'], '#93c5fd');
-    add(rbox(.5, 1.1, .1, .05), mat(0x111827, .5, .3), 5.6, 1.4, -4.6); spr('App', '#be185d', .5).position.set(5.6, 2.2, -4.5);
-    plant(-6.2, 4.2); plant(6.2, 4.2);
+    festRoom(this, { floor: ['#fce7f3', '#f472b6'], wall: 0xfbcfe8, title: 'CỔNG ỨNG DỤNG', badge: 'CH.5', acc: uiAccent(5) });
+    podium(-3.4, -1.6, ['App Vé Nova', '→ API → ?'], '#f9a8d4');
+    podium(3.4, -1.6, ['HỆ CSDL =', '? + ? + ?'], '#c4b5fd');
+    podium(0, 1.5, ['MySQL  PostgreSQL', 'SQLite  Access'], '#93c5fd');
+        plant(-6.2, 4.2); plant(6.2, 4.2);
   },
   start: [['CO', 'Ứng dụng Vé Nova trên điện thoại sắp mở bán đợt cuối. Khán giả không biết gì về bảng hay trường cả.'], ['NOVA', 'Đúng vậy: người dùng thao tác trên ứng dụng, còn ứng dụng nói chuyện với hệ QTCSDL qua giao diện lập trình ứng dụng, gọi là API.']],
   steps: [
-    { o: 'Sắp xếp đường đi của một lần mua vé ở máy bên trái', at: [-3.4, -.5], t: 'Mở sơ đồ', f() { s4Api(); } },
-    { o: 'Ghép các thành phần của hệ CSDL ở máy bên phải', at: [3.4, -.5], t: 'Mở sơ đồ hệ thống', f() { s4System(); } },
-    { o: 'Chọn hệ QTCSDL ở máy giữa', at: [0, 2.6], t: 'So sánh các hệ QTCSDL', f() { s4Dbms(); } },
+    { o: 'Sắp xếp đường đi của một lần mua vé ở bục bên trái', at: [-3.4, -.5], t: 'Mở sơ đồ', f() { s4Api(); } },
+    { o: 'Ghép các thành phần của hệ CSDL ở bục bên phải', at: [3.4, -.5], t: 'Mở sơ đồ hệ thống', f() { s4System(); } },
+    { o: 'Chọn hệ QTCSDL ở bục giữa', at: [0, 2.6], t: 'So sánh các hệ QTCSDL', f() { s4Dbms(); } },
     { o: 'Nhặt mảnh mã khóa', key: 1 }],
-  tick() { lampTick(this); },
+  tick(dt) { festTick(this, dt); },
 };
 function s4Api() {
   s4Order({
@@ -355,7 +464,7 @@ function s4Api() {
     steps: ['Khán giả chọn ghế và bấm "Mua vé" trên ứng dụng', 'Ứng dụng gửi yêu cầu tới hệ QTCSDL qua API', 'Hệ QTCSDL kiểm tra ràng buộc, quyền và giao dịch', 'Bản ghi vé mới được lưu vào CSDL', 'Ứng dụng nhận kết quả và báo "Mua vé thành công"'],
     why: ['Mọi thứ bắt đầu từ thao tác của người dùng trên ứng dụng.', 'Ứng dụng không tự sửa tệp dữ liệu; nó gửi yêu cầu qua API.', 'Trước khi ghi, hệ QTCSDL phải kiểm tra ràng buộc, quyền và tránh trùng giao dịch.', 'Chỉ khi kiểm tra xong, dữ liệu mới được ghi vào CSDL.', 'Cuối cùng kết quả mới được trả về cho người dùng.'],
     win: 'Đúng thứ tự. Nhờ API, nhà phát triển viết ứng dụng mà không cần biết dữ liệu được lưu chi tiết thế nào.',
-    done: () => doneStep([['NOVA', 'Giờ hãy nhìn toàn cảnh: hệ thống bán vé gồm những thành phần nào? Máy bên phải.']]),
+    done: () => doneStep([['NOVA', 'Giờ hãy nhìn toàn cảnh: hệ thống bán vé gồm những thành phần nào? Bục bên phải.']]),
   });
 }
 function s4System() {
@@ -368,7 +477,7 @@ function s4System() {
       ['Máy chiếu trên sân khấu lễ hội', 0, 'máy chiếu là thiết bị trình diễn, không tham gia lưu trữ hay khai thác CSDL.'],
       ['Ba tệp bảng tính cũ của các phòng', 0, 'dữ liệu đã được chuyển vào CSDL; ba tệp cũ không còn là một phần của hệ thống.']],
     win: 'Hệ CSDL = CSDL + hệ QTCSDL + các phần mềm ứng dụng khai thác CSDL đó.',
-    done: () => doneStep([['CO', 'Năm sau lễ hội mở rộng ra cả nước. Chị cần biết nên dùng hệ QTCSDL nào. Máy giữa.']]),
+    done: () => doneStep([['CO', 'Năm sau lễ hội mở rộng ra cả nước. Chị cần biết nên dùng hệ QTCSDL nào. Bục giữa.']]),
   });
 }
 function s4Dbms() {
@@ -387,10 +496,10 @@ function s4Dbms() {
 
 /* =================== Chương cuối · Trung tâm điều phối: CSDL tập trung và phân tán =================== */
 CHS[6] = {
-  n: 6, t: 'Chương cuối · Trung tâm điều phối', room: 'Trung tâm điều phối', ic: 'ti-server-2', bg: 0x05080f, dark: 1, gl: [0, 2.6, -2.6],
+  n: 6, t: 'Chương cuối · Trung tâm điều phối', room: 'Trung tâm điều phối', ic: 'ti-server-2', bg: 0x312e81, gl: [0, 2.6, -2.6],
   sum: [],
   build() {
-    room(grid('#0b1220', '#1e293b', 6), 0x111827, 2.8); lanterns(this);
+    festRoom(this, { floor: ['#ede9fe', '#a78bfa'], wall: 0xc4b5fd, title: 'TRUNG TÂM ĐIỀU PHỐI', badge: 'FINAL', acc: uiAccent(6) });
     this.leds = [];
     for (let i = 0; i < 3; i++) { rack(-5.6, -3 + i * 2.4, this.leds); rack(5.6, -3 + i * 2.4, this.leds); }
     coreBuild(this, 'Máy chủ LeHoiNova');
@@ -402,7 +511,7 @@ CHS[6] = {
     { o: 'Phân biệt CSDL tập trung và phân tán', at: [0, 2.4], t: 'Mở sơ đồ ba điểm bán', f() { s4Arch(); } },
     { o: 'Đối đầu BOT PHE VÉ', at: [0, 2.4], t: 'Bắt đầu kiểm tra', f() { s4Boss(); } }],
   tick(dt) {
-    lampTick(this);
+    festTick(this, dt);
     this.leds.forEach((l, i) => { const r = Math.sin(tm * 5 + i * 1.7); l.material.emissive.setHex(si < 1 || this.won ? 0x22c55e : r > .4 ? 0xe11d48 : 0x22c55e); l.material.emissiveIntensity = r > -.4 ? 1.4 : .1; });
     coreTick(this, dt, () => talk([['NOVA', 'BOT PHE VÉ đã mất quyền ghi vào CSDL.'], ['CO', 'Còn ba điểm bán vé ở ba quận: nên lưu dữ liệu ở một máy chủ hay ở nhiều nơi?']], adv));
   },
