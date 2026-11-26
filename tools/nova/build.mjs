@@ -3,7 +3,7 @@
  * thay thư viện three r128 và bộ biểu tượng Tabler lấy từ CDN bằng bản đặt sẵn trong tools/nova/vendor,
  * để trò chơi chạy cả khi không ra được mạng ngoài (bản demo một tệp, trường chặn CDN),
  * và chèn các gói: đồ họa (visual-pack.js), âm thanh + toàn màn hình (audio-pack.js), cỡ chữ + sửa lỗi kẹt (read-pack.js),
- * luật chơi + độ khó (pro-pack.js), hình ảnh THPT (look-pack.js) hoặc dễ thương (cute-pack.js). Kịch bản 2, 3 thêm bộ dụng cụ chung (kit-pack.js) và gói nội dung riêng.
+ * luật chơi + độ khó (pro-pack.js), hình ảnh THPT (look-pack.js) hoặc dễ thương (cute-pack.js). Kịch bản 2, 3, 4 thêm bộ dụng cụ chung (kit-pack.js) và gói nội dung riêng.
  * Cuối cùng là giao diện bảng thử thách và màu theo chương (ui-pack.js).
  * Chạy: node tools/nova/build.mjs
  */
@@ -105,5 +105,22 @@ buildGame({
     ["Hoàn thành từng phòng để mở khóa phòng tiếp theo. Tiến độ được lưu tự động.", "Hoàn thành từng khoang để mở khóa khoang tiếp theo. Sao tính theo oxy còn lại. Tiến độ được lưu tự động."],
     ["localStorage.getItem('nova_save')", "localStorage.getItem('nova3_save')"],
     ["localStorage.setItem('nova_save'", "localStorage.setItem('nova3_save'"],
+  ],
+});
+
+// Kịch bản 4 · Đêm Lễ hội Ánh sáng (Tin 11, Bài 12 – hệ QTCSDL và hệ CSDL): bộ dụng cụ chung + 6 phòng mới (s4-pack.js), lưu tiến độ riêng.
+buildGame({
+  out: "public/nova/le-hoi-anh-sang/index.html",
+  extra: read("kit-pack.js") + "\n" + read("s4-pack.js"),
+  edits: [
+    ["<title>Sự cố ở Ngôi nhà Nova · EduNova</title>", "<title>Đêm Lễ hội Ánh sáng · EduNova</title>"],
+    ['<div style="font-size:22px;font-weight:500;margin:2px 0 4px">Sự cố ở Ngôi nhà Nova</div>', '<div style="font-size:22px;font-weight:500;margin:2px 0 4px">Đêm Lễ hội Ánh sáng</div>'],
+    ["Mã độc Glitch đã chiếm ngôi nhà thông minh. Hãy khôi phục 5 hệ thống và giải cứu quản gia NOVA.", "5.000 vé Lễ hội Ánh sáng nằm rải rác trong ba tệp bảng tính, ghế bị bán trùng và bot phe vé đang lợi dụng. Dựng lại hệ thống dữ liệu trước giờ mở cổng."],
+    ["ti-home-bolt", "ti-database"],
+    ['Kỹ thuật viên <span id="mname"></span>', 'Kỹ thuật viên dữ liệu · <span id="mname"></span>'],
+    ["Bản đồ Ngôi nhà Nova", "Bản đồ Trung tâm Dữ liệu"],
+    ["Hoàn thành từng phòng để mở khóa phòng tiếp theo. Tiến độ được lưu tự động.", "Hoàn thành từng phòng để mở khóa phòng tiếp theo. Sao tính theo độ tin cậy dữ liệu còn lại. Tiến độ được lưu tự động."],
+    ["localStorage.getItem('nova_save')", "localStorage.getItem('nova4_save')"],
+    ["localStorage.setItem('nova_save'", "localStorage.setItem('nova4_save'"],
   ],
 });

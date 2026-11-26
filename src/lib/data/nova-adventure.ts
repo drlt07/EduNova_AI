@@ -1,8 +1,8 @@
 /**
  * Phiêu lưu Nova — bộ kịch bản trò chơi 3D ôn Tin học (mỗi kịch bản là một tệp tự chạy trong public/, sinh từ tools/).
  * Kịch bản 1 "Sự cố ở Ngôi nhà Nova" (public/nova/index.html), kịch bản 2 "Đêm trước kỳ thi"
- * (public/nova/dem-truoc-ky-thi/index.html) và kịch bản 3 "Mất liên lạc ở Trạm Nova-7" (public/nova/tram-nova-7/index.html),
- * cùng sinh từ tools/nova. Mỗi chương là một thử thách Tin học thực hành;
+ * (public/nova/dem-truoc-ky-thi/index.html), kịch bản 3 "Mất liên lạc ở Trạm Nova-7" (public/nova/tram-nova-7/index.html) và
+ * kịch bản 4 "Đêm Lễ hội Ánh sáng" (public/nova/le-hoi-anh-sang/index.html, Tin 11 Bài 12), cùng sinh từ tools/nova. Mỗi chương là một thử thách Tin học thực hành;
  * các mô phỏng cùng chủ đề của kịch bản 1 trỏ về chương tương ứng.
  */
 
@@ -52,6 +52,16 @@ export const NOVA3_CHAPTERS: NovaChapter[] = [
   { n: 6, room: "Lõi ECHO", title: "Đối thoại với ECHO", learn: "Kiểm chứng nhận định của AI, con người giám sát quyết định quan trọng", slugs: ["ai-discovery", "digital-citizen"] },
 ];
 
+/** Kịch bản 4 "Đêm Lễ hội Ánh sáng": Tin học 11, Bài 12 – hệ quản trị CSDL và hệ CSDL (Kết nối tri thức). */
+export const NOVA4_CHAPTERS: NovaChapter[] = [
+  { n: 1, room: "Phòng hồ sơ", title: "Ba tệp rời rạc", learn: "Dư thừa, không nhất quán, khó truy xuất: vì sao cần hệ QTCSDL", slugs: ["database-city"] },
+  { n: 2, room: "Phòng Bản thiết kế", title: "Định nghĩa dữ liệu", learn: "Khai báo CSDL, cấu trúc bảng, ràng buộc toàn vẹn", slugs: ["database-city"] },
+  { n: 3, room: "Quầy vé", title: "Cập nhật và truy xuất", learn: "Thêm, sửa, xóa bản ghi; truy xuất theo nhiều tiêu chí", slugs: ["sql-detective"] },
+  { n: 4, room: "Phòng An ninh", title: "Bảo mật và an toàn", learn: "Phân quyền, kiểm soát giao dịch đồng thời, sao lưu dự phòng", slugs: [] },
+  { n: 5, room: "Cổng Ứng dụng", title: "API và hệ CSDL", learn: "Ứng dụng gọi hệ QTCSDL qua API, thành phần hệ CSDL, các hệ QTCSDL phổ biến", slugs: [] },
+  { n: 6, room: "Trung tâm điều phối", title: "Đối đầu BOT PHE VÉ", learn: "CSDL tập trung và CSDL phân tán, tổng kết các chức năng của hệ QTCSDL", slugs: [] },
+];
+
 export const chapterLabel = (c: NovaChapter) => (c.n < 6 ? `Chương ${c.n}` : "Chương cuối");
 
 export function novaChapterFor(slug: string): NovaChapter | undefined {
@@ -75,7 +85,7 @@ export interface Adventure {
 }
 
 /** Số kịch bản dự kiến của bộ; ô chưa có kịch bản hiện "Sắp ra mắt". */
-export const ADVENTURE_SLOTS = 3;
+export const ADVENTURE_SLOTS = 4;
 
 export const ADVENTURES: Adventure[] = [
   {
@@ -122,6 +132,17 @@ export const ADVENTURES: Adventure[] = [
     minutes: 40,
     chapters: NOVA3_CHAPTERS,
     cover: "from-[#1c0f0a] via-[#7c2d12] to-[#ea580c]",
+  },
+  {
+    slug: "le-hoi-anh-sang",
+    no: 4,
+    title: "Đêm Lễ hội Ánh sáng",
+    tagline: "Dựng lại hệ thống dữ liệu vé trước giờ mở cổng lễ hội",
+    summary: "Theo Bài 12 Tin học 11: tìm chỗ mâu thuẫn trong ba tệp rời rạc, khai báo CSDL và ràng buộc toàn vẹn, cập nhật và truy xuất vé, phân quyền, xử lý giao dịch trùng ghế, sao lưu, kết nối ứng dụng qua API rồi chọn CSDL tập trung hay phân tán. Thanh độ tin cậy dữ liệu thay cho sao.",
+    src: NOVA_GAME_SRC.replace(/index\.html$/, "le-hoi-anh-sang/index.html"),
+    minutes: 40,
+    chapters: NOVA4_CHAPTERS,
+    cover: "from-[#1e1b4b] via-[#6d28d9] to-[#db2777]",
   },
 ];
 
