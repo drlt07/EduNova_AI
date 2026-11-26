@@ -54,12 +54,12 @@ export const NOVA3_CHAPTERS: NovaChapter[] = [
 
 /** Kịch bản 4 "Đêm Lễ hội Ánh sáng": Tin học 11, Bài 12 – hệ quản trị CSDL và hệ CSDL (Kết nối tri thức). */
 export const NOVA4_CHAPTERS: NovaChapter[] = [
-  { n: 1, room: "Phòng hồ sơ", title: "Ba tệp rời rạc", learn: "Dư thừa, không nhất quán, khó truy xuất: vì sao cần hệ QTCSDL", slugs: ["database-city"] },
-  { n: 2, room: "Phòng Bản thiết kế", title: "Định nghĩa dữ liệu", learn: "Khai báo CSDL, cấu trúc bảng, ràng buộc toàn vẹn", slugs: ["database-city"] },
+  { n: 1, room: "Phòng hồ sơ", title: "Ba tệp rời rạc", learn: "Vì sao cần hệ QTCSDL; phần mềm quản lý CSDL phải làm được những gì", slugs: ["database-city"] },
+  { n: 2, room: "Phòng Bản thiết kế", title: "Định nghĩa dữ liệu", learn: "Khai báo CSDL, tạo và sửa cấu trúc bảng, ràng buộc toàn vẹn", slugs: ["database-city"] },
   { n: 3, room: "Quầy vé", title: "Cập nhật và truy xuất", learn: "Thêm, sửa, xóa bản ghi; truy xuất theo nhiều tiêu chí", slugs: ["sql-detective"] },
   { n: 4, room: "Phòng An ninh", title: "Bảo mật và an toàn", learn: "Phân quyền, kiểm soát giao dịch đồng thời, sao lưu dự phòng", slugs: [] },
-  { n: 5, room: "Cổng Ứng dụng", title: "API và hệ CSDL", learn: "Ứng dụng gọi hệ QTCSDL qua API, thành phần hệ CSDL, các hệ QTCSDL phổ biến", slugs: [] },
-  { n: 6, room: "Trung tâm điều phối", title: "Đối đầu BOT PHE VÉ", learn: "CSDL tập trung và CSDL phân tán, tổng kết các chức năng của hệ QTCSDL", slugs: [] },
+  { n: 5, room: "Cổng Ứng dụng", title: "API và hệ CSDL", learn: "API, thành phần của hệ CSDL, các hệ QTCSDL phổ biến và tính tổng quát", slugs: [] },
+  { n: 6, room: "Trung tâm điều phối", title: "Đối đầu BOT PHE VÉ", learn: "Tổng kết ba nhóm chức năng, CSDL tập trung và CSDL phân tán", slugs: [] },
 ];
 
 export const chapterLabel = (c: NovaChapter) => (c.n < 6 ? `Chương ${c.n}` : "Chương cuối");

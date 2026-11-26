@@ -2451,11 +2451,11 @@ const REC = { f: ['Hạng vé', 'Số ghế', 'Số điện thoại'], files: ['
   v: [['VIP', 'A21', '0912 345 678'], ['VIP', 'A12', '0912 345 678'], ['Thường', 'A12', '0912 345 687']] };
 CHS[1] = {
   n: 1, t: 'Chương 1 · Phòng hồ sơ', room: 'Phòng hồ sơ', ic: 'ti-file-text', bg: 0x1c2638, gl: [3.8, 2.4, -3.6],
-  sum: ['Lưu rời rạc nhiều tệp gây dư thừa và không nhất quán', 'Khó truy xuất dữ liệu theo tiêu chí khi tệp không liên kết', 'Hệ QTCSDL là phần mềm quản lý tập trung việc lưu trữ, cập nhật, truy xuất'],
+  sum: ['Tệp rời rạc: dư thừa, không nhất quán, khó truy xuất, khó bảo mật', 'Phần mềm quản lý CSDL phải tạo lập, cập nhật có kiểm tra, truy xuất và bảo mật', 'Phần mềm đó gọi là hệ quản trị CSDL (hệ QTCSDL)'],
   build() {
     festRoom(this, { floor: ['#e0f2fe', '#7dd3fc'], wall: 0xbae6fd, title: 'PHÒNG HỒ SƠ', badge: 'CH.1', acc: uiAccent(1) });
     podium(-3.2, -2.4, ['TepPhongVe.xlsx', 'TepKhanGia.xlsx', 'TepBaoVe.xlsx'], '#fde68a');
-    podium(3.2, -1.6, ['TRÙNG LẶP: 1.240 dòng', 'LỆCH SỐ GHẾ: 87'], '#fda4af');
+    podium(3.2, -1.6, ['PHẦN MỀM MỚI', 'cần làm được gì?'], '#fda4af');
     podium(0, 1.4, ['Cần: một phần mềm', 'quản lý chung?'], '#c4b5fd');
     plant(-6.2, 4.2); plant(6.2, 4.2);
   },
@@ -2465,7 +2465,7 @@ CHS[1] = {
     ['NOVA', 'Thanh tím ở góc phải là độ tin cậy dữ liệu của phòng; chọn sai sẽ mất 5%. Bắt đầu với ba tệp ở bục bên trái.']],
   steps: [
     { o: 'So sánh ba tệp ở bục bên trái', at: [-3.2, -1.3], t: 'Mở ba tệp', f() { s4Conflict(); } },
-    { o: 'Gọi tên vấn đề ở bục bên phải', at: [3.2, -.5], t: 'Xem báo cáo trùng lặp', f() { s4Redundant(); } },
+    { o: 'Chọn yêu cầu cho phần mềm ở bục bên phải', at: [3.2, -.5], t: 'Mở danh sách yêu cầu', f() { s4Redundant(); } },
     { o: 'Liệt kê khó khăn ở bục giữa', at: [0, 2.5], t: 'Viết báo cáo cho ban tổ chức', f() { s4Problems(); } },
     { o: 'Nhặt mảnh mã khóa', key: 1 }],
   tick(dt) { festTick(this, dt); },
@@ -2483,19 +2483,24 @@ ${REC.f.map((f, c) => `<tr><td style="padding:4px;color:#cbd5e1">${f}</td>${REC.
       if (odd[c] !== i) { bad(); draw(fbErr(`Ô "${REC.v[i][c]}" trùng khớp với ít nhất một tệp khác. Tìm ô khác hẳn hai tệp còn lại.`)); return; }
       if (found.has(c)) return;
       found.add(c); beep(700, .06, .03);
-      if (found.size === 3) { good(); draw('Đủ 3 ô mâu thuẫn. Mỗi phòng sửa tệp của mình mà không ai cập nhật tệp kia, nên cùng một khán giả có ba phiên bản khác nhau.'); doneStep([['NOVA', 'Bục bên phải đang thống kê có 1.240 dòng bị ghi lặp. Xem thử vấn đề đó tên là gì.']]); return; }
+      if (found.size === 3) { good(); draw('Đủ 3 ô mâu thuẫn. Mỗi phòng sửa tệp của mình mà không ai cập nhật tệp kia, nên cùng một khán giả có ba phiên bản khác nhau.'); doneStep([['NOVA', 'Ba tệp, ba phiên bản của cùng một người. Ban giám đốc muốn mua phần mềm quản lý dữ liệu mới; bục bên phải đang liệt kê các yêu cầu.']]); return; }
       draw(`Đúng: ${REC.f[c]} ở ${REC.files[i]} bị lệch.`);
     }));
   };
   draw();
 }
 function s4Redundant() {
-  quiz('Thử thách 2 · Dữ liệu lặp lại', 'Cùng một khán giả được ghi ở cả ba tệp. Hiện tượng này gọi là gì và dẫn tới hậu quả nào?', 'Đây chính là nguồn gốc của các ô mâu thuẫn vừa tìm được.', [
-    { i: 'ti-database', t: 'Dư thừa dữ liệu, dễ dẫn tới dữ liệu không nhất quán', ok: 1, e: 'Một thông tin lưu nhiều nơi thì phải sửa ở mọi nơi; quên một chỗ là các bản ghi mâu thuẫn nhau.' },
-    { i: 'ti-database', t: 'Bảo mật dữ liệu, khiến người lạ đọc được tệp', e: 'Vấn đề ở đây là cùng một thông tin bị lưu lặp lại, không phải ai được đọc tệp.' },
-    { i: 'ti-database', t: 'Dữ liệu phân tán, giúp truy cập nhanh hơn', e: 'CSDL phân tán là một kiến trúc có chủ đích, có cơ chế đồng bộ; ba tệp ghi tay rời rạc thì không.' },
-    { i: 'ti-database', t: 'Sao lưu dữ liệu, giúp chống mất dữ liệu', e: 'Sao lưu là bản sao có kế hoạch để khôi phục; ba tệp do ba phòng tự ghi không phải bản sao lưu.' }],
-    () => { jingle(); talk([['CO', 'Vậy chị cần báo cáo gửi ban giám đốc: dùng tệp rời rạc thì khó khăn ở đâu? Bục giữa đang mở báo cáo.']], adv); });
+  s4Multi({
+    tag: 'Thử thách 2 · Phần mềm cần có', title: 'Ban giám đốc sẽ mua một phần mềm quản lý dữ liệu vé. Phần mềm đó PHẢI làm được những việc nào?',
+    desc: 'Đọc kỹ từng yêu cầu: có một yêu cầu nghe hấp dẫn nhưng lại nguy hiểm cho dữ liệu của khán giả.', ok: 'Gửi yêu cầu mua', items: [
+      ['Cung cấp công cụ tạo lập CSDL: đặt tên, tạo các bảng và trường', 1, 'chưa tạo lập được CSDL thì chưa có chỗ chứa dữ liệu vé.'],
+      ['Cập nhật dữ liệu và tự động kiểm tra dữ liệu nhập vào có đúng đắn không', 1, 'đây là cách chặn lỗi ghế A21 / A12 ngay từ lúc nhập.'],
+      ['Truy xuất nhanh dữ liệu theo yêu cầu, ví dụ danh sách khách VIP khu A', 1, 'ban tổ chức cần lấy danh sách theo nhiều tiêu chí khác nhau.'],
+      ['Cho bất kỳ ai cũng mở xem được toàn bộ bảng khán giả cho tiện', 0, 'bảng chứa số điện thoại của 5.000 người; dữ liệu phải được bảo mật, chỉ người có thẩm quyền mới được xem.'],
+      ['Tự sinh thêm khán giả ảo để lễ hội trông đông vui hơn', 0, 'phần mềm quản lý dữ liệu phải phản ánh đúng thực tế, không tự tạo dữ liệu giả.']],
+    win: 'Đúng: phần mềm cần tạo lập, cập nhật có kiểm tra, truy xuất được, và đặc biệt phải bảo mật. Loại phần mềm này gọi là hệ quản trị cơ sở dữ liệu (hệ QTCSDL).',
+    done: () => doneStep([['CO', 'Trước khi mua, chị cần báo cáo vì sao không thể tiếp tục dùng tệp rời. Bục giữa đang mở báo cáo.']]),
+  });
 }
 function s4Problems() {
   s4Multi({
@@ -2526,19 +2531,25 @@ CHS[2] = {
   start: [['NOVA', 'Muốn dùng hệ QTCSDL, trước hết phải mô tả dữ liệu sẽ được lưu như thế nào: tên CSDL, các bảng, các trường và luật cho từng trường.'],
     ['GLITCH', 'Cứ để trống luật đi. Tôi sẽ nhập vé tuổi âm, số điện thoại 9 số, mã vé trùng… cho vui.']],
   steps: [
-    { o: 'Khởi tạo CSDL ở bục bên trái', at: [-3.2, -1.3], t: 'Bắt đầu thiết kế', f() { s4Create(); } },
+    { o: 'Giao việc định nghĩa dữ liệu ở bục bên trái', at: [-3.2, -1.3], t: 'Mở danh sách việc', f() { s4Create(); } },
     { o: 'Đặt ràng buộc cho bảng Vé ở bục bên phải', at: [3.2, -.5], t: 'Mở cấu trúc bảng', f() { s4Constraints(); } },
     { o: 'Nhập thử dữ liệu ở bục giữa', at: [0, 2.5], t: 'Chạy nhập thử', f() { s4Insert(); } },
     { o: 'Nhặt mảnh mã khóa', key: 1 }],
   tick(dt) { festTick(this, dt); },
 };
 function s4Create() {
-  quiz('Thử thách 1 · Khai báo CSDL', 'Bắt đầu xây dựng CSDL cho lễ hội bằng hệ QTCSDL, việc nào cần làm TRƯỚC?', 'Chưa có cấu trúc thì dữ liệu chưa có chỗ để lưu.', [
-    { i: 'ti-database', t: 'Khai báo CSDL tên LeHoiNova rồi tạo cấu trúc các bảng (Khán giả, Vé, Ghế)', ok: 1, e: 'Đây là nhóm chức năng định nghĩa dữ liệu: khai báo CSDL với tên xác định, tạo lập kiến trúc bên trong.' },
-    { i: 'ti-database', t: 'Nhập ngay 5.000 dòng vé từ ba tệp cũ', e: 'Chưa định nghĩa bảng và trường thì hệ QTCSDL chưa biết lưu dữ liệu vào đâu.' },
-    { i: 'ti-database', t: 'Phân quyền cho nhân viên bán vé', e: 'Phân quyền thuộc nhóm bảo mật, làm sau khi đã có CSDL.' },
-    { i: 'ti-database', t: 'Viết ứng dụng điện thoại để khán giả mua vé', e: 'Ứng dụng cần một CSDL đã được định nghĩa để kết nối tới.' }],
-    () => { jingle(); talk([['NOVA', 'CSDL LeHoiNova đã được khai báo. Bảng Vé đã có các trường; giờ đặt luật cho từng trường ở bục bên phải.']], adv); });
+  s4Multi({
+    tag: 'Thử thách 1 · Định nghĩa dữ liệu', title: 'Trong 6 việc ban tổ chức yêu cầu, việc nào thuộc nhóm chức năng ĐỊNH NGHĨA DỮ LIỆU?',
+    desc: 'Định nghĩa dữ liệu là mô tả "cái khung": CSDL tên gì, gồm bảng nào, trường nào, luật nào. Còn đưa dữ liệu vào khung là việc khác.', ok: 'Giao việc', items: [
+      ['Khai báo một CSDL mới tên LeHoiNova', 1, 'khai báo CSDL với tên xác định là định nghĩa dữ liệu.'],
+      ['Tạo bảng Ghế gồm các trường SoGhe, Khu, HangVe', 1, 'tạo lập kiến trúc bên trong CSDL là định nghĩa dữ liệu.'],
+      ['Thêm trường Email vào bảng Khán giả đã có', 1, 'sửa đổi kiến trúc của bảng vẫn thuộc định nghĩa dữ liệu, dù bảng đã có dữ liệu.'],
+      ['Đặt luật: tuổi khán giả từ 0 đến 120', 1, 'cài đặt ràng buộc toàn vẹn thuộc định nghĩa dữ liệu.'],
+      ['Nhập 200 khán giả mới đăng ký hôm nay', 0, 'đưa bản ghi vào bảng là cập nhật dữ liệu, không phải định nghĩa.'],
+      ['Lấy danh sách khán giả ở khu A', 0, 'lấy dữ liệu theo tiêu chí là truy xuất dữ liệu.']],
+    win: 'Chính xác. Bốn việc đầu chỉ mô tả cấu trúc và luật; dữ liệu vé sẽ được đưa vào sau. Cùng hệ QTCSDL này còn đang quản trị CSDL Nhân sự và CSDL Kho của lễ hội: một hệ QTCSDL quản trị được nhiều CSDL.',
+    done: () => doneStep([['NOVA', 'Bảng Vé đã có các trường. Giờ đặt luật cho từng trường ở bục bên phải.']]),
+  });
 }
 function s4Constraints() {
   s4Classify({
@@ -2620,7 +2631,7 @@ function s4Query() {
   draw();
 }
 function s4ReadOnly() {
-  quiz('Thử thách 3 · Truy xuất và cập nhật', 'Vừa lấy danh sách khách VIP khu A. Dữ liệu trong CSDL thay đổi thế nào?', 'Nghĩ xem thao tác vừa rồi là đọc hay ghi.', [
+  quiz('Thử thách 3 · Truy xuất và cập nhật', 'Lễ tân lỡ tay chạy truy xuất "khách VIP khu A" liên tục 10 lần. Dữ liệu vé trong CSDL thay đổi thế nào?', 'Nghĩ xem truy xuất là đọc hay ghi dữ liệu.', [
     { i: 'ti-search', t: 'Không thay đổi: truy xuất chỉ đọc dữ liệu thỏa tiêu chí', ok: 1, e: 'Truy xuất (truy vấn chọn) chỉ lấy dữ liệu ra; chỉ các thao tác cập nhật (thêm, sửa, xóa) mới làm dữ liệu thay đổi.' },
     { i: 'ti-search', t: 'Các khách không thuộc khu A bị xóa khỏi CSDL', e: 'Tiêu chí lọc chỉ chọn dòng để hiển thị; các dòng khác vẫn nằm nguyên trong CSDL.' },
     { i: 'ti-search', t: 'Hạng vé của mọi khách bị đổi thành VIP', e: 'Đổi giá trị là thao tác sửa; truy xuất không ghi gì vào CSDL.' },
@@ -2731,7 +2742,7 @@ function s4Dbms() {
       ['Ứng dụng ghi chú ca trực trên điện thoại của một bảo vệ', 1, 'Dữ liệu nhỏ của một người, lưu ngay trên máy: SQLite là đủ.'],
       ['Trang quản lý chung cho ban tổ chức ở nhiều nơi', 0, 'Nhiều người ở nhiều nơi cùng dùng một CSDL: chọn hệ QTCSDL máy chủ.'],
       ['Trò chơi nhỏ lưu bảng điểm cao ngay trên máy', 1, 'Ứng dụng đơn lẻ, không cần máy chủ: SQLite phù hợp.']],
-    win: 'Chọn đúng theo quy mô. Microsoft Access cũng là một hệ QTCSDL, nhưng hiệu suất hạn chế nên ít dùng cho ứng dụng trực tuyến lớn.',
+    win: 'Chọn đúng theo quy mô. Vì các chức năng của hệ QTCSDL được xây dựng tổng quát, không phụ thuộc một CSDL cụ thể, cùng một MySQL dùng được cho cả lễ hội lẫn thư viện trường. Microsoft Access cũng là hệ QTCSDL nhưng hiệu suất hạn chế, ít dùng cho ứng dụng trực tuyến lớn.',
     done: () => doneStep([['NOVA', 'Mảnh mã khóa thứ năm ở cạnh màn hình ứng dụng. Sau đó là trận cuối ở Trung tâm điều phối.']], toKey(4.6, -3.4)),
   });
 }
@@ -2750,14 +2761,31 @@ CHS[6] = {
     ['NOVA', '{n}, nạp 5 mảnh mã khóa vào máy chủ để khóa quyền của BOT PHE VÉ. Sau đó ta chọn kiến trúc CSDL cho ba điểm bán.']],
   steps: [
     { o: 'Nạp 5 mảnh mã khóa vào máy chủ', at: [0, 2.4], t: 'Nạp mảnh mã khóa', f() { coreStart(CH); } },
+    { o: 'Tóm tắt ba nhóm chức năng của hệ QTCSDL', at: [0, 2.4], t: 'Mở bảng tổng kết', f() { s4Groups(); } },
     { o: 'Phân biệt CSDL tập trung và phân tán', at: [0, 2.4], t: 'Mở sơ đồ ba điểm bán', f() { s4Arch(); } },
     { o: 'Đối đầu BOT PHE VÉ', at: [0, 2.4], t: 'Bắt đầu kiểm tra', f() { s4Boss(); } }],
   tick(dt) {
     festTick(this, dt);
     this.leds.forEach((l, i) => { const r = Math.sin(tm * 5 + i * 1.7); l.material.emissive.setHex(si < 1 || this.won ? 0x22c55e : r > .4 ? 0xe11d48 : 0x22c55e); l.material.emissiveIntensity = r > -.4 ? 1.4 : .1; });
-    coreTick(this, dt, () => talk([['NOVA', 'BOT PHE VÉ đã mất quyền ghi vào CSDL.'], ['CO', 'Còn ba điểm bán vé ở ba quận: nên lưu dữ liệu ở một máy chủ hay ở nhiều nơi?']], adv));
+    coreTick(this, dt, () => talk([['NOVA', 'BOT PHE VÉ đã mất quyền ghi vào CSDL.'], ['NOVA', 'Trước trận cuối, hãy tổng kết lại mọi việc hệ QTCSDL đã giúp ta làm đêm nay.']], adv));
   },
 };
+function s4Groups() {
+  s4Classify({
+    tag: 'Thử thách cuối · Ba nhóm chức năng', title: 'Đêm nay hệ QTCSDL đã giúp ta làm những việc này. Mỗi việc thuộc nhóm chức năng nào?',
+    desc: 'Gợi ý: định nghĩa là tạo và sửa "khung" dữ liệu; cập nhật và truy xuất là làm việc với dữ liệu bên trong khung; bảo mật và an toàn là bảo vệ dữ liệu.',
+    buckets: ['Định nghĩa dữ liệu', 'Cập nhật và truy xuất dữ liệu', 'Bảo mật và an toàn CSDL'],
+    items: [['Tạo bảng Khán giả với các trường HoTen, SoDienThoai', 0, 'Tạo lập kiến trúc bảng là định nghĩa dữ liệu.'],
+      ['Đặt luật mỗi ghế chỉ thuộc một vé', 0, 'Khai báo ràng buộc toàn vẹn thuộc nhóm định nghĩa dữ liệu.'],
+      ['Sửa số điện thoại của một khán giả', 1, 'Thay đổi dữ liệu đã có là cập nhật.'],
+      ['Lấy danh sách vé đã bán trong ngày', 1, 'Lấy dữ liệu theo tiêu chí là truy xuất.'],
+      ['Chỉ cho bảo vệ xem vé, không cho sửa', 2, 'Kiểm soát quyền truy cập thuộc nhóm bảo mật.'],
+      ['Ngăn hai nhân viên cùng bán một ghế', 2, 'Kiểm soát giao dịch đồng thời để dữ liệu nhất quán thuộc nhóm an toàn.'],
+      ['Sao lưu CSDL mỗi đêm lúc 23:00', 2, 'Sao lưu dự phòng thuộc nhóm an toàn CSDL.']],
+    win: 'Tổng kết đúng ba nhóm chức năng. Ngoài ra hệ QTCSDL còn cung cấp API để các ứng dụng như App Vé Nova gửi yêu cầu tới CSDL.',
+    done: () => doneStep([['CO', 'Còn ba điểm bán vé ở ba quận: nên lưu dữ liệu ở một máy chủ hay ở nhiều nơi?']]),
+  });
+}
 function s4Arch() {
   s4Classify({
     tag: 'Thử thách cuối · Tập trung hay phân tán', title: 'Mỗi mô tả nói về CSDL tập trung hay CSDL phân tán?',
@@ -2814,11 +2842,11 @@ setHard({
     { t: 'Ràng buộc toàn vẹn', e: 'Ràng buộc kiểm tra giá trị dữ liệu, không quyết định ai được xem bảng nào.' },
     { t: 'Sao lưu dự phòng', e: 'Sao lưu để khôi phục khi có sự cố, không liên quan tới quyền xem.' },
     { t: 'Truy xuất theo tiêu chí', e: 'Truy xuất là lấy dữ liệu ra; ai được lấy thì do phân quyền quyết định.' }] }],
-  5: [{ q: 'Ứng dụng tra cứu điểm của trường cần đọc dữ liệu từ CSDL điểm. Ứng dụng kết nối với hệ QTCSDL thông qua gì?', ops: [
-    { t: 'Giao diện lập trình ứng dụng (API) do hệ QTCSDL cung cấp', ok: 1, e: 'API cho phép phần mềm ứng dụng gửi yêu cầu truy xuất tới CSDL.' },
-    { t: 'Mở trực tiếp tệp dữ liệu và tự đọc từng byte', e: 'Ứng dụng không nên đọc trực tiếp tệp của CSDL; mọi truy cập đi qua hệ QTCSDL.' },
-    { t: 'Sao chép CSDL vào điện thoại học sinh', e: 'Sao chép toàn bộ dữ liệu làm lộ thông tin và khó cập nhật.' },
-    { t: 'Gửi email cho giáo vụ mỗi lần tra cứu', e: 'Đây là quy trình thủ công, không phải cách ứng dụng làm việc với CSDL.' }] }],
+  5: [{ q: 'Trường đã dùng PostgreSQL cho CSDL điểm. Thư viện muốn dùng chính PostgreSQL đó cho CSDL mượn sách. Có được không?', ops: [
+    { t: 'Được: chức năng của hệ QTCSDL xây dựng tổng quát, một hệ QTCSDL quản trị được nhiều CSDL', ok: 1, e: 'Hệ QTCSDL không phụ thuộc vào nội dung từng CSDL; chỉ cần khai báo thêm CSDL mượn sách.' },
+    { t: 'Không: mỗi hệ QTCSDL chỉ quản trị được đúng một CSDL', e: 'Một hệ QTCSDL có thể quản trị nhiều CSDL, mỗi CSDL có tên riêng.' },
+    { t: 'Không: PostgreSQL chỉ dùng được cho dữ liệu điểm số', e: 'Hệ QTCSDL không gắn với một loại dữ liệu cụ thể.' },
+    { t: 'Được, nhưng phải gộp dữ liệu sách vào chung bảng điểm', e: 'Không cần gộp bảng; mỗi CSDL có cấu trúc riêng do người dùng định nghĩa.' }] }],
 });
 
 /* ===== Gói giao diện bảng thử thách và màu theo chương (mọi kịch bản, mọi phong cách) =====
